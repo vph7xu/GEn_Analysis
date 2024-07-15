@@ -1,0 +1,11 @@
+
+
+coin_time_mean = 100
+coin_time_L = 80
+coin_time_H = 120
+
+W2_L = 0
+W2_H = 1.6
+
+dy_L = -3
+dy_H = 2.5

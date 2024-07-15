@@ -1,0 +1,10 @@
+coin_time_mean = 100;
+coin_time_L = 75;
+coin_time_H = 105;
+
+W2_L = -1;
+W2_H = 2;
+
+dy_L = -1.5;
+dy_H = 1.5;
+
