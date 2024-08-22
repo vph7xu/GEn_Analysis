@@ -45,7 +45,7 @@ void plotW2(const char* filename, const char* printfilename, const char *kin/*, 
 	int nentries = tree->GetEntries();
 	for (int i = 0; i<nentries; ++i){
 		tree->GetEntry(i);
-		int binIndex = static_cast<int>((BPMAy-binMin)/binWidth);
+		int binIndex = static_cast<int>((BPMAx-binMin)/binWidth);
 		if (binIndex >= 0 && binIndex<nBins){
 			W2_histograms[binIndex]->Fill(W2);
 		}
@@ -108,9 +108,9 @@ void plotW2(const char* filename, const char* printfilename, const char *kin/*, 
 		
 			}
 		}
-		if (canvasIndex==0) canvas->Print(Form("%s_W2_bigbite_acceptance.pdf(",kin));
-		else if (canvasIndex==(canvasesNeeded-1)) canvas->Print(Form("%s_W2_bigbite_acceptance.pdf)",kin));
-		else canvas->Print(Form("%s_W2_bigbite_acceptance.pdf",kin));
+		if (canvasIndex==0) canvas->Print(Form("%s_W2.pdf(",printfilename));
+		else if (canvasIndex==(canvasesNeeded-1)) canvas->Print(Form("%s_W2.pdf)",printfilename));
+		else canvas->Print(Form("%s_W2.pdf",printfilename));
 
 		TGraphErrors *meanGraph = new TGraphErrors(nBins, &binCenters[0], &means[0], nullptr, &meanErrors[0]);
     		TGraphErrors *sigmaGraph = new TGraphErrors(nBins, &binCenters[0], &sigmas[0], nullptr, &sigmaErrors[0]);
@@ -122,18 +122,22 @@ void plotW2(const char* filename, const char* printfilename, const char *kin/*, 
     		graphCanvas->cd(1);
     		meanGraph->SetTitle("Mean of Gaussian Fits");
     		meanGraph->GetXaxis()->SetTitle("Bin Center");
+		meanGraph->GetXaxis()->SetLimits(-0.0016,0.0016);
     		meanGraph->GetYaxis()->SetTitle("Mean");
+		meanGraph->GetYaxis()->SetRangeUser(0.86,0.92);
    	 	meanGraph->SetMarkerStyle(7);
     		meanGraph->Draw("AP");
 
     		graphCanvas->cd(2);
     		sigmaGraph->SetTitle("Sigma of Gaussian Fits");
     		sigmaGraph->GetXaxis()->SetTitle("Bin Center");
+		sigmaGraph->GetXaxis()->SetLimits(-0.0016,0.0016);
     		sigmaGraph->GetYaxis()->SetTitle("Sigma");
+		sigmaGraph->GetYaxis()->SetRangeUser(0.1,0.2);
     		sigmaGraph->SetMarkerStyle(7);
     		sigmaGraph->Draw("AP");
 
-    		graphCanvas->Print(Form("%s_W2_QE_peak.pdf",kin));
+    		graphCanvas->Print(Form("%s_W2_QE_peak.pdf",printfilename));
 
 	}
 	

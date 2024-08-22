@@ -64,3 +64,41 @@ double getDoubleValue(const std::map<std::string, std::string>& config, const st
     }
     return 0.0; // Default value
 }
+
+//read DB
+// Function to read key-value pairs from a CSV file and store them in a map
+std::map<int, int> readCSVToMap(const std::string &filename) {
+    std::ifstream file(filename);
+    std::string line;
+    std::map<int, int> dataMap;
+
+    // Check if the file is open
+    if (file.is_open()) {
+        while (getline(file, line)) {
+            std::stringstream ss(line);
+            std::string keyStr, valueStr;
+            
+            // Read the key and value from the line
+            if (getline(ss, keyStr, ',') && getline(ss, valueStr, ',')) {
+                int key = std::stoi(keyStr);  // Convert key to int
+		int value = std::stoi(valueStr);  // Convert value to int
+                dataMap[key] = value;
+            }
+        }
+        file.close();
+    } else {
+        std::cerr << "Unable to open file";
+    }
+
+    return dataMap;
+}
+
+// Function to lookup value by key
+int lookupValue(const std::map<int, int> &dataMap, int key) {
+    auto it = dataMap.find(key);
+    if (it != dataMap.end()) {
+        return it->second;
+    } else {
+        return -1;
+    }
+}

@@ -6,6 +6,8 @@
 void raw_asymmetry(const char* filename, const char* printfilename, const char* kin){
 
 	std::map<std::string, std::string> config1 = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
+	std::map<int, int> HelicityCheck = readCSVToMap("DB/Helicity_quality.csv");
+	std::map<int, int> MollerQuality = readCSVToMap("DB/Moller_quality.csv");
 	
 	double coin_time_L = getDoubleValue(config1,"coin_time_L");
 	double coin_time_H = getDoubleValue(config1,"coin_time_H");
@@ -66,7 +68,7 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	TGraphErrors *gAsym = new TGraphErrors();
 
 	//neutron spot cut
-	TCutG *cutg = CreateOvalCut("cutg",-0.05,0,0.5,0.35,100);
+	TCutG *cutg = CreateOvalCut("cutg",0,-0.025,0.35,0.2,100);
 	TH2D* nspot_cut = new TH2D("nspot_cut","neutron spot",250,-2,2,250,-4,4);
 
 	int nentries = tree->GetEntries();
@@ -81,15 +83,15 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 			runx = runnum;
 		}
 		
-		if(runnum==runx){
+		if(runnum==runx and lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
 			
 			if (IHWP == 1) helicity *= -1*IHWP_flip;
                        	else if (IHWP == -1) helicity *= -1*IHWP_flip;
                         else continue;
 
 			if ((W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
-				if(cutg->IsInside(dy,dx)){
-				//if ((dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
+				//if(cutg->IsInside(dy,dx)){
+				if ((dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
 				nspot_cut->Fill(dy,dx);
 
 					if (helicity==1){
@@ -111,20 +113,24 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 			}
 		}
 
-		else if(runnum!=runx){
+		else if(runnum!=runx and lookupValue(HelicityCheck,runx)==1 and lookupValue(MollerQuality,runnum)==1){
 			Aexp = (Nplus-Nminus)*100/(Nplus+Nminus);
 			errAexp = 2*100*sqrt((Nplus*Nminus)*(Nplus+Nminus))/((Nplus+Nminus)*(Nplus+Nminus));
-			gAsym->SetPoint(runnum,runnum,Aexp);
-			gAsym->SetPointError(runnum,0,errAexp);
+			gAsym->SetPoint(runx,runx,Aexp);
+			gAsym->SetPointError(runx,0,errAexp);
 
-			std::cout<<"runnum : "<<runnum<<" Nplus : "<<Nplus<<" Nminus : "<<Nminus<<" Aexp : "<<Aexp<<endl;
+			std::cout<<"runnum : "<<runx<<" Nplus : "<<Nplus<<" Nminus : "<<Nminus<<" Aexp : "<<Aexp<<endl;
 
 			runx=runnum;
 			Nplus=0;
 			Nminus=0;
 		}
 
-
+		else if(runnum!=runx){
+                        runx=runnum;
+                        Nplus=0;
+                        Nminus=0;
+		}
 
 	}
 	

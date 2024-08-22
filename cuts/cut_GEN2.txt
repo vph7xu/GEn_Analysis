@@ -1,17 +1,22 @@
 coin_time_mean = 100
-coin_time_L = 80
-coin_time_H = 120
+coin_time_L = 95
+coin_time_H = 107
 
 W2_L = 0
 W2_H = 1.6
 
-dy_L = -3
-dy_H = 2.5
+dy_L = -0.75
+dy_H = 0.75
 
-dx_L = -1.5
-dx_H = 1.5
+dx_L = -0.75
+dx_H = 0.75
 
 IHWP_flip = -1
 
 run_num_L = 2100
 run_num_H = 2350
+
+N_cut_cx = 0.0
+N_cut_cy = 0.0
+N_cut_rx = 0.75
+N_cut_ry = 0.75
