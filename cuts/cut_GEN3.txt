@@ -1,15 +1,24 @@
-coin_time_mean = 100
-coin_time_L = 88
-coin_time_H = 102
+coin_time_mean = 95
+coin_time_L = 83.0
+coin_time_H = 107.0
+coin_time_width = 15
 
-W2_L = 0
-W2_H = 1.6
+W2_mean = 0.88
+W2_L = -2
+W2_H = 2
+W2_width = 0.5
 
 dy_L = -0.4
 dy_H = 0.4
 
 dx_H = 0.4
 dx_L = -0.4
+
+dx_C = -1.53
+dx_R = 0.12
+
+dy_C = 0.08 
+dy_R = 0.1
 
 IHWP_flip = 1
 

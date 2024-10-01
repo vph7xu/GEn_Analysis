@@ -165,7 +165,7 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin){
 	double dx = 0.0; 
 	double dy = 0.0; 
 	double W2 = 0.0;
-    	double Q2 = 0.0;
+    double Q2 = 0.0;
 	double coin_time = 0.0;
 
 	tree->SetBranchAddress("dx",&dx);
@@ -246,6 +246,7 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin){
 	TCanvas* c = new TCanvas("c","c",1200,1600);
 	TCanvas* c1 = new TCanvas("c1","c1",1200,1600);
 	TCanvas* c2 = new TCanvas("c2","c2",1200,1600);
+	TCanvas* c3 = new TCanvas("c3","c3",1800,2400);
 
 	c->Divide(3,2);
 	c->cd(1);
@@ -277,7 +278,7 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin){
 	gStyle->SetPalette(kRainBow);
 	h_dxdy_W2_cut->Draw("COLZ");
 	//cutg->Draw("L");
-	cutsq->Draw("L");
+	//cutsq->Draw("L");
 	h_dxdy_W2_cut->SetYTitle("HCAL_X(exp)-HCAL_X(act)");
 	h_dxdy_W2_cut->SetXTitle("HCAL_Y(exp)-HCAL_Y(act)");
 	c->cd(4);
@@ -296,7 +297,14 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin){
 	c2->cd(2);
 	h_dxW2->Draw();
 
+	c3->Divide(2,1);
+	c3->cd(1);
+	h_dxdy_W2_cut->Draw("COLZ");
+	h_dxdy_W2_cut->SetYTitle("HCAL_X(exp)-HCAL_X(act) (m)");
+	h_dxdy_W2_cut->SetXTitle("HCAL_Y(exp)-HCAL_Y(act) (m)");
+	cutsq->Draw("L");
+
 	c1->Print(Form("../plots/%s_dxdyplots_withW2Cut.pdf(",printfilename));
 	c2->Print(Form("../plots/%s_dxdyplots_withW2Cut.pdf)",printfilename));
-
+	c3->SaveAs(Form("../plots/%s_dxdyplots_withW2Cut.png",printfilename));
 }
