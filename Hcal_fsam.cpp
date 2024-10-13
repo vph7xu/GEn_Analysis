@@ -1,14 +1,17 @@
 #include "cuts.h"
 #include "plotdxdy.h"
 #include <cmath>
+#include <fstream>
+
 
 void Hcal_fsam(const char* filename, const char* printfilename, const char* kin){
+
 	std::map<std::string, std::string> config = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
     cuts cutsobject;
     cutsobject.parsecuts(config);
 
-        TFile* file = TFile::Open(filename);
-        TTree* tree = (TTree*)file->Get("Tout");
+    TFile* file = TFile::Open(filename);
+    TTree* tree = (TTree*)file->Get("Tout");
 
 	double eHCAL = 0.0;
 	double xHCAL = 0.0;
@@ -19,6 +22,10 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	double W2 = 0.0;
 	double coin_time = 0.0;
 	double trP_sbs = 0.0;
+	double nblk_HCAL = 0.0;
+	double ntrack_sbs = 0.0;
+	double hcal_clus_id[1000];
+
 	
 	tree->SetBranchAddress("eHCAL",&eHCAL);
 	tree->SetBranchAddress("xHCAL",&xHCAL);
@@ -29,6 +36,9 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	tree->SetBranchAddress("W2",&W2);
 	tree->SetBranchAddress("coin_time",&coin_time);
 	tree->SetBranchAddress("trP_sbs",&trP_sbs);
+	tree->SetBranchAddress("hcal_clus_id",&hcal_clus_id);
+	tree->SetBranchAddress("nblk_HCAL",&nblk_HCAL);
+	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
 
 	double mp = 0.938272;
 	double fs = 0;
@@ -43,6 +53,8 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	TH2D *hdxdy = new TH2D("hdxdy","dx vs dy distribution",400,-2,2,800,-4,4);
 	TH2D *heratio = new TH2D("heratio", "Actual energy dep/expected energy dep vs xHCAL",100,-3,1.5,200,0.0,0.4);
 
+	TH2D *hfsvblkid = new TH2D("hfsvblkid","sampling fraction vs blk id",300,0,300,200,0.025,0.3);
+
 	TH1D *hcointime = new TH1D("hcointime", "cointime distribution",1000,40,150);
 	TH1D *hW2 = new TH1D("hW2","W2 distribution",1000,-4,4);
 
@@ -51,8 +63,10 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	for (int i = 0; i<nentries; i++){
 		tree->GetEntry(i);
 		
-		elastic_cut = (((pow((dy-cutsobject.dy_C)/cutsobject.dy_R,2)+pow((dx-cutsobject.dx_C)/cutsobject.dx_R,2))<=2.5)
-		&&(abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width));//? true:false;
+		if (ntrack_sbs>0){
+		
+		elastic_cut = (/*((pow((dy-cutsobject.dy_C)/cutsobject.dy_R,2)+pow((dx-cutsobject.dx_C)/cutsobject.dx_R,2))<=2.5)
+		&&*/(abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width));//? true:false;
 		
 		//std::cout<<"elastic cut : "<<elastic_cut<<endl;
 		hcointime->Fill(coin_time);
@@ -77,12 +91,19 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 			heratio->Fill(xHCAL,eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
 			her->Fill(eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
 			hpN->Fill(trP_sbs);
+
+			for (int i = 0; i<nblk_HCAL; i++){
+				hfsvblkid->Fill(hcal_clus_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
+			}
+
 			//hdxdy->Fill(dy,dx);
 		}
-
+		}
                 if (i %1000 == 0 ) std::cout << (i * 100.0/ nentries) << "% \r";
                 std::cout.flush();
 	}
+
+
 
 	//for (int i = 1; i<=(hfsample->GetNbinsX());i++){
 
@@ -105,12 +126,25 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 
 	TProfile *profX = hfsample->ProfileX();
 	TProfile *profX1 = heratio->ProfileX();
+	TProfile *profX2 = hfsvblkid->ProfileX();
+
+	// get the sampling fraction for each bin written to txt file with the index
+	std::ofstream outFile("sampling_fractions_each_blk.txt");
+	double sampling_fraction_means [300];
+
+	for (int i = 1; i <=profX2->GetNbinsX();++i){
+
+		sampling_fraction_means[i-1] = profX2->GetBinContent(i);
+		outFile<<i-1<<" "<<sampling_fraction_means[i-1]<<"\n";
+	}
+
 
 	TCutG *cut_elipse = CreateOvalCut("cut_elipse",cutsobject.dy_C,cutsobject.dx_C,cutsobject.dy_R*sqrt(2.5),cutsobject.dx_R*sqrt(2.5),100); 
 
 	TCanvas *c = new TCanvas("c","c",2400,3200);
-	TCanvas *c1 = new TCanvas("c1","c1",1200,3200);
-	TCanvas *c2 = new TCanvas("c2","c2",1200,3200);
+	TCanvas *c1 = new TCanvas("c1","c1",2400,3200);
+	TCanvas *c2 = new TCanvas("c2","c2",2400,3200);
+	TCanvas *c3 = new TCanvas("c3","c3",2400,3200);
 	
 	c->Divide(1,2);
 	c->cd(1);
@@ -177,9 +211,17 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	her->SetXTitle("eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp)");
 	her->Draw();
 
+	c3->Divide(2,2);
+	c3->cd(1);
+	hfsvblkid->Draw("COLZ");
+	profX2->SetMarkerStyle(20);
+	profX2->SetLineColor(kBlack);
+	profX2->Draw("SAME");
+
+
 	c->SaveAs(Form("%s_test_fs.png",printfilename));
 	c->Print(Form("%s_test_fs.pdf(",printfilename));
 	c1->Print(Form("%s_test_fs.pdf",printfilename));
-	c2->Print(Form("%s_test_fs.pdf)",printfilename));
-
+	c2->Print(Form("%s_test_fs.pdf",printfilename));
+	c3->Print(Form("%s_test_fs.pdf)",printfilename));
 }

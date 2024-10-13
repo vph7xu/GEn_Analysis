@@ -1,0 +1,31 @@
+coin_time_mean = 103
+coin_time_L = 90
+coin_time_H = 114
+coin_time_width = 8 
+
+W2_mean = 0.88
+W2_L = 0
+W2_H = 1.6
+W2_width = 0.5
+
+dy_L = -0.5
+dy_H = 0.5
+
+dx_L = -0.5
+dx_H = 0.5
+
+dx_C = -2.7
+dx_R = 0.12
+
+dy_C = 0.2
+dy_R = 0.1
+
+IHWP_flip = -1
+
+run_num_L = 2100
+run_num_H = 2350
+
+N_cut_cx = 0.0
+N_cut_cy = 0.0
+N_cut_rx = 0.75
+N_cut_ry = 0.75
