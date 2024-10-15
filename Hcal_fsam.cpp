@@ -25,7 +25,8 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	double nblk_HCAL = 0.0;
 	double ntrack_sbs = 0.0;
 	double hcal_clus_id[1000];
-
+	double hcal_clus_mem_id[1000];
+	double hcal_clus_mem_e[1000];
 	
 	tree->SetBranchAddress("eHCAL",&eHCAL);
 	tree->SetBranchAddress("xHCAL",&xHCAL);
@@ -37,6 +38,8 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	tree->SetBranchAddress("coin_time",&coin_time);
 	tree->SetBranchAddress("trP_sbs",&trP_sbs);
 	tree->SetBranchAddress("hcal_clus_id",&hcal_clus_id);
+	tree->SetBranchAddress("hcal_clus_mem_id",&hcal_clus_mem_id);
+	tree->SetBranchAddress("hcal_clus_mem_e",&hcal_clus_mem_e);
 	tree->SetBranchAddress("nblk_HCAL",&nblk_HCAL);
 	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
 
@@ -93,7 +96,9 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 			hpN->Fill(trP_sbs);
 
 			for (int i = 0; i<nblk_HCAL; i++){
-				hfsvblkid->Fill(hcal_clus_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
+				//hfsvblkid->Fill(hcal_clus_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
+				//hfsvblkid->Fill(hcal_clus_mem_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
+				hfsvblkid->Fill(hcal_clus_mem_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
 			}
 
 			//hdxdy->Fill(dy,dx);
