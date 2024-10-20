@@ -14,6 +14,15 @@ dy_H = 0.4
 dx_H = 0.4
 dx_L = -0.4
 
+dy_p_L = -0.4
+dy_p_H = 0.4
+
+dx_p_L = -1.78
+dx_p_H = -1.28
+
+dy_ac_L = -1.5
+dy_ac_H = 1.0
+
 dx_C = -1.53
 dx_R = 1.0
 

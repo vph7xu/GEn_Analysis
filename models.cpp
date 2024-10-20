@@ -124,8 +124,16 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	double dy_L = getDoubleValue(config,"dy_L");
 	double dy_H = getDoubleValue(config,"dy_H");
 
+	double dx_L = getDoubleValue(config,"dx_L");
+	double dx_H = getDoubleValue(config,"dx_H");
+
+	double dy_ac_L = getDoubleValue(config,"dy_ac_L");
+	double dy_ac_H = getDoubleValue(config,"dy_ac_H");
+
 	double run_num_L = getDoubleValue(config,"run_num_L");
 	double run_num_H = getDoubleValue(config,"run_num_H");
+
+	double IHWP_flip = getDoubleValue(config,"IHWP_flip");
 
 	//end of parsing cuts
 	
@@ -141,6 +149,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	hist_n = sim_histograms.first;
 
 	int runnum = 0;
+	int helicity = 0;
+	int IHWP = 0;
         double dx = 0.0;
         double dy = 0.0;
         double W2 = 0.0;
@@ -149,6 +159,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	double ntrack = 0;
 
 	tree->SetBranchAddress("runnum",&runnum);
+	tree->SetBranchAddress("helicity",&helicity);
+	tree->SetBranchAddress("IHWP",&IHWP);
         tree->SetBranchAddress("dx",&dx);
         tree->SetBranchAddress("dy",&dy);
         tree->SetBranchAddress("W2",&W2);
@@ -171,6 +183,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	TH1D *h_dx_sim_n_bkg = new TH1D("h_dx_sim_n_bkg","dx from simulation",100,-4,3);
 
         int nentries = tree->GetEntries();
+        double Nplus = 0.0;
+        double Nminus = 0.0;
 
 	std::cout<<"coin_L and H : "<<coin_time_L<<"  "<<coin_time_H<<endl;
 	std::cout<<"dx_L and H : "<<dy_L <<" "<<dy_H <<endl;
@@ -180,6 +194,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
                 tree->GetEntry(i);
                 if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
                 //before adding a cut on W2
+                	helicity = IHWP*IHWP_flip*helicity;
+
                 	h_dx->Fill(dx);
                 	h_dy->Fill(dy);
                 	h_dxdy->Fill(dy,dx);
@@ -199,7 +215,18 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
                 	if((W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H)){
 
                 		h_dxdy_bkg->Fill(dy,dx);
-                	}	
+                	}
+
+                	//inelastic asymmetry using anticut, no W2 cut here 
+                	if((coin_time_L<coin_time and coin_time<coin_time_H) and (dx_L<dx and dx<dx_H) and (dy_L>dy or dy>dy_H)){
+                		if (helicity == 1){
+                			Nplus += 1;
+                		}
+                		else if (helicity == -1){
+                			Nminus += 1;
+                		}
+                	}
+                	
         	}
                 if (i %1000 == 0 ) std::cout << (i * 100.0/ nentries) << "% \r";
                 std::cout.flush();
@@ -208,7 +235,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
         //add lines to W2 plot to show the cut
 	//
 	
-	hist_bkg=bkg_model(h_dxdy_bkg, -1.5, 1.0, kin);//background dist
+	hist_bkg=bkg_model(h_dxdy_bkg, dy_ac_L, dy_ac_H, kin);//background dist, hard coded for GEN3
 	
 	//scale everything
 	double scale_data = h_dx_W2_cut->Integral();
@@ -274,6 +301,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	h_dx_W2_cut->Scale(scale_data);
 	
 	h_dx_W2_cut->GetXaxis()->SetRangeUser(-6,6);
+	h_dx_W2_cut->SetMarkerStyle(20);
+	h_dx_W2_cut->SetMarkerColor(kBlack);
 
 	hist_p->SetFillColorAlpha(6,0.5);
 	hist_p->SetFillStyle(3004);
@@ -293,12 +322,27 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 
 
 	//fill up the total model histogram
-	
+
 	int nBins = h_dx_sim_n_bkg->GetNbinsX();
 
 	for (int i = 1; i<=nBins; ++i){
 		h_dx_sim_n_bkg->SetBinContent(i,(hist_p->GetBinContent(i)+hist_n->GetBinContent(i)+hist_bkg->GetBinContent(i)));	
 	}
+
+	//get the inelastic fraction
+	double inelastic_events = 0.0; 
+	double QE_events = 0.0;
+	double inelastic_frac = 0.0;
+	double errinelastic_frac = 0.0;
+
+	inelastic_events = hist_bkg->Integral(hist_bkg->FindBin(dx_L),hist_bkg->FindBin(dx_H)); //integrate background hist to get inelastic events under the neutron peak
+	QE_events = h_dx_W2_cut->Integral(h_dx_W2_cut->FindBin(dx_L),h_dx_W2_cut->FindBin(dx_H)); //integrate data to get the QE neutrons within the dx cut
+	inelastic_frac = inelastic_events/QE_events;// this is not correct should remove other fractions before doing this
+	errinelastic_frac = (inelastic_events/QE_events)*sqrt((1/inelastic_events)+(1/QE_events)); // this is not correct should remove other fractions before doing this
+	
+	//get the inelastic asymmetry
+	double Ain = (Nplus-Nminus)/(Nplus+Nminus);
+	double errAin = 2*sqrt((Nplus*Nminus)*(Nplus+Nminus))/((Nplus+Nminus)*(Nplus+Nminus));;
 
         TLegend *legend = new TLegend(0.6,0.6,0.9,0.9);
         legend->AddEntry(h_dx_W2_cut,"Data","lf");
@@ -308,15 +352,16 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
         legend->AddEntry(h_dx_sim_n_bkg,"full model","lf");
         //legend->Draw();
 
-	TCanvas* cfit = new TCanvas("cfit","Fit with models",800,1200);
+	TCanvas* cfit = new TCanvas("cfit","Fit with models",3600,3000);
 	cfit->Divide(2,2);
 	cfit->cd(1);
 	h_dx_W2_cut->SetXTitle("HCAL_X(exp)-HCAL_X(act) (m)");
-	h_dx_W2_cut->Draw("HIST");
+	h_dx_sim_n_bkg->Draw("HIST");
+	h_dx_W2_cut->Draw("HIST SAME");
 	hist_p->Draw("HIST SAME");
 	hist_n->Draw("HIST SAME");
 	hist_bkg->Draw("HIST SAME");
-	h_dx_sim_n_bkg->Draw("HIST SAME");
+
 	legend->Draw();
 	//h_dx_sim_n_bkg->Add(hist_p);
 	//h_dx_sim_n_bkg->Add(hist_n);
@@ -328,8 +373,19 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	cfit->cd(3);
 	h_coin_time->Draw();
 
+
+
 	std::cout<<" Neutrons : "<<hist_n->Integral()<<endl;
 
+
+	std::cout<<"Nplus : "<<Nplus<<endl;
+	std::cout<<"Nminus : "<<Nminus<<endl;
+	std::cout<<"Ain : "<<Ain<<endl;
+	std::cout<<"errAin : "<<errAin<<endl;
+	std::cout<<"inelastic_events : "<< inelastic_events<<endl;
+	std::cout<<"QE_events : "<<QE_events<<endl;
+	std::cout<<"inelastic fraction (double counting) : "<<inelastic_frac<<endl; //not correct , double counting
+	std::cout<<"error inelastic fraction (double counting) : "<<errinelastic_frac<<endl; //not correct , double counting
 	//fit_data->Draw();
 
 	cfit->Print(Form("models_%s.pdf",kin));

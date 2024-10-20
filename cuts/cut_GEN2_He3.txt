@@ -8,11 +8,20 @@ W2_L = 0
 W2_H = 1.6
 W2_width = 0.5
 
-dy_L = -0.5
-dy_H = 0.5
+dy_L = -0.9
+dy_H = 0.1
 
 dx_L = -0.5
 dx_H = 0.5
+
+dy_p_L = -0.9
+dy_p_H = 0.1
+
+dx_p_L = -3.0
+dx_p_H = -2.0
+
+dy_ac_L = -3.0
+dy_ac_H = 2.5
 
 dx_C = -2.7
 dx_R = 0.12

@@ -1,7 +1,7 @@
 coin_time_mean = 95
 coin_time_L = 83.0
 coin_time_H = 107.0
-coin_time_width = 15
+coin_time_width = 8
 
 W2_mean = 0.88
 W2_L = -2

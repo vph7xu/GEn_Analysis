@@ -89,28 +89,29 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	tree->SetBranchAddress("vz",&vz);
 
 	//cut histograms
-	TH1D *h_coin_time = new TH1D("h_coin_time","cointime", 1000,40,140);
+	TH1D *h_coin_time = new TH1D("h_coin_time","cointime (no cuts)", 1000,40,140);
 	TH1D *h_W2 = new TH1D("h_W2","W2",1000,-4,4);
+	TH2D *h_dxdy_nocuts = new TH2D("h_dxdy_nocuts","dxdy (no cuts)",200,-4,4,200,-4,4); 
 	TH2D *h_dxdy = new TH2D("h_dxdy","dxdy (cointime cut included)",200,-4,4,200,-4,4);
 	TH2D *h_dxdy_cut_cointime_W2 = new TH2D("h_dxdy_cut_cointime_W2","dxdy with cointime and W2 cuts",200,-4,4,200,-4,4);
 
 	//cutting on Ppar
-	TH1D *h_W2_cut_Ppar = new TH1D("h_W2_cut_Ppar","W2 distribution only with Ppar cut", 200,-2,4);
-	TH1D *h_W2_cut_Cointime_Ppar = new TH1D("h_W2_cut_Cointime_Ppar","W2 distribution with Cointime and Ppar cut", 200,-2,4);
-	TH1D *h_W2_cut_QE = new TH1D("h_W2_cut_QE","W2 distribution with coin, dx, and dy", 200,-2,4);
-	TH1D *h_W2_cut_QEnPpar = new TH1D("h_W2_cut_QEnPpar","W2 distribution with coin, dx, dy and Ppar cuts", 200,-2,4);
+	TH1D *h_W2_cut_Ppar = new TH1D("h_W2_cut_Ppar","W2 distribution only with Ppar cut", 100,-2,4);
+	TH1D *h_W2_cut_Cointime_Ppar = new TH1D("h_W2_cut_Cointime_Ppar","W2 distribution with Cointime and Ppar cut", 100,-2,4);
+	TH1D *h_W2_cut_QE = new TH1D("h_W2_cut_QE","W2 distribution with coin, dx, and dy", 100,-2,4);
+	TH1D *h_W2_cut_QEnPpar = new TH1D("h_W2_cut_QEnPpar","W2 distribution with coin, dx, dy and Ppar cuts", 100,-2,4);
 
 	TH1D *h_coin_time_cut_Ppar = new TH1D("h_coin_time_cut_Ppar","cointime distribution only with Ppar cut",1000, 40, 140);
 	TH2D *h_dxdy_cut_Ppar = new TH2D("h_dxdy_cut_Ppar","dxdy only with Ppar cut",200,-4,4,200,-4,4);
-	TH2D *h_dxdy_cut_Ppar_cointime = new TH2D("h_dxdy_cut_Ppar","dxdy Ppar and cointime cut ",200,-4,4,200,-4,4);
-	TH2D *h_dxdy_cut_Ppar_cointime_W2 = new TH2D("h_dxdy_cut_Ppar_W2","dxdy Ppar, cointime and W2 cut ",200,-4,4,200,-4,4);
+	TH2D *h_dxdy_cut_Ppar_cointime = new TH2D("h_dxdy_cut_Ppar_cointime","dxdy Ppar and cointime cut ",200,-4,4,200,-4,4);
+	TH2D *h_dxdy_cut_Ppar_cointime_W2 = new TH2D("h_dxdy_cut_Ppar_cointime_W2","dxdy Ppar, cointime and W2 cut ",200,-4,4,200,-4,4);
 
 	//no cuts histogram
 	TH2D *h_Ppar_coin_time = new TH2D("h_Ppar_coin_time","Ppar v cointime distribution",1000,40,140,200,-5,5);
 
 	//correlation plot
-	TH2D *h_Ppar_pNexpect_cut_cointime = new TH2D("h_Ppar_pNexpect_cut_cointime","Ppar v |q| only with coin cut ", 200, 4, 6, 200,-5, 5);
-	TH2D *h_Ppar_pNexpect_cut_cointime_dxdy = new TH2D("h_Ppar_pNexpect_cut_cointime_dxdy","Ppar v |q| with coin, dx and dy cuts", 200, 4, 6, 200,-5, 5);
+	TH2D *h_Ppar_pNexpect_cut_cointime = new TH2D("h_Ppar_pNexpect_cut_cointime","Ppar v |q| only with coin cut ", 200, 0, 4, 200,-5, 5);
+	TH2D *h_Ppar_pNexpect_cut_cointime_dxdy = new TH2D("h_Ppar_pNexpect_cut_cointime_dxdy","Ppar v |q| with coin, dx and dy cuts", 200, 0, 4, 200,-5, 5);
 	TH2D *h_Ppar_vz_cut_cointime = new TH2D("h_Ppar_vz_cut_cointime","Ppar v vz only with coin cut", 200,-0.3,0.3,200,-5,5);
 	TH2D *h_Ppar_vz_cut_cointime_dxdy = new TH2D("h_Ppar_vz_cut_cointime_dxdy","Ppar v vz with coin, dx and dy cuts", 200,-0.3,0.3,200,-5,5);
 	TH2D *h_Ppar_eHCAL_cut_cointime = new TH2D("h_Ppar_eHCAL_cut_cointimee","Ppar v eHCAL (KinE) only with coin cut",200,0,10,200,-5,5);
@@ -119,8 +120,8 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	TH2D *h_Ppar_thetapq_cut_cointime_dxdy = new TH2D("h_Ppar_thetapq_cut_cointime_dxdy","Ppar v theta_pq with coin, dx and dy cut",200,-0.1,0.1,200,-5,5);	
 
 	//Pmiss correlation plot
-	TH2D *h_Pmiss_pNexpect_cut_cointime = new TH2D("h_Pmiss_pNexpect_cut_cointime","Pmiss v |q| only with coin cut ", 200, 4, 6, 200,0, 6);
-	TH2D *h_Pmiss_pNexpect_cut_cointime_dxdy = new TH2D("h_Pmiss_pNexpect_cut_cointime_dxdy","Pmiss v |q| with coin, dx and dy cuts", 200, 4, 6, 200, 0, 6);
+	TH2D *h_Pmiss_pNexpect_cut_cointime = new TH2D("h_Pmiss_pNexpect_cut_cointime","Pmiss v |q| only with coin cut ", 200, 0, 4, 200,0, 6);
+	TH2D *h_Pmiss_pNexpect_cut_cointime_dxdy = new TH2D("h_Pmiss_pNexpect_cut_cointime_dxdy","Pmiss v |q| with coin, dx and dy cuts", 200, 0, 4, 200, 0, 6);
 	TH2D *h_Pmiss_vz_cut_cointime = new TH2D("h_Pmiss_vz_cut_cointime","Pmiss v vz only with coin cut", 200,-0.3,0.3,200,0,6);
 	TH2D *h_Pmiss_vz_cut_cointime_dxdy = new TH2D("h_Pmiss_vz_cut_cointime_dxdy","Pmiss v vz with coin, dx and dy cuts", 200,-0.3,0.3,200,0,6);
 	TH2D *h_Pmiss_eHCAL_cut_cointime = new TH2D("h_Pmiss_eHCAL_cut_cointimee","Pmiss v eHCAL (KinE) only with coin cut",200,0,10,200,0,6);
@@ -204,13 +205,13 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 			//KinE += hcal_clus_e[j]/sampling_fractions_each_blk[hcal_clus_id[j]];
 			KinE += hcal_clus_mem_e[j]/sampling_fractions_each_blk[hcal_clus_mem_id[j]];
 
-			if (i%1000 == 0){ 
-				std::cout<<"event : "<<i<<"blk id: "<<hcal_clus_mem_id[j]<<" blk energy : "<<hcal_clus_mem_e[j]<<" blk sf : " <<sampling_fractions_each_blk[hcal_clus_mem_id[j]]<<endl;
-			}
+			//if (i%1000 == 0){ 
+			//	std::cout<<"event : "<<i<<"blk id: "<<hcal_clus_mem_id[j]<<" blk energy : "<<hcal_clus_mem_e[j]<<" blk sf : " <<sampling_fractions_each_blk[hcal_clus_mem_id[j]]<<endl;
+			//}
 		}
-		if (i%1000 == 0){ 
-			std::cout<<"event : "<<i<<" kinE : "<<KinE<<endl;
-		}
+		//if (i%1000 == 0){ 
+		//	std::cout<<"event : "<<i<<" kinE : "<<KinE<<endl;
+		//}
 		double Pperp = theta_pq * pN_expect;
 		double realPperp = (theta_pq * sqrt(-pow(0.938,2)+pow((KinE+0.938),2))); // assuming mN and mP is equal
 		double realPpar = (cos(theta_pq) * sqrt(-pow(0.938,2)+pow((KinE+0.938),2)))-pN_expect;
@@ -219,6 +220,7 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 		//Filling cut histograms
 		h_coin_time->Fill(coin_time);
 		h_W2->Fill(W2);
+		h_dxdy_nocuts->Fill(dy,dx);
 
 		//Filling Ppar vs cointime
 		h_Ppar_coin_time->Fill(coin_time,realPpar);
@@ -393,16 +395,18 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	TCanvas* c16 = new TCanvas("c16","c16",3200,3600);
 	TCanvas* c17 = new TCanvas("c17","c17",3200,3600);
 	TCanvas* c18 = new TCanvas("c18","c18",3200,3600);
+	TCanvas* c19 = new TCanvas("c19","c19",3200,3600);
 
+	//c
     c->Divide(2,2);
 	c->cd(1);
 	h_theta_pq->Draw();
 	c->cd(2);
 	h_Pperp->Draw();
 	c->cd(3);
-	h_dx_Pperp->Draw();
+	h_dx_Pperp->Draw("COLZ");
 	c->cd(4);
-	h_Pperp_W2->Draw();
+	h_Pperp_W2->Draw("COLZ");
 
 
 	//ccuts
@@ -420,7 +424,7 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	ccuts->cd(2);
 	h_W2->Draw();
 	ccuts->cd(3);
-	h_dxdy->Draw();
+	h_dxdy->Draw("COLZ");
 	cutsq->Draw("same");
 
 	//c1
@@ -434,11 +438,11 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     c1->cd(3);
 	h_dx_W2_cut_coin_time->SetXTitle("W2 (GeV)");
 	h_dx_W2_cut_coin_time->SetYTitle("dx (m)");
-    h_dx_W2_cut_coin_time->Draw();
+    h_dx_W2_cut_coin_time->Draw("COLZ");
     c1->cd(4);
 	h_Pperp_W2_cut_QE->SetXTitle("W2 (GeV)");
 	h_Pperp_W2_cut_QE->SetYTitle("Pseudo Pmiss perp (GeV)");
-    h_Pperp_W2_cut_QE->Draw();
+    h_Pperp_W2_cut_QE->Draw("COLZ");
 
     //c2
     c2->Divide(2,2);
@@ -451,11 +455,11 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     c2->cd(3);
     h_dx_W2_cut_coin_time->SetXTitle("W2 (GeV)");
     h_dx_W2_cut_coin_time->SetYTitle("dx (m)");
-    h_dx_W2_cut_coin_time->Draw();
+    h_dx_W2_cut_coin_time->Draw("COLZ");
     c2->cd(4);
     h_Pperp_W2_cut_coin_time_and_dx->SetXTitle("W2 (GeV)");
     h_Pperp_W2_cut_coin_time_and_dx->SetYTitle("Pseudo Pmiss perp (GeV)");
-    h_Pperp_W2_cut_coin_time_and_dx->Draw();
+    h_Pperp_W2_cut_coin_time_and_dx->Draw("COLZ");
 
     //c3
 	c3->Divide(2,2);
@@ -463,9 +467,9 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	h_realPperp->SetXTitle("Pmiss perp (GeV)");
 	h_realPperp->Draw();
 	c3->cd(2);
-	h_dx_realPperp->Draw();
+	h_dx_realPperp->Draw("COLZ");
 	c3->cd(3);
-	h_realPperp_W2->Draw();
+	h_realPperp_W2->Draw("COLZ");
 
 	//c4
 	c4->Divide(2,2);
@@ -478,11 +482,11 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     c4->cd(3);
 	h_dx_W2_cut_coin_time->SetXTitle("W2 (GeV)");
 	h_dx_W2_cut_coin_time->SetYTitle("dx (m)");
-    h_dx_W2_cut_coin_time->Draw();
+    h_dx_W2_cut_coin_time->Draw("COLZ");
     c4->cd(4);
 	h_realPperp_W2_cut_QE->SetXTitle("W2 (GeV)");
 	h_realPperp_W2_cut_QE->SetYTitle("Pmiss perp (GeV)");
-    h_realPperp_W2_cut_QE->Draw();
+    h_realPperp_W2_cut_QE->Draw("COLZ");
 
     //c5
     c5->Divide(2,2);
@@ -495,11 +499,11 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     c5->cd(2);
     h_dx_W2_cut_coin_time->SetXTitle("W2 (GeV)");
     h_dx_W2_cut_coin_time->SetYTitle("dx (m)");
-    h_dx_W2_cut_coin_time->Draw();
+    h_dx_W2_cut_coin_time->Draw("COLZ");
     c5->cd(4);
     h_realPperp_W2_cut_coin_time_and_dx->SetXTitle("W2 (GeV)");
     h_realPperp_W2_cut_coin_time_and_dx->SetYTitle("Pmiss perp (GeV)");
-    h_realPperp_W2_cut_coin_time_and_dx->Draw();
+    h_realPperp_W2_cut_coin_time_and_dx->Draw("COLZ");
 
     c51->Divide(2,2);
     c51->cd(1);
@@ -511,11 +515,11 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     c51->cd(2);
     h_dx_W2_cut_coin_time->SetXTitle("W2 (GeV)");
     h_dx_W2_cut_coin_time->SetYTitle("dx (m)");
-    h_dx_W2_cut_coin_time->Draw();
+    h_dx_W2_cut_coin_time->Draw("COLZ");
     c51->cd(4);
     h_realPperp_W2_cut_coin_time->SetXTitle("W2 (GeV)");
     h_realPperp_W2_cut_coin_time->SetYTitle("Pmiss perp (GeV)");
-    h_realPperp_W2_cut_coin_time->Draw();
+    h_realPperp_W2_cut_coin_time->Draw("COLZ");
 
 
     //c6
@@ -524,9 +528,9 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	h_realPpar->SetXTitle("Pmiss par (GeV)");
 	h_realPpar->Draw();
 	c6->cd(2);
-	h_dx_realPpar->Draw();
+	h_dx_realPpar->Draw("COLZ");
 	c6->cd(3);
-	h_realPpar_W2->Draw();
+	h_realPpar_W2->Draw("COLZ");
 
 	//c7
 	c7->Divide(2,2);
@@ -539,11 +543,11 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     c7->cd(3);
 	h_dx_W2_cut_coin_time->SetXTitle("W2 (GeV)");
 	h_dx_W2_cut_coin_time->SetYTitle("dx (m)");
-    h_dx_W2_cut_coin_time->Draw();
+    h_dx_W2_cut_coin_time->Draw("COLZ");
     c7->cd(4);
 	h_realPpar_W2_cut_QE->SetXTitle("W2 (GeV)");
 	h_realPpar_W2_cut_QE->SetYTitle("Pmiss par (GeV)");
-    h_realPpar_W2_cut_QE->Draw();
+    h_realPpar_W2_cut_QE->Draw("COLZ");
 
     //c8
     c8->Divide(2,2);
@@ -556,11 +560,11 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     c8->cd(2);
     h_dx_W2_cut_coin_time->SetXTitle("W2 (GeV)");
     h_dx_W2_cut_coin_time->SetYTitle("dx (m)");
-    h_dx_W2_cut_coin_time->Draw();
+    h_dx_W2_cut_coin_time->Draw("COLZ");
     c8->cd(4);
     h_realPpar_W2_cut_coin_time_and_dx->SetXTitle("W2 (GeV)");
     h_realPpar_W2_cut_coin_time_and_dx->SetYTitle("Pmiss par (GeV)");
-    h_realPpar_W2_cut_coin_time_and_dx->Draw();
+    h_realPpar_W2_cut_coin_time_and_dx->Draw("COLZ");
 
     c81->Divide(2,2);
     c81->cd(1);
@@ -572,11 +576,11 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     c81->cd(2);
     h_dx_W2_cut_coin_time->SetXTitle("W2 (GeV)");
     h_dx_W2_cut_coin_time->SetYTitle("dx (m)");
-    h_dx_W2_cut_coin_time->Draw();
+    h_dx_W2_cut_coin_time->Draw("COLZ");
     c81->cd(4);
     h_realPpar_W2_cut_coin_time->SetXTitle("W2 (GeV)");
     h_realPpar_W2_cut_coin_time->SetYTitle("Pmiss par (GeV)");
-    h_realPpar_W2_cut_coin_time->Draw();
+    h_realPpar_W2_cut_coin_time->Draw("COLZ");
 
     //c9
     c9->Divide(2,2);
@@ -738,6 +742,22 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     h_Pmiss_thetapq_cut_cointime_dxdy->SetYTitle("Pmiss (GeV)");
     h_Pmiss_thetapq_cut_cointime_dxdy->Draw("COLZ");
 
+    c19->Divide(2,2);
+    c19->cd(1);
+    h_coin_time->SetXTitle("cointime (ns)");
+    h_coin_time->Draw();
+    c19->cd(2);
+    h_dxdy_nocuts->SetXTitle("dy (m)");
+    h_dxdy_nocuts->SetYTitle("dx (m)");
+    h_dxdy_nocuts->Draw("COLZ");
+    c19->cd(3);
+    h_coin_time_cut_Ppar->SetXTitle("cointime (ns)");
+    h_coin_time_cut_Ppar->Draw();
+    c19->cd(4);
+    h_dxdy_cut_Ppar->SetXTitle("dy (m)");
+    h_dxdy_cut_Ppar->SetYTitle("dx (m)");
+    h_dxdy_cut_Ppar->Draw("COLZ");
+
 
     ccuts->Print(Form("%s_Pperp.pdf(",kin));
 	c->Print(Form("%s_Pperp.pdf",kin));
@@ -760,5 +780,7 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	c15->Print(Form("%s_Pperp.pdf",kin));
 	c16->Print(Form("%s_Pperp.pdf",kin));
 	c17->Print(Form("%s_Pperp.pdf",kin));
-	c18->Print(Form("%s_Pperp.pdf)",kin));
+	c18->Print(Form("%s_Pperp.pdf",kin));
+	c19->Print(Form("%s_Pperp.pdf)",kin));
+
 }

@@ -23,6 +23,12 @@ public:
   double dy_H = 0.0;
   double dx_L = 0.0;
   double dx_H = 0.0;
+  double dy_p_L = 0.0;
+  double dy_p_H = 0.0;
+  double dx_p_L = 0.0;
+  double dx_p_H = 0.0;
+  double dy_ac_L = 0.0;
+  double dy_ac_H = 0.0;
   double dx_C = 0.0;
   double dx_R = 0.0;
   double dy_C = 0.0;
@@ -53,7 +59,16 @@ public:
 
         dx_L = getDoubleValue(config,"dx_L");
         dx_H = getDoubleValue(config,"dx_H");
-        
+
+        dy_p_L = getDoubleValue(config,"dy_p_L");
+        dy_p_H = getDoubleValue(config,"dy_p_H");
+
+        dx_p_L = getDoubleValue(config,"dx_p_L");
+        dx_p_H = getDoubleValue(config,"dx_p_H");
+
+        dy_ac_L = getDoubleValue(config,"dy_ac_L");
+        dy_ac_H = getDoubleValue(config,"dy_ac_H");
+
         dx_C = getDoubleValue(config,"dx_C");
         dx_R = getDoubleValue(config,"dx_R");
         

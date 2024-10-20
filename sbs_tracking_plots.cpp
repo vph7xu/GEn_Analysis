@@ -111,7 +111,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 		cutW2_coin_time = abs(W2-0.88)<0.9&&abs(coin_time-95)<8;
 		if (cutW2_coin_time) h_dxdy->Fill(dy,dx);
 
-		cutQE = (abs(W2-0.88)<0.9&&abs(coin_time-95)<8&&(sqrt(pow((dx+1.55)/0.5,2)+pow((dy-0.1)/0.5,2)))<1);
+		cutQE = /*(abs(W2-0.88)<0.9&&*/abs(coin_time-95)<8/*&&(sqrt(pow((dx+1.55)/0.5,2)+pow((dy-0.1)/0.5,2)))<1)*/;
 		if (cutQE){
 			h_delta_ptheta->Fill(ptheta-ptheta_cal);
 			h_delta_pphi->Fill(pphi-pphi_cal+M_PI);

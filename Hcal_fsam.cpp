@@ -48,7 +48,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	bool elastic_cut = false;
 	int nentries = tree->GetEntries();
 
-	TH1D *hfs = new TH1D("hfs","Sampling fraction distribution",400,0,0.6);
+	TH1D *hfs = new TH1D("hfs","Sampling fraction distribution",100,0,0.5);
 	TH1D *her = new TH1D("her","Actual energy dep/expected energy dep",200,0.0,0.4);
 	TH1D *hpN = new TH1D("hpN","Outgoing nucleon momentum",1000,-0.1,4);
 
@@ -66,10 +66,10 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	for (int i = 0; i<nentries; i++){
 		tree->GetEntry(i);
 		
-		if (ntrack_sbs>0){
+		//if (ntrack_sbs>0){
 		
-		elastic_cut = (/*((pow((dy-cutsobject.dy_C)/cutsobject.dy_R,2)+pow((dx-cutsobject.dx_C)/cutsobject.dx_R,2))<=2.5)
-		&&*/(abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width));//? true:false;
+		elastic_cut = (((pow((dy-cutsobject.dy_C)/cutsobject.dy_R,2)+pow((dx-cutsobject.dx_C)/cutsobject.dx_R,2))<=2.5)
+		&&(abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width));//? true:false;
 		
 		//std::cout<<"elastic cut : "<<elastic_cut<<endl;
 		hcointime->Fill(coin_time);
@@ -103,10 +103,11 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 
 			//hdxdy->Fill(dy,dx);
 		}
-		}
+		//}
                 if (i %1000 == 0 ) std::cout << (i * 100.0/ nentries) << "% \r";
                 std::cout.flush();
 	}
+
 
 
 
@@ -134,7 +135,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	TProfile *profX2 = hfsvblkid->ProfileX();
 
 	// get the sampling fraction for each bin written to txt file with the index
-	std::ofstream outFile("sampling_fractions_each_blk.txt");
+	std::ofstream outFile(Form("%s_sampling_fractions_each_blk.txt",kin));
 	double sampling_fraction_means [300];
 
 	for (int i = 1; i <=profX2->GetNbinsX();++i){
@@ -146,7 +147,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 
 	TCutG *cut_elipse = CreateOvalCut("cut_elipse",cutsobject.dy_C,cutsobject.dx_C,cutsobject.dy_R*sqrt(2.5),cutsobject.dx_R*sqrt(2.5),100); 
 
-	TCanvas *c = new TCanvas("c","c",2400,3200);
+	TCanvas *c = new TCanvas("c","c",3200,2400);
 	TCanvas *c1 = new TCanvas("c1","c1",2400,3200);
 	TCanvas *c2 = new TCanvas("c2","c2",2400,3200);
 	TCanvas *c3 = new TCanvas("c3","c3",2400,3200);
