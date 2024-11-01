@@ -11,6 +11,38 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 
 	std::cout<<"coin_time : "<<cutsobject.coin_time_L<<endl;
 	
+	double coin_time_L = getDoubleValue(config,"coin_time_L");
+	double coin_time_H = getDoubleValue(config,"coin_time_H");
+
+    double coin_time_ac_L = getDoubleValue(config,"coin_time_ac_L");
+    double coin_time_ac_H = getDoubleValue(config,"coin_time_ac_H");
+
+	double W2_L = getDoubleValue(config,"W2_L");
+	double W2_H = getDoubleValue(config,"W2_H");
+
+	double dy_L = getDoubleValue(config,"dy_L");
+	double dy_H = getDoubleValue(config,"dy_H");
+
+	double dx_L = getDoubleValue(config,"dx_L");
+	double dx_H = getDoubleValue(config,"dx_H");
+
+	double dx_C = getDoubleValue(config,"dx_C");
+	double dx_R = getDoubleValue(config,"dx_R");
+
+	double dy_C = getDoubleValue(config,"dy_C");
+	double dy_R = getDoubleValue(config,"dy_R");
+
+	double dy_ac_L = getDoubleValue(config,"dy_ac_L");
+	double dy_ac_H = getDoubleValue(config,"dy_ac_H");
+
+	double run_num_L = getDoubleValue(config,"run_num_L");
+	double run_num_H = getDoubleValue(config,"run_num_H");
+
+	double IHWP_flip = getDoubleValue(config,"IHWP_flip");
+
+    double coin_time_offset_L = coin_time_L+30.0;
+    double coin_time_offset_H = coin_time_H+30.0;
+
 	TFile* file = TFile::Open(filename);
 	TTree* tree = (TTree*)file->Get("Tout");
 
@@ -50,39 +82,39 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	tree->SetBranchAddress("trph_sbs",&trph_sbs);
 	tree->SetBranchAddress("vz",&vz);
 	tree->SetBranchAddress("vz_sbs",&vz_sbs);
-	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
+	//tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
 
 	TH1D *h_delta_ptheta = new TH1D("h_delta_ptheta","h_delta_ptheta",200,-0.1,0.1);
 	TH1D *h_delta_pphi = new TH1D("h_delta_pphi","h_delta_pphi",200,-0.1,0.1);
 	TH1D *h_delta_pmag = new TH1D("h_delta_pmag","h_delta_pmag",200,-1,1);
 	
-	TH1D *h_pmag_ratio = new TH1D("h_pmag_ratio","h_pmag_ratio",200,0,2);
+	TH1D *h_pmag_ratio = new TH1D("h_pmag_ratio","h_pmag_ratio",200,0.7,1.3);
 	
-	TH2D *h_ptheta_corr = new TH2D("h_ptheta_corr","h_ptheta_corr",200,0.25,0.5,200,0.25,0.5);
+	TH2D *h_ptheta_corr = new TH2D("h_ptheta_corr","h_ptheta_corr",200,0.1,0.5,200,0.1,0.5);
 	TH2D *h_pphi_corr = new TH2D("h_pphi_corr","h_pphi_corr",200,2.8,3.6,200,-0.3,0.45);
-	TH2D *h_pmag_corr = new TH2D("h_pmag_corr","h_pmag_corr",200,4,5,200,3,5);
+	TH2D *h_pmag_corr = new TH2D("h_pmag_corr","h_pmag_corr",200,5,8,200,0,10);
 
-	TH2D *h_delta_ptheta_v_trthsbs = new TH2D("h_delta_ptheta_v_trthsbs","h_delta_ptheta_v_trthsbs",500,-0.23,0,500,-0.1,-0.1);
-	TH2D *h_delta_ptheta_v_trphsbs = new TH2D("h_delta_ptheta_v_trphsbs","h_delta_ptheta_v_trphsbs",500,-0.04,0.06,500,-0.1,0.1);
-	TH2D *h_delta_ptheta_v_trxsbs = new TH2D("h_delta_ptheta_v_trxsbs","h_delta_ptheta_v_trxsbs",500,-0.3,0.8,500,-0.1,0.1);
-	TH2D *h_delta_ptheta_v_trysbs = new TH2D("h_delta_ptheta_v_trysbs","h_delta_ptheta_v_trysbs",500,-0.25,0.25,500,-0.1,0.1);
+	TH2D *h_delta_ptheta_v_trthsbs = new TH2D("h_delta_ptheta_v_trthsbs","h_delta_ptheta_v_trthsbs",50,-0.23,0,50,-0.1,-0.1);
+	TH2D *h_delta_ptheta_v_trphsbs = new TH2D("h_delta_ptheta_v_trphsbs","h_delta_ptheta_v_trphsbs",50,-0.04,0.06,50,-0.1,0.1);
+	TH2D *h_delta_ptheta_v_trxsbs = new TH2D("h_delta_ptheta_v_trxsbs","h_delta_ptheta_v_trxsbs",50,-0.3,0.8,50,-0.1,0.1);
+	TH2D *h_delta_ptheta_v_trysbs = new TH2D("h_delta_ptheta_v_trysbs","h_delta_ptheta_v_trysbs",50,-0.25,0.25,50,-0.1,0.1);
 
-	TH2D *h_delta_pphi_v_trthsbs = new TH2D("h_delta_pphi_v_trthsbs","h_delta_pphi_v_trthsbs",500,-0.23,0.0,500,-0.1,0.1);
-	TH2D *h_delta_pphi_v_trphsbs = new TH2D("h_delta_pphi_v_trphsbs","h_delta_pphi_v_trphsbs",500,-0.04,0.06,500,-0.1,0.1);
-	TH2D *h_delta_pphi_v_trxsbs = new TH2D("h_delta_pphi_v_trxsbs","h_delta_pphi_v_trxsbs",500,-0.3,0.8,500,-0.1,0.1);
-	TH2D *h_delta_pphi_v_trysbs = new TH2D("h_delta_pphi_v_trysbs","h_delta_pphi_v_trysbs",500,-0.25,0.25,500,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trthsbs = new TH2D("h_delta_pphi_v_trthsbs","h_delta_pphi_v_trthsbs",50,-0.23,0.0,50,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trphsbs = new TH2D("h_delta_pphi_v_trphsbs","h_delta_pphi_v_trphsbs",50,-0.04,0.06,50,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trxsbs = new TH2D("h_delta_pphi_v_trxsbs","h_delta_pphi_v_trxsbs",50,-0.3,0.8,50,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trysbs = new TH2D("h_delta_pphi_v_trysbs","h_delta_pphi_v_trysbs",50,-0.25,0.25,50,-0.1,0.1);
 
-	TH2D *h_delta_pmag_v_trthsbs = new TH2D("h_delta_pmag_v_trthsbs","h_delta_pmag_v_trthsbs",500,-0.23,0.0,500,-1,1);
-	TH2D *h_delta_pmag_v_trphsbs = new TH2D("h_delta_pmag_v_trphsbs","h_delta_pmag_v_trphsbs",500,-0.04,0.06,500,-1,1);
-	TH2D *h_delta_pmag_v_trxsbs = new TH2D("h_delta_pmag_v_trxsbs","h_delta_pmag_v_trxsbs",500,-0.3,0.8,500,-1,1);
-	TH2D *h_delta_pmag_v_trysbs = new TH2D("h_delta_pmag_v_trysbs","h_delta_pmag_v_trysbs",500,-0.25,0.25,500,-1,1);
+	TH2D *h_delta_pmag_v_trthsbs = new TH2D("h_delta_pmag_v_trthsbs","h_delta_pmag_v_trthsbs",50,-0.23,0.0,50,-1,1);
+	TH2D *h_delta_pmag_v_trphsbs = new TH2D("h_delta_pmag_v_trphsbs","h_delta_pmag_v_trphsbs",50,-0.04,0.06,50,-1,1);
+	TH2D *h_delta_pmag_v_trxsbs = new TH2D("h_delta_pmag_v_trxsbs","h_delta_pmag_v_trxsbs",50,-0.3,0.8,50,-1,1);
+	TH2D *h_delta_pmag_v_trysbs = new TH2D("h_delta_pmag_v_trysbs","h_delta_pmag_v_trysbs",50,-0.25,0.25,50,-1,1);
 
 	TH2D *h_delta_vz_v_trthsbs = new TH2D("h_delta_vz_v_trthsbs","h_delta_vz_v_trthsbs",500,-0.23,0.0,500,-0.5,0.5);
 	TH2D *h_delta_vz_v_trphsbs = new TH2D("h_delta_vz_v_trphsbs","h_delta_vz_v_trphsbs",500,-0.04,0.06,500,-0.5,0.5);
 	TH2D *h_delta_vz_v_trxsbs = new TH2D("h_delta_vz_v_trxsbs","h_delta_vz_v_trxsbs",500,-0.3,0.8,500,-0.5,0.5);
 	TH2D *h_delta_vz_v_trysbs = new TH2D("h_delta_vz_v_trysbs","h_delta_vz_v_trysbs",500,-0.25,0.25,500,-0.5,0.5);
 
-	TH1D *h_coin_time = new TH1D("h_coin_time","h_coin_time",1000,75,120);
+	TH1D *h_coin_time = new TH1D("h_coin_time","h_coin_time",100,40,180);
 	TH1D *h_W2 = new TH1D("h_W2","h_W2",1000,-2,4);
 	TH2D *h_dxdy = new TH2D("h_dxdy","h_dxdy",200,-2,2,200,-6,2);
 
@@ -91,14 +123,15 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	bool cutQE = false;
 
 	int nentries = tree->GetEntries();
+
 	for (int i = 0; i<nentries; i++){
 		tree->GetEntry(i);
 		//no QE cuts for coin_time plot
-		if(ntrack_sbs>0){
+		//if(ntrack_sbs>0){
 		h_coin_time->Fill(coin_time);
 
 		//coin_time cut only
-		cutcoin_time = abs(coin_time-95)<8;
+		cutcoin_time = coin_time_L<coin_time and coin_time<coin_time_H;
 		if (cutcoin_time) {
 			h_W2->Fill(W2);
 			h_delta_vz_v_trthsbs->Fill(trth_sbs,(vz_sbs-vz));
@@ -108,10 +141,10 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 		};
 		
 		//coin_time and W2 cuts only
-		cutW2_coin_time = abs(W2-0.88)<0.9&&abs(coin_time-95)<8;
+		cutW2_coin_time = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H);
 		if (cutW2_coin_time) h_dxdy->Fill(dy,dx);
 
-		cutQE = /*(abs(W2-0.88)<0.9&&*/abs(coin_time-95)<8/*&&(sqrt(pow((dx+1.55)/0.5,2)+pow((dy-0.1)/0.5,2)))<1)*/;
+		cutQE = (/*abs(vz-vz_sbs)<0.1&&*//*abs(pN_expect-trP_sbs-0.2)<0.2&&*/ (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (sqrt(pow((dx-dx_C)/dx_R,2)+pow((dy-dy_C)/dy_R,2)))<1);
 		if (cutQE){
 			h_delta_ptheta->Fill(ptheta-ptheta_cal);
 			h_delta_pphi->Fill(pphi-pphi_cal+M_PI);
@@ -139,7 +172,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 			h_delta_pmag_v_trysbs->Fill(try_sbs,pN_expect-trP_sbs);
 
 		}
-		}
+		//}
 		if (i %1000 == 0 ) std::cout << (i * 100.0/ nentries) << "% \r"; 
 		std::cout.flush();
 
@@ -163,25 +196,25 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	c7->Divide(2,2);
 
 	c->cd(1);
-	h_ptheta_corr->Draw();
+	h_ptheta_corr->Draw("COLZ");
 	h_ptheta_corr->SetXTitle("ptheta_cal (rad)");
 	h_ptheta_corr->SetYTitle("ptheta (rad)");
 
 	c1->cd(1);
-	h_pphi_corr->Draw();
+	h_pphi_corr->Draw("COLZ");
 	h_pphi_corr->SetXTitle("pphi_cal (rad)");
 	h_pphi_corr->SetYTitle("pphi (rad)");
 
 	c2->cd(1);
-	h_pmag_corr->Draw();
+	h_pmag_corr->Draw("COLZ");
 	h_pmag_corr->SetXTitle("pN_expect (GeV)");
 	h_pmag_corr->SetYTitle("trP_sbs (GeV)");
 
 	c3->cd(1);
 	h_coin_time->Draw();
 	h_coin_time->SetXTitle("coin_time (ns)");
-	TLine *line01 = new TLine(95-8, 0, 95-8, 275);
-    TLine *line02 = new TLine(95+8, 0, 95+8, 275);
+	TLine *line01 = new TLine(coin_time_L, 0, coin_time_L, 275);
+    TLine *line02 = new TLine(coin_time_H, 0, coin_time_H, 275);
     line01->SetLineColor(kRed);
     line02->SetLineColor(kRed);
     line01->SetLineWidth(2);
@@ -204,8 +237,8 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	c3->cd(2);
 	h_W2->Draw();
 	h_W2->SetXTitle("W2(GeV2)");
-    	TLine *line1 = new TLine(0.88-0.9, 0, 0.88-0.9, 300);
-    	TLine *line2 = new TLine(0.88+0.9, 0, 0.88+0.9, 300);
+    	TLine *line1 = new TLine(W2_L, 0, W2_L, 300);
+    	TLine *line2 = new TLine(W2_H, 0, W2_H, 300);
     	line1->SetLineColor(kRed);
     	line2->SetLineColor(kRed);
     	line1->SetLineWidth(2);
@@ -222,7 +255,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	h_dxdy->Draw("COLZ");
 	h_dxdy->SetXTitle("dy(m)");
 	h_dxdy->SetYTitle("dx(m)");
-	TEllipse *ellipse = new TEllipse(0.1, -1.55, 0.5, 0.5);
+	TEllipse *ellipse = new TEllipse(dy_C, dx_C, dy_R, dx_R);
     ellipse->SetLineColor(kRed);
     ellipse->SetLineWidth(2);
     ellipse->SetFillStyle(0); // No fill, just the outline

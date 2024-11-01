@@ -45,11 +45,11 @@ TH1D* bkg_model(TH2D *hist2D, double xmin, double xmax, const char* kin){
 	projX->SetTitle("dx projection");
 	projX->Draw("HIST");
 	c->cd(3);
-	h2_anticut->Draw();
+	h2_anticut->Draw("COLZ");
 	c->cd(4);
 	hist2D->GetXaxis()->SetRangeUser(-4,4);
         hist2D->GetYaxis()->SetRangeUser(-4,4);
-	hist2D->Draw();
+	hist2D->Draw("COLZ");
 
 	c->Print(Form("../plots/bkg_%s.pdf",kin));
 	c->SaveAs(Form("bkg_%s.png",kin));
@@ -111,6 +111,25 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 
 void models(const char* filename,const char* sim_filename,const char* printfilename, const char* kin){
         
+	//read the sampling fraction for each blk
+	std::ifstream inFile("sampling_fractions_each_blk.txt");	
+
+	std::vector<double> sampling_fractions_each_blk;
+
+    	std::string line;
+    	while (std::getline(inFile, line)) {
+        	std::stringstream ss(line);
+        	double iblk, sampling_fraction;
+
+        	// Extract the two columns (index and Y mean)
+        	ss >> iblk >> sampling_fraction;
+
+        	// Add the Y mean to the vector
+        	sampling_fractions_each_blk.push_back(sampling_fraction);
+    	}	
+
+    	inFile.close();
+
 	std::map<std::string, std::string> config = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
 	std::map<int, int> HelicityCheck = readCSVToMap("DB/Helicity_quality.csv");
 	std::map<int, int> MollerQuality = readCSVToMap("DB/Moller_quality.csv");
@@ -157,6 +176,17 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
         double Q2 = 0.0;
 	double coin_time = 0.0;
 	double ntrack = 0;
+	double theta_pq = 0.0;
+	double pN_expect = 0.0;
+	double eHCAL = 0.0;
+	double nblk_HCAL = 0.0;
+	double hcal_clus_e[1000];
+	double hcal_clus_id[1000];
+	double hcal_clus_mem_e[1000];
+	double hcal_clus_mem_id[1000];
+	double trP_sbs = 0.0;
+	double ntrack_sbs = 0.0;
+	double vz = 0.0;	
 
 	tree->SetBranchAddress("runnum",&runnum);
 	tree->SetBranchAddress("helicity",&helicity);
@@ -167,6 +197,18 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
         tree->SetBranchAddress("Q2",&Q2);
 	tree->SetBranchAddress("coin_time",&coin_time);
 	tree->SetBranchAddress("ntrack", &ntrack);
+	tree->SetBranchAddress("theta_pq",&theta_pq);
+	tree->SetBranchAddress("pN_expect",&pN_expect);
+	tree->SetBranchAddress("eHCAL",&eHCAL);
+	tree->SetBranchAddress("hcal_clus_e",&hcal_clus_e);
+	tree->SetBranchAddress("hcal_clus_mem_e",&hcal_clus_mem_e);
+	tree->SetBranchAddress("hcal_clus_id",&hcal_clus_id);
+	tree->SetBranchAddress("hcal_clus_mem_id",&hcal_clus_mem_id);
+	tree->SetBranchAddress("nblk_HCAL",&nblk_HCAL);
+	tree->SetBranchAddress("trP_sbs",&trP_sbs);
+	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
+	tree->SetBranchAddress("vz",&vz);
+
 
         TH1D *h_dx = new TH1D("h_dx","dx",200,-10,10);
         TH1D *h_dy = new TH1D("h_dy","dy",200,-10,10);
@@ -175,12 +217,13 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
         TH1D *h_coin_time = new TH1D("h_coin_time","coin_time",1000,40,200);
 
         TH1D *h_dx_W2_cut = new TH1D("h_dx_W2_cut","dx dist : data/sim comparison",100,-4,3);
+        TH1D *h_dx_W2_cut_plotting = new TH1D("h_dx_W2_cut_plotting","dx dist : data/sim comparison",100,-4,3);
         TH1D *h_dy_W2_cut = new TH1D("h_dy_W2_cut","dy",100,-4,3);
         //TH1D *h_W2 = new TH1D("h_W2","W2",1000,-4,8);
         TH2D *h_dxdy_W2_cut = new TH2D("h_dxdy_W2_cut","dx v dy",100,dy_L,dy_H,100,-4,3);
         TH2D *h_dxdy_bkg = new TH2D("h_dxdy_bkg","dxdy (anticut shaded)",100,-4,4,100,-4,3);
 
-	TH1D *h_dx_sim_n_bkg = new TH1D("h_dx_sim_n_bkg","dx from simulation",100,-4,3);
+	TH1D *h_dx_sim_n_bkg = new TH1D("h_dx_sim_n_bkg","dx distribution : data/sim comparison",100,-4,3);
 
         int nentries = tree->GetEntries();
         double Nplus = 0.0;
@@ -193,7 +236,27 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	for (int i = 0; i<nentries; i++){
                 tree->GetEntry(i);
                 if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
-                //before adding a cut on W2
+
+ 			double KinE = 0.0;
+
+			for (int j = 0; j<nblk_HCAL; j++){
+			//KinE += hcal_clus_e[j]/sampling_fractions_each_blk[hcal_clus_id[j]];
+				KinE += hcal_clus_mem_e[j]/sampling_fractions_each_blk[hcal_clus_mem_id[j]];
+
+				//if (i%1000 == 0){ 
+				//std::cout<<"event : "<<i<<"blk id: "<<hcal_clus_mem_id[j]<<" blk energy : "<<hcal_clus_mem_e[j]<<" blk sf : " <<sampling_fractions_each_blk[hcal_clus_mem_id[j]]<<endl;
+				//}
+			}
+			//if (i%1000 == 0){ 
+			//std::cout<<"event : "<<i<<" kinE : "<<KinE<<endl;
+			//}
+			//double Pperp = theta_pq * pN_expect;
+			double realPperp = (theta_pq * sqrt(-pow(0.938,2)+pow((KinE+0.938),2))); // assuming mN and mP is equal
+			double realPpar = (cos(theta_pq) * sqrt(-pow(0.938,2)+pow((KinE+0.938),2)))-pN_expect;
+			double Pmiss = sqrt(pow(realPperp,2)+pow(realPpar,2));          
+
+			//before adding a cut on W2
+
                 	helicity = IHWP*IHWP_flip*helicity;
 
                 	h_dx->Fill(dx);
@@ -201,23 +264,27 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
                 	h_dxdy->Fill(dy,dx);
                 	h_W2->Fill(W2);
 
-                	if (W2_L<W2 and W2<W2_H){
+                	bool cut_Ppar = abs(realPpar)<1.5;
+                	bool cut_eHCAL = (eHCAL)>0.3;
+
+                	if (W2_L<W2 and W2<W2_H and cut_eHCAL){
                 		h_coin_time->Fill(coin_time);
                 	}
 	        
 			//add a cut on W2
-                	if ((W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and dy_L<dy and dy<dy_H){
+                	if (cut_eHCAL and (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and dy_L<dy and dy<dy_H){
+                		h_dx_W2_cut_plotting->Fill(dx);
                         	h_dx_W2_cut->Fill(dx);
                         	h_dy_W2_cut->Fill(dy);
                         	h_dxdy_W2_cut->Fill(dy,dx);
                 	}
 
-                	if((W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H)){
+                	if(cut_eHCAL and (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H)){
 
                 		h_dxdy_bkg->Fill(dy,dx);
                 	}
 
-                	//inelastic asymmetry using anticut, no W2 cut here 
+                	//inelastic asymmetry using anticut, no W2, Ppar cut here 
                 	if((coin_time_L<coin_time and coin_time<coin_time_H) and (dx_L<dx and dx<dx_H) and (dy_L>dy or dy>dy_H)){
                 		if (helicity == 1){
                 			Nplus += 1;
@@ -255,8 +322,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	box2->SetFillStyle(3002);	
 	box2->SetLineWidth(3);
 
-	TCanvas *c1 = new TCanvas("c1","c1",1800,2400);
-	c1->Divide(2,1);
+	TCanvas *c1 = new TCanvas("c1","c1",3600,3000);
+	c1->Divide(2,2);
 	c1->cd(1);
 	h_dxdy_W2_cut->Draw("COLZ");
 	c1->cd(2);
@@ -292,8 +359,13 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 
 	hist_p->SetLineColor(6);
 	hist_n->SetLineColor(9);
-	hist_bkg->SetLineColor(5);
+	hist_bkg->SetLineColor(7);
 	h_dx_sim_n_bkg->SetLineColor(3);
+
+	hist_p->SetLineWidth(3);
+	hist_n->SetLineWidth(3);
+	hist_bkg->SetLineWidth(3);
+	h_dx_sim_n_bkg->SetLineWidth(3);
 
 	hist_p->Scale(scale_data);
 	hist_n->Scale(scale_data);
@@ -304,11 +376,15 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	h_dx_W2_cut->SetMarkerStyle(20);
 	h_dx_W2_cut->SetMarkerColor(kBlack);
 
+	h_dx_W2_cut_plotting->GetXaxis()->SetRangeUser(-6,6);
+	h_dx_W2_cut_plotting->SetMarkerStyle(20);
+	h_dx_W2_cut_plotting->SetMarkerColor(kBlack);
+
 	hist_p->SetFillColorAlpha(6,0.5);
 	hist_p->SetFillStyle(3004);
 	hist_n->SetFillColorAlpha(9,0.5);
 	hist_n->SetFillStyle(3005);
-	hist_bkg->SetFillColorAlpha(5,0.5);
+	hist_bkg->SetFillColorAlpha(7,0.5);
 	hist_bkg->SetFillStyle(3003);
 	h_dx_sim_n_bkg->SetFillColorAlpha(19,0.1);
 	h_dx_sim_n_bkg->SetFillStyle(3009);
@@ -345,22 +421,32 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	double errAin = 2*sqrt((Nplus*Nminus)*(Nplus+Nminus))/((Nplus+Nminus)*(Nplus+Nminus));;
 
         TLegend *legend = new TLegend(0.6,0.6,0.9,0.9);
-        legend->AddEntry(h_dx_W2_cut,"Data","lf");
+        legend->AddEntry(h_dx_W2_cut_plotting,"Data","p");
         legend->AddEntry(hist_p,"sim proton","lf");
         legend->AddEntry(hist_n,"sim neutron","lf");
         legend->AddEntry(hist_bkg,"bkg data","lf");
         legend->AddEntry(h_dx_sim_n_bkg,"full model","lf");
         //legend->Draw();
 
+	TLine *line1 = new TLine(dx_L,0.0,dx_L,2000);
+	line1->SetLineColor(kRed);
+	line1->SetLineWidth(2);
+	
+	TLine *line2 = new TLine(dx_H,0.0,dx_H,2000);
+	line2->SetLineColor(kRed);
+	line2->SetLineWidth(2);
+
 	TCanvas* cfit = new TCanvas("cfit","Fit with models",3600,3000);
 	cfit->Divide(2,2);
 	cfit->cd(1);
-	h_dx_W2_cut->SetXTitle("HCAL_X(exp)-HCAL_X(act) (m)");
+	h_dx_sim_n_bkg->SetXTitle("HCAL_X(exp)-HCAL_X(act) (m)");
 	h_dx_sim_n_bkg->Draw("HIST");
-	h_dx_W2_cut->Draw("HIST SAME");
+	h_dx_W2_cut_plotting->Draw("P SAME");
 	hist_p->Draw("HIST SAME");
 	hist_n->Draw("HIST SAME");
 	hist_bkg->Draw("HIST SAME");
+	line1->Draw("SAME");
+	line2->Draw("SAME");
 
 	legend->Draw();
 	//h_dx_sim_n_bkg->Add(hist_p);

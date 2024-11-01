@@ -106,8 +106,21 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	TH2D *h_dxdy_cut_Ppar_cointime = new TH2D("h_dxdy_cut_Ppar_cointime","dxdy Ppar and cointime cut ",200,-4,4,200,-4,4);
 	TH2D *h_dxdy_cut_Ppar_cointime_W2 = new TH2D("h_dxdy_cut_Ppar_cointime_W2","dxdy Ppar, cointime and W2 cut ",200,-4,4,200,-4,4);
 
+	TH1D *h_dx_cut_coin_time_W2_dy = new TH1D("h_dx_cut_coin_time_W2","dx with cointime, W2, and dy cuts", 200, -4, 4);
+	TH1D *h_dx_cut_Ppar_coin_time_W2_dy = new TH1D("h_dx_cut_Ppar_coin_time_W2","dx with Ppar, cointime, W2, and dy cuts", 200, -4, 4);
+
 	//no cuts histogram
 	TH2D *h_Ppar_coin_time = new TH2D("h_Ppar_coin_time","Ppar v cointime distribution",1000,40,140,200,-5,5);
+
+	//cutting on eHCAL
+	TH1D *h_W2_cut_eHCAL = new TH1D("h_W2_cut_eHCAL","W2 distribution only with eHCAL cut", 100,-2,4);
+	TH1D *h_coin_time_cut_eHCAL = new TH1D("h_coin_time_cut_eHCAL","cointime distribution only with eHCAL cut",1000, 40, 140);
+	TH2D *h_dxdy_cut_eHCAL = new TH2D("h_dxdy_cut_eHCAL","dxdy only with eHCAL cut",200,-4,4,200,-4,4);
+
+	//KE
+	TH1D *h_W2_cut_KE = new TH1D("h_W2_cut_KE","W2 distribution only with KE cut", 100,-2,4);
+	TH1D *h_coin_time_cut_KE = new TH1D("h_coin_time_cut_KE","cointime distribution only with KE cut",1000, 40, 140);
+	TH2D *h_dxdy_cut_KE = new TH2D("h_dxdy_cut_KE","dxdy only with KE cut",200,-4,4,200,-4,4);
 
 	//correlation plot
 	TH2D *h_Ppar_pNexpect_cut_cointime = new TH2D("h_Ppar_pNexpect_cut_cointime","Ppar v |q| only with coin cut ", 200, 0, 4, 200,-5, 5);
@@ -163,7 +176,6 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	TH2D *h_realPperp_W2_cut_coin_time = new TH2D("h_realPperp_W2_cut_coin_time","realPperp v W2 dist only with coin cut",1200,-2,4,200,-0.5,2);
 	TH2D *h_realPpar_W2_cut_coin_time = new TH2D("h_realPpar_W2_cut_coin_time","realPpar v W2 dist only with coin cut",1200,-2,4,200,-5,5);
 
-
 	TH1D *h_theta_pq_cut_coin_time_and_dx = new TH1D("h_theta_pq_cut_coin_time_and_dx","theta_pq coin, dx and dy cuts",100,0,1);
     TH1D *h_Pperp_cut_coin_time_and_dx = new TH1D("h_Pperp_cut_coin_time_and_dx","Pperp coin, dx and dy cuts",100,0,1);
     TH1D *h_realPperp_cut_coin_time_and_dx = new TH1D("h_realPperp_cut_coin_time_and_dx","realPperp coin, dx and dy cuts",200,-0.5,0.5);
@@ -188,7 +200,10 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     TH2D *h_realPpar_W2_cut_QE = new TH2D("h_realPpar_W2_cut_QE","real Ppar v W2 dist with QE cuts",1200,0,W2_H,100,-5,5);
 	TH2D *h_dx_W2_cut_coin_time = new TH2D("h_dx_W2_cut_coin_time","dx v W2 dist with coin time cut", 100,W2_L,3,250,-4,3);
 
-	TH1D *h_kinE = new TH1D("h_kinE","kinetic energy", 200,-1,10);
+	TH1D *h_eHCAL = new TH1D("h_eHCAL","eHCAL distr",200,0,1);
+	TH2D *h_Ppar_eHCAL = new TH2D("h_Ppar_eHCAL","Ppar vs eHCAL distribution (no cuts)",200,0,1,200,-5,4);
+
+	TH1D *h_kinE = new TH1D("h_kinE","kinetic energy", 200,-1,6);
 	TH1D *h_kinE_cut_coin_time = new TH1D("h_kinE_cut_coin_time","kinetic energy with cointime cut",200,-1,10);
 	TH1D *h_kinE_cut_W2 = new TH1D("h_kinE_cut_W2","kintic energy with cointime and W2 cuts",200,-1,10);
 	TH1D *h_kinE_cut_QE = new TH1D("h_kinE_cut_QE","kinetic energy with QE cuts",200,-1,10);
@@ -225,8 +240,26 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 		//Filling Ppar vs cointime
 		h_Ppar_coin_time->Fill(coin_time,realPpar);
 
-		//applying a W2<0 cut only to see Ppar dist
+
 		h_pmiss->Fill(Pmiss);
+		h_kinE->Fill(KinE);
+		h_eHCAL->Fill(eHCAL);
+		h_Ppar_eHCAL->Fill(eHCAL,realPpar);
+
+
+		//kinE cut
+		if (KinE>2.5){
+			h_coin_time_cut_KE->Fill(coin_time);
+			h_dxdy_cut_KE->Fill(dy,dx);
+		}
+
+		//eHCAL cut
+		if (eHCAL>0.3){
+			h_coin_time_cut_eHCAL->Fill(coin_time);
+			h_dxdy_cut_eHCAL->Fill(dy,dx);
+		}
+
+		//applying a W2<0 cut only to see Ppar dist
 		if (W2<0){
 			h_Ppar_cut_hiW2->Fill(realPpar);
 		}
@@ -290,16 +323,25 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
             h_dx_realPpar_cut_coin_time->Fill(realPpar,dx);
             h_realPpar_W2_cut_coin_time->Fill(W2,realPpar);
 
+			h_dx_W2_cut_coin_time->Fill(W2,dx);
+			h_kinE_cut_coin_time->Fill(KinE);
+
 			if(W2<2){
 				h_dxdy_cut_cointime_W2->Fill(dy,dx);
+				if(dy_L<dy and dy<dy_H){
+					h_dx_cut_coin_time_W2_dy->Fill(dx);
+				}
 			}
 
-			h_kinE->Fill(KinE);
+
 			if (abs(realPpar)<1.5){
 				h_W2_cut_Cointime_Ppar->Fill(W2);
 				h_dxdy_cut_Ppar_cointime->Fill(dy,dx);
 				if(W2<2){
 					h_dxdy_cut_Ppar_cointime_W2->Fill(dy,dx);
+					if(dy_L<dy and dy<dy_H){
+						h_dx_cut_Ppar_coin_time_W2_dy->Fill(dx);
+					}
 				}
 			}
 		}
@@ -322,8 +364,6 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 			h_Pmiss_thetapq_cut_cointime_dxdy->Fill(theta_pq,Pmiss);
 
 			//
-			h_dx_W2_cut_coin_time->Fill(W2,dx);
-			h_kinE_cut_coin_time->Fill(KinE);
 
 			h_theta_pq_cut_coin_time_and_dx->Fill(theta_pq);
             h_Pperp_cut_coin_time_and_dx->Fill(Pperp);
@@ -345,7 +385,6 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
         	}
             //applying W2 cut
 			if(W2_L<W2 and W2<W2_H){
-				
 
 				h_theta_pq_cut_QE->Fill(theta_pq);
 				h_Pperp_cut_QE->Fill(Pperp);
@@ -370,7 +409,7 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	}
 
 	//square cut
-	TCutG *cutsq = CreateSquareCut(dy_L,dx_L,dy_H,dx_H);
+	//TCutG *cutsq = CreateSquareCut(dy_L,dx_L,dy_H,dx_H);
 	//TCutG *cutsq1 = CreateSquareCut(-10,dx_L,10,dx_H);
 
 	TCanvas* ccuts = new TCanvas("ccuts","ccuts",3200,3600);
@@ -396,6 +435,9 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	TCanvas* c17 = new TCanvas("c17","c17",3200,3600);
 	TCanvas* c18 = new TCanvas("c18","c18",3200,3600);
 	TCanvas* c19 = new TCanvas("c19","c19",3200,3600);
+	TCanvas* c20 = new TCanvas("c20","c20",3200,3600);
+	TCanvas* c21 = new TCanvas("c21","c21",3200,3600);
+	TCanvas* c22 = new TCanvas("c22","c22",3200,3600);
 
 	//c
     c->Divide(2,2);
@@ -425,7 +467,7 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	h_W2->Draw();
 	ccuts->cd(3);
 	h_dxdy->Draw("COLZ");
-	cutsq->Draw("same");
+	//cutsq->Draw("same");
 
 	//c1
 	c1->Divide(2,2);
@@ -742,6 +784,7 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     h_Pmiss_thetapq_cut_cointime_dxdy->SetYTitle("Pmiss (GeV)");
     h_Pmiss_thetapq_cut_cointime_dxdy->Draw("COLZ");
 
+    //c19
     c19->Divide(2,2);
     c19->cd(1);
     h_coin_time->SetXTitle("cointime (ns)");
@@ -757,6 +800,44 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
     h_dxdy_cut_Ppar->SetXTitle("dy (m)");
     h_dxdy_cut_Ppar->SetYTitle("dx (m)");
     h_dxdy_cut_Ppar->Draw("COLZ");
+
+    //c20
+    c20->Divide(2,2);
+    c20->cd(1);
+    h_coin_time_cut_KE->SetXTitle("cointime (ns)");
+    h_coin_time_cut_KE->Draw();
+    c20->cd(2);
+    h_dxdy_cut_KE->SetXTitle("dy (m)");
+    h_dxdy_cut_KE->SetYTitle("dx (m)");
+    h_dxdy_cut_KE->Draw("COLZ");
+    c20->cd(3);
+    h_coin_time_cut_eHCAL->SetXTitle("cointime (ns)");
+    h_coin_time_cut_eHCAL->Draw();
+    c20->cd(4);
+    h_dxdy_cut_eHCAL->SetXTitle("dy (m)");
+    h_dxdy_cut_eHCAL->SetYTitle("dx (m)");
+    h_dxdy_cut_eHCAL->Draw("COLZ");  
+
+    c21->Divide(2,2);
+    c21->cd(1);
+    h_dx_cut_coin_time_W2_dy->SetXTitle("dx");
+    h_dx_cut_coin_time_W2_dy->Draw();
+    c21->cd(2);
+    h_dx_cut_Ppar_coin_time_W2_dy->SetXTitle("dx");
+    h_dx_cut_Ppar_coin_time_W2_dy->Draw();
+
+    c22->Divide(2,2);
+    c22->cd(1);
+    h_eHCAL->SetXTitle("eHCAL (GeV)");
+    h_eHCAL->Draw();
+    c22->cd(2);
+    h_kinE->SetXTitle("kinetic energy (GeV)");
+    h_kinE->Draw();
+    c22->cd(3);
+    h_Ppar_eHCAL->SetXTitle("eHCAL(GeV)");
+    h_Ppar_eHCAL->SetYTitle("Ppar(GeV)");
+    h_Ppar_eHCAL->Draw("COLZ");
+
 
 
     ccuts->Print(Form("%s_Pperp.pdf(",kin));
@@ -781,6 +862,10 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 	c16->Print(Form("%s_Pperp.pdf",kin));
 	c17->Print(Form("%s_Pperp.pdf",kin));
 	c18->Print(Form("%s_Pperp.pdf",kin));
-	c19->Print(Form("%s_Pperp.pdf)",kin));
-
+	c19->Print(Form("%s_Pperp.pdf",kin));
+	c20->Print(Form("%s_Pperp.pdf",kin));
+	c21->Print(Form("%s_Pperp.pdf",kin));
+	c22->Print(Form("%s_Pperp.pdf)",kin));
 }
+
+

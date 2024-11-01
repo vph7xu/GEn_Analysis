@@ -14,11 +14,11 @@ dy_H = 0.4
 dx_H = 0.4
 dx_L = -0.4
 
-dx_C = -1.53
-dx_R = 0.3
+dx_C = -1.0
+dx_R = 0.5
 
-dy_C = 0.08 
-dy_R = 0.3
+dy_C = 0.0 
+dy_R = 0.5
 
 IHWP_flip = 1
 

@@ -37,7 +37,7 @@ void accidental_asymmetry(const char* filename, const char* printfilename, const
 	TFile* file = TFile::Open(filename);
 	//TFile* sim_file = TFile::Open(sim_filename);
 
-        TTree* tree = (TTree*)file->Get("Tout");
+    TTree* tree = (TTree*)file->Get("Tout");
 	//TTree* sim_tree = (TTree*)sim_file->Get("Tout");
 	
 	double dx = 0.0;
@@ -71,10 +71,10 @@ void accidental_asymmetry(const char* filename, const char* printfilename, const
 	double runx=0;
 
     // Varying coin time cuts
-    //double step_size = 10;  // Adjust this step size as needed
-    //int num_steps = (coin_time_H - coin_time_L) / step_size;
+    double step_size = 20;  // Adjust this step size as needed
+    int num_steps = 6;
 
-	//int helicity_new = 0;
+	int helicity_new = 0;
 
 	tree->SetBranchAddress("runnum",&runnum);
 	tree->SetBranchAddress("helicity",&helicity);
@@ -110,8 +110,8 @@ void accidental_asymmetry(const char* filename, const char* printfilename, const
 	outfile_p.open("accidental_fraction_results.txt");
 
 
-	/*for (int step = 0; step <= num_steps; step++) {
-        double current_cut_L = coin_time_L + step * step_size;
+	for (int step = 0; step <= num_steps; step++) {
+        double current_cut_L = 40 + step * step_size; //hard coded for now
         double current_cut_H = current_cut_L + step_size;
 
         double Nplus_new = 0.0;
@@ -142,7 +142,7 @@ void accidental_asymmetry(const char* filename, const char* printfilename, const
         gAsymCut->SetPointError(step, 0, errAexp_new);
 
         std::cout << "Cut: [" << current_cut_L << ", " << current_cut_H << "] Asymmetry: " << Aexp_new << " ± " << errAexp_new << std::endl;
-    }*/
+    }
 
 
 	for (int i=0; i<nentries; i++){
@@ -307,7 +307,7 @@ void accidental_asymmetry(const char* filename, const char* printfilename, const
     // Draw the legend
     legend->Draw();
 
-    /*TCanvas *cCut = new TCanvas("cCut", "Asymmetry vs Coin Time Cut", 1200, 900);
+    TCanvas *cCut = new TCanvas("cCut", "Asymmetry vs Coin Time Cut", 1200, 900);
     gAsymCut->SetTitle("Asymmetry vs Coin Time Cut");
     gAsymCut->GetXaxis()->SetTitle("Coin Time Lower Bound (ns)");
     gAsymCut->GetYaxis()->SetTitle("Asymmetry (%)");
@@ -322,5 +322,5 @@ void accidental_asymmetry(const char* filename, const char* printfilename, const
 	c->Print(Form("%s.pdf(",printfilename));
 	ccoin->Print(Form("%s.pdf",printfilename));
 	c1->Print(Form("%s.pdf)",printfilename));	
-	c1->SaveAs(Form("%s.png",printfilename));*/
+	c1->SaveAs(Form("%s.png",printfilename));
 }

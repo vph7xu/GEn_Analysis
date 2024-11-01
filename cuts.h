@@ -15,6 +15,8 @@ public:
   double coin_time_L = 0.0;
   double coin_time_H = 0.0;
   double coin_time_width = 0.0;
+  double coin_time_ac_L = 0.0;
+  double coin_time_ac_H = 0.0;
   double W2_mean = 0.0;
   double W2_L = 0.0;
   double W2_H = 0.0;
@@ -48,6 +50,9 @@ public:
   	coin_time_L = getDoubleValue(config,"coin_time_L");
 	coin_time_H = getDoubleValue(config,"coin_time_H");
 	coin_time_width = getDoubleValue(config,"coin_time_width");
+
+	coin_time_ac_L = getDoubleValue(config,"coin_time_ac_L");
+	coin_time_ac_H = getDoubleValue(config,"coin_time_ac_H");
 
 	W2_mean = getDoubleValue(config,"W2_mean");
 	W2_L = getDoubleValue(config,"W2_L");
