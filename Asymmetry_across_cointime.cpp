@@ -172,7 +172,7 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
 	//fill corrected helicity each bin from data
 	for (int i = 0; i<nentries; i++){
         tree->GetEntry(i);
-        if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1 and abs(vz)<0.27 and eHCAL>0.3 and ePS>0.2 and( helicity == -1 or helicity == 1)){
+        if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1 and abs(vz)<0.27 and ePS>0.2 and( helicity == -1 or helicity == 1)){
         	if(( W2_L<W2 and W2<W2_H ) and (dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
         		//Fill cointime for illustration
                 h_coin_time->Fill(coin_time);
@@ -189,15 +189,18 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
                 }
 
                 //to get the fraction
-                //offset cut
-                if (coin_time_offset_L<coin_time and coin_time<coin_time_offset_H){
-                    accidental_events+=1;
+                //eHCAL cut is used here since it will be used in the analysis but to get the asymmetry from the accidentals its relieved to get more statistics
+                if(eHCAL>0.3){
+                    //offset cut
+                    if (coin_time_offset_L<coin_time and coin_time<coin_time_offset_H){
+                        accidental_events+=1;
+                    }
+                    //QE events in the window
+                    if(coin_time_L<coin_time and coin_time<coin_time_H){
+                        QE_events+=1;
+                    }
                 }
-                //QE events in the window
-                if(coin_time_L<coin_time and coin_time<coin_time_H){
-                    QE_events+=1;
-                }
-
+                
                 //for the Asymmetry variation across cointime distribution
                 int binIndex = static_cast<int>((coin_time-binMin)/binWidth);
 				if (binIndex >= 0 && binIndex<nBins){
