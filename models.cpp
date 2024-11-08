@@ -235,7 +235,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	//get the bkg from data
 	for (int i = 0; i<nentries; i++){
                 tree->GetEntry(i);
-                if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
+                if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1 and ( helicity == -1 or helicity == 1)){
 
  			double KinE = 0.0;
 
@@ -257,7 +257,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 
 			//before adding a cut on W2
 
-                	helicity = IHWP*IHWP_flip*helicity;
+                	helicity = -1*IHWP*IHWP_flip*helicity;
 
                 	h_dx->Fill(dx);
                 	h_dy->Fill(dy);

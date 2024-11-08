@@ -180,6 +180,13 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
 	const double binWidth = 0.25;
 	const int nBins = static_cast<int>((binMax-binMin)/binWidth)+1;
 
+    //for asymmetry calculations
+    /*double N_plus_all = 0.0;
+    double N_minus_all = 0.0;
+    double inelastic_events = 0.0;
+    double QE_events = 0.0;
+    */
+
 	std::vector<TH1D*>Helicity_histograms;
     std::vector<TH1D*>Helicity_histograms_1;  
 	for (int i = 0; i<nBins;++i){
@@ -198,6 +205,18 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
 	for (int i = 0; i<nentries; i++){
         tree->GetEntry(i);
         if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
+
+
+            /*if((coin_time_L<coin_time && coin_time<coin_time_H) && (dx_L<dx && dx<dx_H) && (dy_ac_L>dy || dy>dy_ac_H)){
+                if (-1*IHWP*IHWP_flip*helicity == 1){
+                    N_plus_all+=1;
+                }
+                else if(-1*IHWP*IHWP_flip*helicity == -1){
+                    N_minus_all+=1;
+                }
+            }*/
+
+            //for plots
         	if((coin_time_L<coin_time && coin_time<coin_time_H) && (dx_L<dx && dx<dx_H) && (dy_ac_L>dy || dy>dy_ac_H)){
         		h_W2_dx_antidy->Fill(W2);
                 int binIndex = static_cast<int>((W2-binMin)/binWidth);

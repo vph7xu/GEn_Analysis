@@ -2,13 +2,82 @@
 #include "parse.h"
 #include "plotdxdy.h"
 #include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <iomanip>
+#include <TDatime.h>
+
+// Struct to hold each row of CSV data
+struct beamPol {
+    TDatime startTime;
+    TDatime endTime;
+    double beam_polarization;
+    double error;
+};
+
+TDatime parseDateTime(const std::string &datetimeStr) {
+    int year, month, day, hour, minute, second;
+    sscanf(datetimeStr.c_str(), "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+    return TDatime(year, month, day, hour, minute, second);
+}
+
+// Function to load the CSV data into a vector of DataEntry
+std::vector<beamPol> loadCSVData(const std::string &filename) {
+    std::vector<beamPol> data;
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening CSV file!" << std::endl;
+        return data;
+    }
+
+    std::string line;
+    std::getline(file, line); // Skip header line
+
+    // Read each line of the CSV file
+    while (std::getline(file, line)) {
+        std::istringstream ss(line);
+        std::string startStr, endStr, polarizationStr, errorStr;
+
+        // Parse each field in the row
+        std::getline(ss, startStr, ',');
+        std::getline(ss, endStr, ',');
+        std::getline(ss, polarizationStr, ',');
+        std::getline(ss, errorStr, ',');
+
+        // Create a DataEntry with parsed data
+        beamPol beampol;
+        beampol.startTime = parseDateTime(startStr);
+        beampol.endTime = parseDateTime(endStr);
+        beampol.beam_polarization = std::stod(polarizationStr);
+        beampol.error = std::stod(errorStr);
+
+        data.push_back(beampol);
+    }
+    file.close();
+    return data;
+}
+
+
+// Function to search for an entry in the data vector that matches the given lookupTime
+double searchData(const std::vector<beamPol> &data, const TDatime &lookupTime) {
+    for (const auto &entry : data) {
+        if (lookupTime >= entry.startTime && lookupTime <= entry.endTime) {
+            return entry.beam_polarization; // Return the polarization value if a match is found
+        }
+    }
+    return -1.0; // Return -1.0 if no matching time range is found
+}
+
 
 void raw_asymmetry(const char* filename, const char* printfilename, const char* kin){
 
 	std::map<std::string, std::string> config1 = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
 	std::map<int, int> HelicityCheck = readCSVToMap("DB/Helicity_quality.csv");
 	std::map<int, int> MollerQuality = readCSVToMap("DB/Moller_quality.csv");
-	
+
 	double coin_time_L = getDoubleValue(config1,"coin_time_L");
 	double coin_time_H = getDoubleValue(config1,"coin_time_H");
 
@@ -34,16 +103,26 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 	//end of parsing cuts
 	
+	// Load CSV data
+    std::string csvFile = "DB/Beam_pol.csv";
+    std::vector<beamPol> data = loadCSVData(csvFile);
+    if (data.empty()) {
+        return 1; // Exit if loading CSV data failed
+    }
+
+
 	TFile* file = TFile::Open(filename);
 	//TFile* sim_file = TFile::Open(sim_filename);
 
-        TTree* tree = (TTree*)file->Get("Tout");
+    TTree* tree = (TTree*)file->Get("Tout");
 	//TTree* sim_tree = (TTree*)sim_file->Get("Tout");
 	
 	double dx = 0.0;
 	double dy = 0.0;
 	double W2 = 0.0;
 	double coin_time = 0.0;
+	double eHCAL = 0.0;
+
 	//double coin_time = 0.0;
 
 	int runnum = 0;
@@ -53,6 +132,9 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 	double Nplus = 0;
 	double Nminus = 0;
+
+	double Nplus_total = 0.0;
+	double Nminus_total = 0.0;
 
 	double Pplus = 0;
 	double Pminus = 0;
@@ -65,14 +147,18 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 	double runx=0;
 
+	TDatime *datetime = nullptr;
+
 	tree->SetBranchAddress("runnum",&runnum);
 	tree->SetBranchAddress("helicity",&helicity);
 	tree->SetBranchAddress("IHWP",&IHWP);
 	tree->SetBranchAddress("He3Pol",&He3Pol);
+	tree->SetBranchAddress("eHCAL",&eHCAL);
 	tree->SetBranchAddress("dx",&dx);
 	tree->SetBranchAddress("dy",&dy);
 	tree->SetBranchAddress("coin_time",&coin_time);
 	tree->SetBranchAddress("W2",&W2);
+	tree->SetBranchAddress("datetime", &datetime);
 
 	TH1I *h_IHWP = new TH1I("h_IHWP","IHWP",10,-2,2);
 	TH1I *h_runnum = new TH1I("h_runnum","runnum",300,0,3000);
@@ -89,101 +175,139 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 	//write asymmetry values to files
 	std::ofstream outfile;
-	outfile.open("neutron_asymmetry_results.txt"); 
+	outfile.open(Form("%s_raw_neutron_asymmetry_results.txt",kin)); 
 
 	std::ofstream outfile_p;
-	outfile_p.open("proton_asymmetry_results.txt");
+	outfile_p.open(Form("%s_raw_proton_asymmetry_results.txt",kin));
+
+	std::ofstream outfile_pol_He3;
+	outfile_pol_He3.open(Form("%s_He3_polarization_results.txt",kin));
+
+	std::ofstream outfile_pol_beam;
+	outfile_pol_beam.open(Form("%s_beam_polarization_results.txt",kin));
+
+	std::ofstream outfile_n_asym;
+	outfile_n_asym.open(Form("%s_raw_neutron_asymmetry_only_results.txt",kin));
+
 
 	for (int i=0; i<nentries; i++){
 		tree->GetEntry(i);
 		
+		std::string lookupDatenTime = std::to_string(datetime->GetYear())+"-"+std::to_string(datetime->GetMonth())+"-"+std::to_string(datetime->GetDay())+" "
+		+std::to_string(datetime->GetHour())+":"+std::to_string(datetime->GetMinute())+":"+std::to_string(datetime->GetSecond());
+		//std::cout<<"date : "<<datetime->AsString(); 
+
+		TDatime lookupTime = *datetime;
+
 		h_IHWP->Fill(IHWP);
 		h_runnum->Fill(runnum);
-		if ((W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
+		if (eHCAL>0.3 and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
 			nspot_cut->Fill(dy,dx);
 		}
 		if (i==0){
 			runx = runnum;
 		}
 		
-		if(runnum==runx and lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
-			
-			if (IHWP == 1) helicity = IHWP*IHWP_flip*helicity;
-            else if (IHWP == -1) helicity = -IHWP*IHWP_flip*helicity;
-            else continue;
 
-			if ((W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
-				//if(cutg->IsInside(dy,dx)){
-				if ((dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
-
-					if (helicity==1){
-						Nplus=Nplus+1;
-					}
-					else if (helicity==-1){
-						Nminus=Nminus+1;
-					}
-				}
-				else if((dx_p_L<dx and dx<dx_p_H) and (dy_p_L<dy and dy<dy_p_H)){
-					//std::cout<<"here"<<endl;
-					if (helicity==1){
-						Pplus=Pplus+1;
-					}
-					else if (helicity==-1){
-						Pminus=Pminus+1;
-					}					
-				}
-					//}
-					//else{
-					//	if (helicity==1){
-                                        //                Nminus=Nminus+1;
-                                        //        }
-                                        //        else if (helicity==-1){
-                                        //                Nplus=Nplus+1;
-                                        //        }
-					//}
+		//if(abs(helicity)>0){
+			if(runnum==runx and lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
 				
+				if (IHWP == 1) helicity = -IHWP*IHWP_flip*helicity;
+	            else if (IHWP == -1) helicity = -IHWP*IHWP_flip*helicity;
+	            else continue;
+
+				if ( eHCAL>0.3 and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
+					//if(cutg->IsInside(dy,dx)){
+					if ((dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
+
+						if (helicity==1){
+							Nplus=Nplus+1;
+						}
+						else if (helicity==-1){
+							Nminus=Nminus+1;
+						}
+					}
+					else if((dx_p_L<dx and dx<dx_p_H) and (dy_p_L<dy and dy<dy_p_H)){
+						//std::cout<<"here"<<endl;
+						if (helicity==1){
+							Pplus=Pplus+1;
+						}
+						else if (helicity==-1){
+							Pminus=Pminus+1;
+						}					
+					}
+						//}
+						//else{
+						//	if (helicity==1){
+	                                        //                Nminus=Nminus+1;
+	                                        //        }
+	                                        //        else if (helicity==-1){
+	                                        //                Nplus=Nplus+1;
+	                                        //        }
+						//}
+					
+				}
 			}
-		}
 
-		else if(runnum!=runx and lookupValue(HelicityCheck,runx)==1 and lookupValue(MollerQuality,runnum)==1){
-			Aexp = (Nplus-Nminus)*100/(Nplus+Nminus);
-			errAexp = 2*100*sqrt((Nplus*Nminus)*(Nplus+Nminus))/((Nplus+Nminus)*(Nplus+Nminus));
+			else if(runnum!=runx and lookupValue(HelicityCheck,runx)==1 and lookupValue(MollerQuality,runnum)==1){
+				Aexp = (Nplus-Nminus)*100/(Nplus+Nminus);
+				errAexp = 2*100*sqrt((Nplus*Nminus)*(Nplus+Nminus))/((Nplus+Nminus)*(Nplus+Nminus));
 
-			Ap_exp = (Pplus-Pminus)*100/(Pplus+Pminus);
-			errAp_exp = 2*100*sqrt((Pplus*Pminus)*(Pplus+Pminus))/((Pplus+Pminus)*(Pplus+Pminus));
+				Ap_exp = (Pplus-Pminus)*100/(Pplus+Pminus);
+				errAp_exp = 2*100*sqrt((Pplus*Pminus)*(Pplus+Pminus))/((Pplus+Pminus)*(Pplus+Pminus));
 
-			gAsym->SetPoint(runx,runx,Aexp);
-			gAsym->SetPointError(runx,0,errAexp);
+				Nplus_total+=Nplus;
+				Nminus_total+=Nminus;
 
-			gAp_sym->SetPoint(runx,runx,Ap_exp);
-			gAp_sym->SetPointError(runx,0,errAp_exp);
+				gAsym->SetPoint(runx,runx,Aexp);
+				gAsym->SetPointError(runx,0,errAexp);
 
-			outfile << "Run: " << runx << " Aexp: " << Aexp << " ± " << errAexp << std::endl;
-            outfile_p << "Run: " << runx << " Ap_exp: " << Ap_exp << " ± " << errAp_exp << std::endl;
+				gAp_sym->SetPoint(runx,runx,Ap_exp);
+				gAp_sym->SetPointError(runx,0,errAp_exp);
 
-			std::cout<<"runnum : "<<runx<<" Nplus : "<<Nplus<<" Nminus : "<<Nminus<<" Aexp : "<<Aexp<<endl;
-			std::cout<<"runnum : "<<runx<<" Pplus : "<<Pplus<<" Pminus : "<<Pminus<<" Ap_exp : "<<Ap_exp<<endl;
+				//write asymmetries to files
+				outfile << "Run_number: " << runx << " | Aexp: " << Aexp/100 << " | errAexp: " << errAexp/100 << " | pol_He3: " << He3Pol <<  " | pol_beam: " << searchData(data,lookupTime) << std::endl;
+	            outfile_n_asym << "Run_number: " << runx << " Nplus : "<< Nplus<<" Nminus : "<<Nminus<<" | Aexp: " << Aexp/100 << " | errAexp: " << errAexp/100 << std::endl;
+	            outfile_p << "Run_number: " << runx << " | Ap_exp: " << Ap_exp/100 << " | errAexp: " << errAp_exp/100 << std::endl;
+	            outfile_pol_He3 << "Run_number: " << runx << " | pol_He3: " << He3Pol <<std::endl; //<< " | errAexp: " << errAp_exp << std::endl;
+	            outfile_pol_beam<< "Run_number: " << runx << " | pol_beam: " << searchData(data,lookupTime)<<std::endl;
+	            //write He3 polarizations to files
 
-			runx=runnum;
-			Nplus=0.0;
-			Nminus=0.0;
-			Aexp=0.0;
-			Pplus=0.0;
-			Pminus=0.0;
-			Ap_exp=0.0;
-		}
 
-		else if(runnum!=runx){
-                      	runx=runnum;
-                        Nplus=0.0;
-                        Nminus=0.0;
-                        Aexp=0.0;
-                        Pplus=0.0;
-						Pminus=0.0;
-						Ap_exp=0.0;
-		}
+	            //write beam polarization to files
 
+
+
+				std::cout<<"runnum : "<<runx<<" Nplus : "<<Nplus<<" Nminus : "<<Nminus<<" Aexp : "<<Aexp<<endl;
+				std::cout<<"runnum : "<<runx<<" Pplus : "<<Pplus<<" Pminus : "<<Pminus<<" Ap_exp : "<<Ap_exp<<endl;
+	            std::cout<< "Run_number: " << runx << " | pol_He3: " << He3Pol <<std::endl; //<< " | errAexp: " << errAp_exp << std::endl;
+	            std::cout<< "Run_number: " << runx << " | pol_beam: " << searchData(data,lookupTime)<<std::endl;
+
+				runx=runnum;
+				Nplus=0.0;
+				Nminus=0.0;
+				Aexp=0.0;
+				Pplus=0.0;
+				Pminus=0.0;
+				Ap_exp=0.0;
+			}
+
+			else if(runnum!=runx){
+	                      	runx=runnum;
+	                        Nplus=0.0;
+	                        Nminus=0.0;
+	                        Aexp=0.0;
+	                        Pplus=0.0;
+							Pminus=0.0;
+							Ap_exp=0.0;
+			}
+
+		//}
 	}
+
+	std::cout<<"Nplus_total : "<<Nplus_total<<" Nminus_total : "<<Nminus_total<<" Aexp_total : "<<(Nplus_total - Nminus_total)/(Nplus_total + Nminus_total)<<
+				" errAexp_total : " << 2*sqrt((Nplus_total*Nminus_total)*(Nplus_total+Nminus_total))/((Nplus_total+Nminus_total)*(Nplus_total+Nminus_total))<<endl;
+
 	outfile.close();
 	outfile_p.close();
 

@@ -102,3 +102,58 @@ int lookupValue(const std::map<int, int> &dataMap, int key) {
         return -1;
     }
 }
+
+//read Aexp
+// Function to read data from file and return a map with run number and (Aexp, errAexp) pairs
+// Define a struct to store all data for each run
+struct RunData {
+    double Aexp;
+    double errAexp;
+    double pol_He3;
+    double pol_beam;
+};
+
+// Function to read data from file and return a map with run number and RunData
+std::map<int, RunData> readRunDataFromFile(const std::string& filename) {
+    std::ifstream inputFile(filename); // Open the file
+    std::map<int, RunData> data; // Map to store run number and RunData
+
+    if (!inputFile) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return data; // Return empty map if file can't be opened
+    }
+
+    std::string line;
+    while (std::getline(inputFile, line)) {
+        std::istringstream iss(line);
+        std::string temp;
+        int runNumber;
+        RunData runData;
+
+        // Extract the run number
+        iss >> temp >> runNumber;
+
+        // Skip the "| Aexp:" part and extract Aexp
+        iss >> temp >> temp >> runData.Aexp;
+
+        // Skip the "| errAexp:" part and extract errAexp
+        iss >> temp >> temp >> runData.errAexp;
+
+        // Skip the "| pol_He3:" part and extract pol_He3
+        iss >> temp >> temp >> runData.pol_He3;
+
+        // Skip the "| pol_beam:" part and extract pol_beam
+        iss >> temp >> temp >> runData.pol_beam;
+
+        // Store in the map
+        data[runNumber] = runData;
+    }
+
+    inputFile.close();
+    return data; // Return the map with data
+}
+
+
+
+
+

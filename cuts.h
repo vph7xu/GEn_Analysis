@@ -89,7 +89,5 @@ public:
         N_cut_cy = getDoubleValue(config,"N_cut_cy");
         N_cut_rx = getDoubleValue(config,"N_cut_rx");
         N_cut_ry = getDoubleValue(config,"N_cut_ry");
-
-  }
-
+	}
 };
