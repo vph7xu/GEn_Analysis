@@ -62,13 +62,13 @@ std::vector<beamPol> loadCSVData(const std::string &filename) {
 
 
 // Function to search for an entry in the data vector that matches the given lookupTime
-double searchData(const std::vector<beamPol> &data, const TDatime &lookupTime) {
+std::pair<double, double> searchData(const std::vector<beamPol> &data, const TDatime &lookupTime) {
     for (const auto &entry : data) {
         if (lookupTime >= entry.startTime && lookupTime <= entry.endTime) {
-            return entry.beam_polarization; // Return the polarization value if a match is found
+            return {entry.beam_polarization, entry.error}; // Return the polarization value if a match is found
         }
     }
-    return -1.0; // Return -1.0 if no matching time range is found
+    return {-1.0,-1.0}; // Return -1.0 if no matching time range is found
 }
 
 
@@ -145,6 +145,12 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	double Ap_exp = 0.0;
 	double errAp_exp = 0.0;
 
+	double avg_He3Pol = 0.0;
+	double avg_beampol = 0.0;
+	double total_QE = 0.0;
+
+	double err_avg_beampol = 0.0;
+
 	double runx=0;
 
 	TDatime *datetime = nullptr;
@@ -188,6 +194,9 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 	std::ofstream outfile_n_asym;
 	outfile_n_asym.open(Form("%s_raw_neutron_asymmetry_only_results.txt",kin));
+
+	std::ofstream outfile_avg_polarizations;
+	outfile_avg_polarizations.open(Form("%s_average_polarization_results.txt",kin));
 
 
 	for (int i=0; i<nentries; i++){
@@ -256,6 +265,14 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 				Ap_exp = (Pplus-Pminus)*100/(Pplus+Pminus);
 				errAp_exp = 2*100*sqrt((Pplus*Pminus)*(Pplus+Pminus))/((Pplus+Pminus)*(Pplus+Pminus));
 
+				auto [beam_polarization, error] = searchData(data, lookupTime);
+
+				avg_He3Pol += (Nplus+Nminus)*He3Pol*0.01;
+				avg_beampol += (Nplus+Nminus)* beam_polarization*0.01;
+				total_QE +=(Nplus+Nminus);
+
+				err_avg_beampol += (Nplus+Nminus)*error*0.01;
+
 				Nplus_total+=Nplus;
 				Nminus_total+=Nminus;
 
@@ -266,11 +283,11 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 				gAp_sym->SetPointError(runx,0,errAp_exp);
 
 				//write asymmetries to files
-				outfile << "Run_number: " << runx << " | Aexp: " << Aexp/100 << " | errAexp: " << errAexp/100 << " | pol_He3: " << He3Pol <<  " | pol_beam: " << searchData(data,lookupTime) << std::endl;
+				outfile << "Run_number: " << runx << " | Aexp: " << Aexp/100 << " | errAexp: " << errAexp/100 << " | pol_He3: " << He3Pol <<  " | pol_beam: " << beam_polarization << std::endl;
 	            outfile_n_asym << "Run_number: " << runx << " Nplus : "<< Nplus<<" Nminus : "<<Nminus<<" | Aexp: " << Aexp/100 << " | errAexp: " << errAexp/100 << std::endl;
 	            outfile_p << "Run_number: " << runx << " | Ap_exp: " << Ap_exp/100 << " | errAexp: " << errAp_exp/100 << std::endl;
 	            outfile_pol_He3 << "Run_number: " << runx << " | pol_He3: " << He3Pol <<std::endl; //<< " | errAexp: " << errAp_exp << std::endl;
-	            outfile_pol_beam<< "Run_number: " << runx << " | pol_beam: " << searchData(data,lookupTime)<<std::endl;
+	            outfile_pol_beam<< "Run_number: " << runx << " | pol_beam: " << beam_polarization<<std::endl;
 	            //write He3 polarizations to files
 
 
@@ -281,7 +298,7 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 				std::cout<<"runnum : "<<runx<<" Nplus : "<<Nplus<<" Nminus : "<<Nminus<<" Aexp : "<<Aexp<<endl;
 				std::cout<<"runnum : "<<runx<<" Pplus : "<<Pplus<<" Pminus : "<<Pminus<<" Ap_exp : "<<Ap_exp<<endl;
 	            std::cout<< "Run_number: " << runx << " | pol_He3: " << He3Pol <<std::endl; //<< " | errAexp: " << errAp_exp << std::endl;
-	            std::cout<< "Run_number: " << runx << " | pol_beam: " << searchData(data,lookupTime)<<std::endl;
+	            std::cout<< "Run_number: " << runx << " | pol_beam: " << beam_polarization<<std::endl;
 
 				runx=runnum;
 				Nplus=0.0;
@@ -305,8 +322,22 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 		//}
 	}
 
+
+	avg_He3Pol = avg_He3Pol/total_QE;
+	avg_beampol = avg_beampol/total_QE;
+	err_avg_beampol = err_avg_beampol/total_QE;
+
+	outfile_avg_polarizations<< "avg_He3pol = " << avg_He3Pol<<endl;
+	outfile_avg_polarizations<< "avg_beampol = "<< avg_beampol<<endl;
+	outfile_avg_polarizations<< "avg_Pn = "<< 0.96 <<endl;
+	outfile_avg_polarizations<< "err_avg_He3pol = "<< 0.05<<endl;
+	outfile_avg_polarizations<< "err_avg_beampol = "<< err_avg_beampol<<endl;
+	outfile_avg_polarizations<< "err_Pn = "<< 0.005<<endl;
+
 	std::cout<<"Nplus_total : "<<Nplus_total<<" Nminus_total : "<<Nminus_total<<" Aexp_total : "<<(Nplus_total - Nminus_total)/(Nplus_total + Nminus_total)<<
 				" errAexp_total : " << 2*sqrt((Nplus_total*Nminus_total)*(Nplus_total+Nminus_total))/((Nplus_total+Nminus_total)*(Nplus_total+Nminus_total))<<endl;
+
+
 
 	outfile.close();
 	outfile_p.close();
