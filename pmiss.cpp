@@ -840,32 +840,32 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 
 
 
-    ccuts->Print(Form("%s_Pperp.pdf(",kin));
-	c->Print(Form("%s_Pperp.pdf",kin));
-	c1->Print(Form("%s_Pperp.pdf",kin));
-	c2->Print(Form("%s_Pperp.pdf",kin));
-	c3->Print(Form("%s_Pperp.pdf",kin));
-	c4->Print(Form("%s_Pperp.pdf",kin));
-	c5->Print(Form("%s_Pperp.pdf",kin));
-	c51->Print(Form("%s_Pperp.pdf",kin));
-	c6->Print(Form("%s_Pperp.pdf",kin));
-	c7->Print(Form("%s_Pperp.pdf",kin));
-	c8->Print(Form("%s_Pperp.pdf",kin));
-	c81->Print(Form("%s_Pperp.pdf",kin));
-	c9->Print(Form("%s_Pperp.pdf",kin));
-	c10->Print(Form("%s_Pperp.pdf",kin));
-	c11->Print(Form("%s_Pperp.pdf",kin));
-	c12->Print(Form("%s_Pperp.pdf",kin));
-	c13->Print(Form("%s_Pperp.pdf",kin));
-	c14->Print(Form("%s_Pperp.pdf",kin));
-	c15->Print(Form("%s_Pperp.pdf",kin));
-	c16->Print(Form("%s_Pperp.pdf",kin));
-	c17->Print(Form("%s_Pperp.pdf",kin));
-	c18->Print(Form("%s_Pperp.pdf",kin));
-	c19->Print(Form("%s_Pperp.pdf",kin));
-	c20->Print(Form("%s_Pperp.pdf",kin));
-	c21->Print(Form("%s_Pperp.pdf",kin));
-	c22->Print(Form("%s_Pperp.pdf)",kin));
+    ccuts->Print(Form("plots/%s_Pperp.pdf(",kin));
+	c->Print(Form("plots/%s_Pperp.pdf",kin));
+	c1->Print(Form("plots/%s_Pperp.pdf",kin));
+	c2->Print(Form("plots/%s_Pperp.pdf",kin));
+	c3->Print(Form("plots/%s_Pperp.pdf",kin));
+	c4->Print(Form("plots/%s_Pperp.pdf",kin));
+	c5->Print(Form("plots/%s_Pperp.pdf",kin));
+	c51->Print(Form("plots/%s_Pperp.pdf",kin));
+	c6->Print(Form("plots/%s_Pperp.pdf",kin));
+	c7->Print(Form("plots/%s_Pperp.pdf",kin));
+	c8->Print(Form("plots/%s_Pperp.pdf",kin));
+	c81->Print(Form("plots/%s_Pperp.pdf",kin));
+	c9->Print(Form("plots/%s_Pperp.pdf",kin));
+	c10->Print(Form("plots/%s_Pperp.pdf",kin));
+	c11->Print(Form("plots/%s_Pperp.pdf",kin));
+	c12->Print(Form("plots/%s_Pperp.pdf",kin));
+	c13->Print(Form("plots/%s_Pperp.pdf",kin));
+	c14->Print(Form("plots/%s_Pperp.pdf",kin));
+	c15->Print(Form("plots/%s_Pperp.pdf",kin));
+	c16->Print(Form("plots/%s_Pperp.pdf",kin));
+	c17->Print(Form("plots/%s_Pperp.pdf",kin));
+	c18->Print(Form("plots/%s_Pperp.pdf",kin));
+	c19->Print(Form("plots/%s_Pperp.pdf",kin));
+	c20->Print(Form("plots/%s_Pperp.pdf",kin));
+	c21->Print(Form("plots/%s_Pperp.pdf",kin));
+	c22->Print(Form("plots/%s_Pperp.pdf)",kin));
 }
 
 

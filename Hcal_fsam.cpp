@@ -225,9 +225,9 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	profX2->Draw("SAME");
 
 
-	c->SaveAs(Form("%s_test_fs.png",printfilename));
-	c->Print(Form("%s_test_fs.pdf(",printfilename));
-	c1->Print(Form("%s_test_fs.pdf",printfilename));
-	c2->Print(Form("%s_test_fs.pdf",printfilename));
-	c3->Print(Form("%s_test_fs.pdf)",printfilename));
+	c->SaveAs(Form("../plots/%s_test_fs.png",printfilename));
+	c->Print(Form("../plots/%s_test_fs.pdf(",printfilename));
+	c1->Print(Form("../plots/%s_test_fs.pdf",printfilename));
+	c2->Print(Form("../plots/%s_test_fs.pdf",printfilename));
+	c3->Print(Form("../plots/%s_test_fs.pdf)",printfilename));
 }

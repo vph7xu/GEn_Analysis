@@ -52,7 +52,7 @@ FieldAngles lookupFieldAngles(const std::string& kinematic, const std::string& f
 }
 
 
-void calAvgKin(const char* filename, const char* kin){
+void calAvgKin(const char* filename, const char* kin, bool flag_eHCAL_cut){
 
 	TFile* file = TFile::Open(filename);
     TTree* tree = (TTree*)file->Get("Tout");
@@ -79,6 +79,8 @@ void calAvgKin(const char* filename, const char* kin){
 
 	double dx_L = getDoubleValue(config1,"dx_L");
 	double dx_H = getDoubleValue(config1,"dx_H");
+
+	double eHCAL_L = getDoubleValue(config1,"eHCAL_L");
 
 	double dy_p_L = getDoubleValue(config1,"dy_p_L");
 	double dy_p_H = getDoubleValue(config1,"dy_p_H");
@@ -135,9 +137,11 @@ void calAvgKin(const char* filename, const char* kin){
 	tree->SetBranchAddress("coin_time",&coin_time);
 	tree->SetBranchAddress("W2",&W2);
 
+    if (flag_eHCAL_cut == false) eHCAL_L=0.0;
+
+    std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
+
 	int nentries = tree->GetEntries();
-
-
 
 	int count = 1;
 
@@ -146,7 +150,7 @@ void calAvgKin(const char* filename, const char* kin){
 
 		bool goodMoller = (lookupValue(HelicityCheck,runnum)==1);
 		bool goodHelicity = (lookupValue(MollerQuality,runnum)==1) and (abs(helicity)==1);
-		bool goodQE = eHCAL>0.3 and (coin_time_L<coin_time) and (coin_time<coin_time_H) and (W2_L<W2) and (W2<W2_H) and (dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H);
+		bool goodQE = eHCAL>eHCAL_L and (coin_time_L<coin_time) and (coin_time<coin_time_H) and (W2_L<W2) and (W2<W2_H) and (dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H);
 
 		if (goodMoller and goodHelicity and goodQE){
 			TLorentzVector Pe(0,0,ebeam,ebeam);
@@ -203,7 +207,7 @@ void calAvgKin(const char* filename, const char* kin){
 	}
 
 	std::ofstream outfile;
-	outfile.open(Form("%s_average_kinematic_values.txt",kin));
+	outfile.open(Form("txt/%s_average_kinematic_values_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	outfile<<"Q2_avg = "<<Q2_avg<<endl;
 	outfile<<"tau_avg = "<<tau_avg<<endl;
@@ -216,10 +220,10 @@ void calAvgKin(const char* filename, const char* kin){
 }
 
 
-void gen_extraction(const char* kin = "GEN3"){
+void gen_extraction(const char* kin = "GEN3", bool flag_eHCAL_cut = false){
 
-	std::map<std::string, std::string> Aphyresults = parseConfig(Form("%s_He3_physics_neutron_asymmetry_summary.txt",kin));
-	std::map<std::string, std::string> avg_kin_val = parseConfig(Form("%s_average_kinematic_values.txt",kin));
+	std::map<std::string, std::string> Aphyresults = parseConfig(Form("txt/%s_He3_physics_neutron_asymmetry_summary_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	std::map<std::string, std::string> avg_kin_val = parseConfig(Form("txt/%s_average_kinematic_values_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	//physics asymmetries
 	double Aphy_sum = getDoubleValue(Aphyresults,"Aphy_sum");
@@ -251,5 +255,13 @@ void gen_extraction(const char* kin = "GEN3"){
 	double err_GMn = 0.0002;
 
 	cout<<" lambda : "<< lambda << " sigma_lambda_stat : " <<sigma_lambda_stat << " sigma_lambda_sys : "<<sigma_lambda_sys <<" sigma_lambda : "<<sigma_lambda<<endl;
+
+	std::ofstream outfile;
+	outfile.open(Form("txt/%s_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	outfile<<"lambda = "<< lambda <<endl;
+	outfile<<"sigma_lambda_stat = " <<sigma_lambda_stat <<endl;
+	outfile<<"sigma_lambda_sys = "<<sigma_lambda_sys <<endl;
+	outfile<<"sigma_lambda : "<<sigma_lambda<<endl;
+
 
 }

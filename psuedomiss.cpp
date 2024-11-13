@@ -382,14 +382,14 @@ void psuedomiss(const char* filename, const char* printfilename, const char *kin
     h_kinE_cut_QE->Draw();
 
 
-	c->Print(Form("%s_Pperp.pdf(",kin));
-	c1->Print(Form("%s_Pperp.pdf",kin));
-	c2->Print(Form("%s_Pperp.pdf",kin));
-	c3->Print(Form("%s_Pperp.pdf",kin));
-	c4->Print(Form("%s_Pperp.pdf",kin));
-	c5->Print(Form("%s_Pperp.pdf",kin));
-	c6->Print(Form("%s_Pperp.pdf",kin));
-	c7->Print(Form("%s_Pperp.pdf",kin));
-	c8->Print(Form("%s_Pperp.pdf",kin));
-	c9->Print(Form("%s_Pperp.pdf)",kin));
+	c->Print(Form("plots/%s_Pperp.pdf(",kin));
+	c1->Print(Form("plots/%s_Pperp.pdf",kin));
+	c2->Print(Form("plots/%s_Pperp.pdf",kin));
+	c3->Print(Form("plots/%s_Pperp.pdf",kin));
+	c4->Print(Form("plots/%s_Pperp.pdf",kin));
+	c5->Print(Form("plots/%s_Pperp.pdf",kin));
+	c6->Print(Form("plots/%s_Pperp.pdf",kin));
+	c7->Print(Form("plots/%s_Pperp.pdf",kin));
+	c8->Print(Form("plots/%s_Pperp.pdf",kin));
+	c9->Print(Form("plots/%s_Pperp.pdf)",kin));
 }

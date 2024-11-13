@@ -68,7 +68,7 @@ void CalculateAsymmetry(std::vector<TH1D*>& Helicity_histograms, const char* pri
     // Save the graph into a file or draw it on a canvas
     TCanvas* c = new TCanvas("c", "Asymmetry Graph", 800, 600);
     graph->Draw("AP");  // "A" draws axes, "P" draws points with error bars
-    c->SaveAs("asymmetry_graph_W2binned.pdf"); // Save as PDF, or you can choose another format
+    c->SaveAs("plots/asymmetry_graph_W2binned.pdf"); // Save as PDF, or you can choose another format
 
     // Optionally save graph into a ROOT file
     //TFile* outFile = new TFile("asymmetry_graph.root", "RECREATE");
@@ -262,7 +262,7 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
     h_W2_dx_dy->Draw("HIST SAME");
     legendW2->Draw();
 
-    cW2->SaveAs("W2_for_inelastics.pdf"); 
+    cW2->SaveAs("plots/W2_for_inelastics.pdf"); 
 
     //Process Helicity histograms
 
@@ -300,6 +300,6 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
     legend->Draw();
 
     // Save the canvas
-    c->SaveAs(Form("%s_asymmetry_across_W2.pdf",printfilename));
+    c->SaveAs(Form("plots/%s_asymmetry_across_W2.pdf",printfilename));
 
 }

@@ -1,8 +1,16 @@
 
 #include "models.h"
 #include "parse.h"
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <iomanip>
+#include <TDatime.h>
 
-void proton_contamination(const char* filename, const char* printfilename, const char* kin){
+void proton_contamination(const char* filename, const char* printfilename, const char* kin, bool flag_eHCAL_cut){
 
 	std::map<std::string, std::string> config = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
 	std::map<int, int> HelicityCheck = readCSVToMap("DB/Helicity_quality.csv");
@@ -22,6 +30,8 @@ void proton_contamination(const char* filename, const char* printfilename, const
 
 	double dx_L = getDoubleValue(config,"dx_L");
 	double dx_H = getDoubleValue(config,"dx_H");
+
+	double eHCAL_L = getDoubleValue(config,"eHCAL_L");
 
 	double dy_p_L = getDoubleValue(config,"dy_p_L");
 	double dy_p_H = getDoubleValue(config,"dy_p_H");
@@ -80,13 +90,17 @@ void proton_contamination(const char* filename, const char* printfilename, const
     double proton_events = 0.0;
     double QE_events = 0.0;
 
+	if (flag_eHCAL_cut == false) eHCAL_L=0.0;
+
+    std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
+
     TH2D *h_dxdy_p_cut_W2_cointime = new TH2D("h_dxdy_p_cut_W2_cointime","dxdy for protons; dy (m); dx (m)",200,-4,4,200,-4,4);
 
     for (int i = 0; i<nentries; i++){
         tree->GetEntry(i);
 
         if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1 and ( helicity == -1 or helicity == 1)){
-        	bool cut_eHCAL = (eHCAL)>0.3;
+        	bool cut_eHCAL = (eHCAL)>eHCAL_L;
         	bool cut_W2 = (W2_L<W2 and W2<W2_H);
         	bool cut_coin = (coin_time_L<coin_time and coin_time<coin_time_H);
         	bool cut_QE = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (dy_L<dy and dy<dy_H) and (dx_L<dx and dx<dx_H);
@@ -138,9 +152,9 @@ void proton_contamination(const char* filename, const char* printfilename, const
     box_dxdy_n->Draw("SAME");
     box_dxdy_p->Draw("SAME");
 
-    c->SaveAs(Form("proton_plots_for_%s.pdf",kin));
-    c->SaveAs(Form("proton_plots_for_%s.pdf",kin));
-    c->SaveAs(Form("proton_plots_for_%s.pdf",kin));
+    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	double proton_frac = proton_events/QE_events;// this is not correct should remove other fractions before doing this
 	double errproton_frac = (proton_events/QE_events)*sqrt((1/proton_events)+(1/QE_events)); // this is not correct should remove other fractions before doing this
@@ -151,11 +165,22 @@ void proton_contamination(const char* filename, const char* printfilename, const
 		
 	std::cout<<"Nplus : "<<Nplus_total<<endl;
 	std::cout<<"Nminus : "<<Nminus_total<<endl;
-	std::cout<<"Ap : "<<Ap<<endl;
-	std::cout<<"errAin : "<<errAp<<endl;
+	std::cout<<"A_p : "<<Ap<<endl;
+	std::cout<<"err_A_p : "<<errAp<<endl;
 	std::cout<<"proton_events : "<< proton_events<<endl;
 	std::cout<<"QE_events : "<<QE_events<<endl;
 	std::cout<<"proton fraction (double counting) : "<<proton_frac<<endl; //not correct , double counting
 	std::cout<<"error proton fraction (double counting) : "<<errproton_frac<<endl; //not correct , double counting
+
+	std::ofstream outfile;
+    outfile.open(Form("txt/%s_proton_asymmetry_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	outfile<<"Nplus = "<<Nplus_total<<endl;
+	outfile<<"Nminus = "<<Nminus_total<<endl;
+	outfile<<"A_p = "<<Ap<<endl;
+	outfile<<"err_A_p = "<<errAp<<endl;
+	outfile<<"proton_events = "<< proton_events<<endl;
+	outfile<<"QE_events = "<<QE_events<<endl;
+	outfile<<"f_p = "<<proton_frac<<endl; //not correct , double counting
+	outfile<<"err_f_p = "<<errproton_frac<<endl; //not correct , double counting
 
 }

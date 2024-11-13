@@ -2,8 +2,15 @@
 #include "parse.h"
 #include "plotdxdy.h"
 #include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <iomanip>
+#include <TDatime.h>
 
-void CalculateAsymmetry(std::vector<TH1D*>& Helicity_histograms, const char* printfilename) {
+void CalculateAsymmetry(std::vector<TH1D*>& Helicity_histograms, const char* printfilename, const char* kin, bool flag_eHCAL_cut) {
     // Prepare arrays to store the W2 bin centers, asymmetries, and errors
     int nBins = Helicity_histograms.size();
     std::vector<double> cointime_bin_centers(nBins);
@@ -11,7 +18,7 @@ void CalculateAsymmetry(std::vector<TH1D*>& Helicity_histograms, const char* pri
     std::vector<double> errors(nBins);
     
     // Open a file to save results
-    std::ofstream outfile(printfilename);
+    std::ofstream outfile(Form("txt/%s_asymmetry_graph_cointime_binned_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
     outfile << "cointime_bin_low_edge, Asymmetry, Error\n";
 
     for (int i = 0; i < nBins; ++i) {
@@ -66,7 +73,7 @@ void CalculateAsymmetry(std::vector<TH1D*>& Helicity_histograms, const char* pri
     // Save the graph into a file or draw it on a canvas
     TCanvas* c = new TCanvas("c", "Asymmetry Graph", 800, 600);
     graph->Draw("AP");  // "A" draws axes, "P" draws points with error bars
-    c->SaveAs("asymmetry_graph_cointimebinned.pdf"); // Save as PDF, or you can choose another format
+    c->SaveAs(Form("plots/%s_asymmetry_graph_cointime_binned_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str())); // Save as PDF, or you can choose another format
 
     // Optionally save graph into a ROOT file
     //TFile* outFile = new TFile("asymmetry_graph.root", "RECREATE");
@@ -75,7 +82,7 @@ void CalculateAsymmetry(std::vector<TH1D*>& Helicity_histograms, const char* pri
 }
 
 
-void Asymmetry_across_cointime(const char* filename, const char* printfilename, const char* kin){
+void Asymmetry_across_cointime(const char* filename, const char* printfilename, const char* kin, bool flag_eHCAL_cut){
 
 
 	std::map<std::string, std::string> config = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
@@ -96,6 +103,8 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
 
 	double dx_L = getDoubleValue(config,"dx_L");
 	double dx_H = getDoubleValue(config,"dx_H");
+
+    double eHCAL_L = getDoubleValue(config,"eHCAL_L");
 
 	double dy_ac_L = getDoubleValue(config,"dy_ac_L");
 	double dy_ac_H = getDoubleValue(config,"dy_ac_H");
@@ -169,11 +178,16 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
 	std::cout<<"coin_L and H : "<<coin_time_L<<"  "<<coin_time_H<<endl;
 	std::cout<<"dx_L and H : "<<dy_L <<" "<<dy_H <<endl;
 
+    //eHCAL cut yes or no
+    if (flag_eHCAL_cut == false) eHCAL_L=0.0;
+
+    std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
+
 	//fill corrected helicity each bin from data
 	for (int i = 0; i<nentries; i++){
         tree->GetEntry(i);
         if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1 and abs(vz)<0.27 and ePS>0.2 and( helicity == -1 or helicity == 1)){
-        	if(( W2_L<W2 and W2<W2_H ) and (dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
+        	if(/*(eHCAL>eHCAL_L)and*/( W2_L<W2 and W2<W2_H ) and (dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
         		//Fill cointime for illustration
                 h_coin_time->Fill(coin_time);
 
@@ -189,13 +203,12 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
                 }
 
                 //to get the fraction
-                //eHCAL cut is used here since it will be used in the analysis but to get the asymmetry from the accidentals its relieved to get more statistics
-                if(eHCAL>0.3){
-                    //offset cut
+                //offset cut , no eHCAL cut for asymmetry cal
+                if(eHCAL>eHCAL_L){
                     if (coin_time_offset_L<coin_time and coin_time<coin_time_offset_H){
                         accidental_events+=1;
                     }
-                    //QE events in the window
+                        //QE events in the window
                     if(coin_time_L<coin_time and coin_time<coin_time_H){
                         QE_events+=1;
                     }
@@ -273,9 +286,9 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
     h_dxdy_cut_W2_coin->Draw("COLZ");
     box_dxdy->Draw("SAME");
 
-    ccoin->SaveAs("cointime_plots_for_accidentals.pdf");
-    ccoin->SaveAs("cointime_plots_for_accidentals.png");
-    ccoin->SaveAs("cointime_plots_for_accidentals.jpg");
+    ccoin->SaveAs(Form("plots/%s_cointime_plots_for_accidentals_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    ccoin->SaveAs(Form("plots/%s_cointime_plots_for_accidentals_eHCAL_cut_%s.png",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    ccoin->SaveAs(Form("plots/%s_cointime_plots_for_accidentals_eHCAL_cut_%s.jpg",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
     std::cout<<"N_plus_all : "<<N_plus_all<<endl;
     std::cout<<"N_minus_all : "<<N_minus_all<<endl;
@@ -284,9 +297,22 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
     std::cout<<"QE_events : "<<QE_events<<endl;
     std::cout<<"f_acc : "<<f_acc<<"+-"<<err_f_acc<<endl;
 
+    std::ofstream outfile;
+    outfile.open(Form("txt/%s_accidental_asymmetry_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    outfile<<"N_plus_all = "<<N_plus_all<<endl;
+    outfile<<"N_minus_all = "<<N_minus_all<<endl;
+    outfile<<"A_acc = "<<A_acc<<endl;
+    outfile<<"err_A_acc = "<<err_A_acc<<endl;
+    outfile<<"accidental_events = "<<accidental_events<<endl;
+    outfile<<"QE_events = "<<QE_events<<endl;
+    outfile<<"f_acc = "<<f_acc<<endl;
+    outfile<<"err_f_acc = "<<err_f_acc<<endl;
+
+
+
     //Process Helicity histogram
 
-    CalculateAsymmetry(Helicity_histograms,printfilename);
+    CalculateAsymmetry(Helicity_histograms,printfilename,kin,flag_eHCAL_cut);
 
 
 }

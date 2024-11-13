@@ -108,9 +108,9 @@ void plotW2(const char* filename, const char* printfilename, const char *kin/*, 
 		
 			}
 		}
-		if (canvasIndex==0) canvas->Print(Form("%s_W2.pdf(",printfilename));
-		else if (canvasIndex==(canvasesNeeded-1)) canvas->Print(Form("%s_W2.pdf)",printfilename));
-		else canvas->Print(Form("%s_W2.pdf",printfilename));
+		if (canvasIndex==0) canvas->Print(Form("../plots/%s_W2.pdf(",printfilename));
+		else if (canvasIndex==(canvasesNeeded-1)) canvas->Print(Form("../plots/%s_W2.pdf)",printfilename));
+		else canvas->Print(Form("../plots/%s_W2.pdf",printfilename));
 
 		TGraphErrors *meanGraph = new TGraphErrors(nBins, &binCenters[0], &means[0], nullptr, &meanErrors[0]);
     		TGraphErrors *sigmaGraph = new TGraphErrors(nBins, &binCenters[0], &sigmas[0], nullptr, &sigmaErrors[0]);
@@ -137,7 +137,7 @@ void plotW2(const char* filename, const char* printfilename, const char *kin/*, 
     		sigmaGraph->SetMarkerStyle(7);
     		sigmaGraph->Draw("AP");
 
-    		graphCanvas->Print(Form("%s_W2_QE_peak.pdf",printfilename));
+    		graphCanvas->Print(Form("../plots/%s_W2_QE_peak.pdf",printfilename));
 
 	}
 	

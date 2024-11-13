@@ -93,9 +93,9 @@ void Hcal_time_energy(const char* filename,const char* printfilename,const char*
    	        }
    	    }
   	    // Save the canvas
-	    if (i==0) canvas->Print("hcal_adc_time_per_blk.pdf(");
-	    else if (i==275) canvas->Print("hcal_adc_time_per_blk.pdf)");
-	    else canvas->Print("hcal_adc_time_per_blk.pdf");
+	    if (i==0) canvas->Print("../plots/hcal_adc_time_per_blk.pdf(");
+	    else if (i==275) canvas->Print("../plots/hcal_adc_time_per_blk.pdf)");
+	    else canvas->Print("../plots/hcal_adc_time_per_blk.pdf");
 	    
 	    
 	    canvasCount++;

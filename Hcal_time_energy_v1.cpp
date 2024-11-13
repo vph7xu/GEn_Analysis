@@ -104,9 +104,9 @@ void Hcal_time_energy_v1(const char* filename,const char* printfilename,const ch
    	        }
    	    }
   	    // Save the canvas
-	    if (i==0) canvas->Print("hcal_primary_adc_time_per_blk.pdf(");
-	    else if (i==275) canvas->Print("hcal_primary_adc_time_per_blk.pdf)");
-	    else canvas->Print("hcal_primary_adc_time_per_blk.pdf");
+	    if (i==0) canvas->Print("../plots/hcal_primary_adc_time_per_blk.pdf(");
+	    else if (i==275) canvas->Print("../plots/hcal_primary_adc_time_per_blk.pdf)");
+	    else canvas->Print("../plots/hcal_primary_adc_time_per_blk.pdf");
 	    
 	    
 	    canvasCount++;
@@ -126,7 +126,7 @@ void Hcal_time_energy_v1(const char* filename,const char* printfilename,const ch
 
   	TCanvas* c1 = new TCanvas("c1","2d distribution of timing offset",800,600);
 	hcal_clus_avg_time_offset->Draw("COLZ");
-	c1->Print("timimg_offset_distribution.pdf");
+	c1->Print("../plots/timimg_offset_distribution.pdf");
 	
 	
 	/*

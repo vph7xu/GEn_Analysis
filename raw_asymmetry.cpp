@@ -72,7 +72,7 @@ std::pair<double, double> searchData(const std::vector<beamPol> &data, const TDa
 }
 
 
-void raw_asymmetry(const char* filename, const char* printfilename, const char* kin){
+void raw_asymmetry(const char* filename, const char* printfilename, const char* kin, bool flag_eHCAL_cut){
 
 	std::map<std::string, std::string> config1 = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
 	std::map<int, int> HelicityCheck = readCSVToMap("DB/Helicity_quality.csv");
@@ -89,6 +89,8 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 	double dx_L = getDoubleValue(config1,"dx_L");
 	double dx_H = getDoubleValue(config1,"dx_H");
+
+	double eHCAL_L = getDoubleValue(config1,"eHCAL_L");
 
 	double dy_p_L = getDoubleValue(config1,"dy_p_L");
 	double dy_p_H = getDoubleValue(config1,"dy_p_H");
@@ -181,22 +183,30 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 	//write asymmetry values to files
 	std::ofstream outfile;
-	outfile.open(Form("%s_raw_neutron_asymmetry_results.txt",kin)); 
+	outfile.open(Form("txt/%s_raw_neutron_asymmetry_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str())); 
+
+	std::ofstream outfile_sum;
+	outfile_sum.open(Form("txt/%s_raw_neutron_asymmetry_results_summary_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	std::ofstream outfile_p;
-	outfile_p.open(Form("%s_raw_proton_asymmetry_results.txt",kin));
+	outfile_p.open(Form("txt/%s_raw_proton_asymmetry_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	std::ofstream outfile_pol_He3;
-	outfile_pol_He3.open(Form("%s_He3_polarization_results.txt",kin));
+	outfile_pol_He3.open(Form("txt/%s_He3_polarization_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	std::ofstream outfile_pol_beam;
-	outfile_pol_beam.open(Form("%s_beam_polarization_results.txt",kin));
+	outfile_pol_beam.open(Form("txt/%s_beam_polarization_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	std::ofstream outfile_n_asym;
-	outfile_n_asym.open(Form("%s_raw_neutron_asymmetry_only_results.txt",kin));
+	outfile_n_asym.open(Form("txt/%s_raw_neutron_asymmetry_only_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	std::ofstream outfile_avg_polarizations;
-	outfile_avg_polarizations.open(Form("%s_average_polarization_results.txt",kin));
+	outfile_avg_polarizations.open(Form("txt/%s_average_polarization_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+
+
+	if (flag_eHCAL_cut == false) eHCAL_L=0.0;
+
+    std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
 
 
 	for (int i=0; i<nentries; i++){
@@ -210,7 +220,7 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 		h_IHWP->Fill(IHWP);
 		h_runnum->Fill(runnum);
-		if (eHCAL>0.3 and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
+		if (eHCAL>eHCAL_L and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
 			nspot_cut->Fill(dy,dx);
 		}
 		if (i==0){
@@ -225,7 +235,7 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	            else if (IHWP == -1) helicity = -IHWP*IHWP_flip*helicity;
 	            else continue;
 
-				if ( eHCAL>0.3 and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
+				if ( eHCAL>eHCAL_L and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
 					//if(cutg->IsInside(dy,dx)){
 					if ((dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
 
@@ -337,10 +347,19 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	std::cout<<"Nplus_total : "<<Nplus_total<<" Nminus_total : "<<Nminus_total<<" Aexp_total : "<<(Nplus_total - Nminus_total)/(Nplus_total + Nminus_total)<<
 				" errAexp_total : " << 2*sqrt((Nplus_total*Nminus_total)*(Nplus_total+Nminus_total))/((Nplus_total+Nminus_total)*(Nplus_total+Nminus_total))<<endl;
 
+	outfile_sum<<"Nplus_total = "<<Nplus_total<<endl;
+	outfile_sum<<"Nminus_total = "<<Nminus_total<<endl;
+	outfile_sum<<"Aexp_total = "<<(Nplus_total - Nminus_total)/(Nplus_total + Nminus_total)<<endl;
+	outfile_sum<<"errAexp_total = " <<2*sqrt((Nplus_total*Nminus_total)*(Nplus_total+Nminus_total))/((Nplus_total+Nminus_total)*(Nplus_total+Nminus_total))<<endl;
 
 
 	outfile.close();
 	outfile_p.close();
+	outfile_sum.close();
+	outfile_avg_polarizations.close();
+	outfile_n_asym.close();
+	outfile_pol_beam.close();
+	outfile_pol_He3.close();
 
 	//TCutG * cutsq = CreateSquareCut(dy_L,dx_L,dy_H,dx_H);
 	//TCutG * cutsq1 = CreateSquareCut(dy_p_L,dx_p_L,dy_p_H,dx_p_H);
@@ -391,8 +410,8 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
     // Draw the legend
     legend->Draw();
 
-	c->Print(Form("%s.pdf(",printfilename));
-	c1->Print(Form("%s.pdf)",printfilename));	
-	c1->SaveAs(Form("%s.png",printfilename));
+	c->Print(Form("plots/%s_raw_asymmetry_eHCAL_cut_%s.pdf(",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	c1->Print(Form("plots/%s_raw_asymmetry_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));	
+	c1->SaveAs(Form("plots/%s_raw_asymmetry_eHCAL_cut_%s.png",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 }

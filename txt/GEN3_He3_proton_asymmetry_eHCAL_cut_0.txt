@@ -1,0 +1,8 @@
+Nplus = 42664
+Nminus = 42444
+A_p = 0.00258495
+err_A_p = 0.00342778
+proton_events = 893
+QE_events = 40942
+f_p = 0.0218113
+err_f_p = 0.000737806

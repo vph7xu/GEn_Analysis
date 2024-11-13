@@ -74,8 +74,8 @@ void accidental_asymmetry_varying_cut_optimized(const char* filename, const char
     gAsymCut->SetMarkerColor(kBlue);
     gAsymCut->Draw("AP");
 
-    cCut->SaveAs(Form("%s_varying_cut_optimized.png", printfilename));
-    cCut->Print(Form("%s_varying_cut_optimized.pdf", printfilename));
+    cCut->SaveAs(Form("plots/%s_varying_cut_optimized.png", printfilename));
+    cCut->Print(Form("plots/%s_varying_cut_optimized.pdf", printfilename));
 
     // Clean up
     delete hNplus;

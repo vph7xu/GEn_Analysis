@@ -11,7 +11,7 @@ Double_t customFunction(Double_t *x, Double_t *par) {
     return gExistingHist->GetBinContent(bin);
 }
 
-TH1D* bkg_model(TH2D *hist2D, double xmin, double xmax, const char* kin){
+TH1D* bkg_model(TH2D *hist2D, double xmin, double xmax, const char* kin, bool flag_eHCAL_cut){
 
 	//std::map<std::string, std::string> config = parseConfig(Form("cut_%s.txt",kin));
 
@@ -51,8 +51,8 @@ TH1D* bkg_model(TH2D *hist2D, double xmin, double xmax, const char* kin){
         hist2D->GetYaxis()->SetRangeUser(-4,4);
 	hist2D->Draw("COLZ");
 
-	c->Print(Form("../plots/bkg_%s.pdf",kin));
-	c->SaveAs(Form("bkg_%s.png",kin));
+	c->Print(Form("plots/bkg_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	c->SaveAs(Form("plots/bkg_%s_eHCAL_cut_%s.png",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	gExistingHist = projY;
 
@@ -109,10 +109,10 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 }
 
 
-void models(const char* filename,const char* sim_filename,const char* printfilename, const char* kin){
+void models(const char* filename,const char* sim_filename,const char* printfilename, const char* kin, bool flag_eHCAL_cut){
         
 	//read the sampling fraction for each blk
-	std::ifstream inFile("sampling_fractions_each_blk.txt");	
+	std::ifstream inFile(Form("txt/%s_sampling_fractions_each_blk.txt",kin));	
 
 	std::vector<double> sampling_fractions_each_blk;
 
@@ -145,6 +145,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 
 	double dx_L = getDoubleValue(config,"dx_L");
 	double dx_H = getDoubleValue(config,"dx_H");
+
+	double eHCAL_L = getDoubleValue(config,"eHCAL_L");
 
 	double dy_ac_L = getDoubleValue(config,"dy_ac_L");
 	double dy_ac_H = getDoubleValue(config,"dy_ac_H");
@@ -232,6 +234,10 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	std::cout<<"coin_L and H : "<<coin_time_L<<"  "<<coin_time_H<<endl;
 	std::cout<<"dx_L and H : "<<dy_L <<" "<<dy_H <<endl;
 
+	if (flag_eHCAL_cut == false) eHCAL_L=0.0;
+
+    	std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
+
 	//get the bkg from data
 	for (int i = 0; i<nentries; i++){
                 tree->GetEntry(i);
@@ -265,7 +271,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
                 	h_W2->Fill(W2);
 
                 	bool cut_Ppar = abs(realPpar)<1.5;
-                	bool cut_eHCAL = (eHCAL)>0.3;
+                	bool cut_eHCAL = (eHCAL)>eHCAL_L;
 
                 	if (W2_L<W2 and W2<W2_H and cut_eHCAL){
                 		h_coin_time->Fill(coin_time);
@@ -302,7 +308,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
         //add lines to W2 plot to show the cut
 	//
 	
-	hist_bkg=bkg_model(h_dxdy_bkg, dy_ac_L, dy_ac_H, kin);//background dist, hard coded for GEN3
+	hist_bkg=bkg_model(h_dxdy_bkg, dy_ac_L, dy_ac_H, kin, flag_eHCAL_cut);//background dist, hard coded for GEN3
 	
 	//scale everything
 	double scale_data = h_dx_W2_cut->Integral();
@@ -334,7 +340,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	h_dxdy_bkg->Draw("COLZ");
 	box1->Draw("same");
 	box2->Draw("same");
-	c1->SaveAs(Form("%s_dxdy.png",kin));
+	c1->SaveAs(Form("plots/%s_dxdy.png",kin));
 
 	TF1 *fit_data = new TF1("fit_data", fit_sim_n_bkg, h_dx_W2_cut->GetXaxis()->GetXmin(), h_dx_W2_cut->GetXaxis()->GetXmax(),3);
 
@@ -474,8 +480,20 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	std::cout<<"error inelastic fraction (double counting) : "<<errinelastic_frac<<endl; //not correct , double counting
 	//fit_data->Draw();
 
-	cfit->Print(Form("models_%s.pdf",kin));
-	cfit->SaveAs(Form("models_%s.png",kin));
-	cfit->SaveAs(Form("models_%s.jpg",kin));
+    	std::ofstream outfile;
+    	outfile.open(Form("txt/%s_inelastic_asymmetry_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    	outfile<<"N_plus = "<<Nplus<<endl;
+    	outfile<<"N_minus = "<<Nminus<<endl;
+    	outfile<<"A_in = "<<Ain<<endl;
+    	outfile<<"err_A_in= "<<errAin<<endl;
+    	outfile<<"inelastic_events = "<<inelastic_events<<endl;
+    	outfile<<"QE_events = "<<QE_events<<endl;
+    	outfile<<"f_bkg = "<<inelastic_frac<<endl;
+    	outfile<<"err_f_bkg = "<<errinelastic_frac<<endl;
+
+	cfit->Print(Form("plots/models_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s.png",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s.jpg",kin,std::to_string(flag_eHCAL_cut).c_str()));
+
 } 
 

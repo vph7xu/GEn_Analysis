@@ -316,11 +316,11 @@ void accidental_asymmetry(const char* filename, const char* printfilename, const
     gAsymCut->SetMarkerColor(kBlue);
     gAsymCut->Draw("AP");
 
-    cCut->SaveAs(Form("%s_varying_cut.png", printfilename));
-    cCut->Print(Form("%s_varying_cut.pdf", printfilename));
+    cCut->SaveAs(Form("plots/%s_varying_cut.png", printfilename));
+    cCut->Print(Form("plots/%s_varying_cut.pdf", printfilename));
 
-	c->Print(Form("%s.pdf(",printfilename));
-	ccoin->Print(Form("%s.pdf",printfilename));
-	c1->Print(Form("%s.pdf)",printfilename));	
-	c1->SaveAs(Form("%s.png",printfilename));
+	c->Print(Form("plots/%s.pdf(",printfilename));
+	ccoin->Print(Form("plots/%s.pdf",printfilename));
+	c1->Print(Form("plots/%s.pdf)",printfilename));	
+	c1->SaveAs(Form("plots/%s.png",printfilename));
 }

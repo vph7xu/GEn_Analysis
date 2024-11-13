@@ -12,10 +12,10 @@
 
 
 
-void physics_asymmetry(const char* kin){
-	std::map<std::string, std::string> corr = parseConfig(Form("DB/corrections/%s_corrections.txt",kin)); //read corrections from file
-	std::map<int, RunData> rundata = readRunDataFromFile(Form("%s_raw_neutron_asymmetry_results.txt",kin)); //read the Aexp from file
-    std::map<std::string, std::string> avgpoldata = parseConfig(Form("%s_average_polarization_results.txt",kin));
+void physics_asymmetry(const char* kin, bool flag_eHCAL_cut){
+	std::map<std::string, std::string> corr = parseConfig(Form("DB/corrections/%s_corrections_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str())); //read corrections from file
+	std::map<int, RunData> rundata = readRunDataFromFile(Form("txt/%s_raw_neutron_asymmetry_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str())); //read the Aexp from file
+    std::map<std::string, std::string> avgpoldata = parseConfig(Form("txt/%s_average_polarization_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
     
     //read corrections
 	double Aacc = getDoubleValue(corr,"Aacc");
@@ -64,11 +64,11 @@ void physics_asymmetry(const char* kin){
 
 	//write physics asymmetry values to files
 	std::ofstream outfile;
-	outfile.open(Form("%s_physics_neutron_asymmetry_results.txt",kin));
+	outfile.open(Form("txt/%s_physics_neutron_asymmetry_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
     //write sum physics asymmetry values to files
     std::ofstream outfile_sum;
-    outfile_sum.open(Form("%s_physics_neutron_asymmetry_summary.txt",kin));
+    outfile_sum.open(Form("txt/%s_physics_neutron_asymmetry_summary_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
     for (const auto& entry : rundata) {    
         int runNumber = entry.first;
