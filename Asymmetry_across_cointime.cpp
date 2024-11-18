@@ -189,8 +189,9 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
         if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1 and abs(vz)<0.27 and ePS>0.2 and( helicity == -1 or helicity == 1)){
         	if(/*(eHCAL>eHCAL_L)and*/( W2_L<W2 and W2<W2_H ) and (dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
         		//Fill cointime for illustration
-                h_coin_time->Fill(coin_time);
-
+                if(eHCAL>eHCAL_L){
+                    h_coin_time->Fill(coin_time);
+                }
                 //to get the asymmetry from accidentals 
                 if (((coin_time_ac_L<coin_time) and (coin_time<coin_time_L)) or ((coin_time_H<coin_time) and (coin_time<coin_time_ac_H))){
                     //std::cout<<"here"<<endl;
@@ -221,7 +222,7 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
 				}
 			}
 
-            if (( W2_L<W2 and W2<W2_H ) and (coin_time_L<coin_time and coin_time<coin_time_H)){
+            if ((eHCAL>eHCAL_L) and ( W2_L<W2 and W2<W2_H ) and (coin_time_L<coin_time and coin_time<coin_time_H)){
                 h_dxdy_cut_W2_coin->Fill(dy,dx);
 
             }
