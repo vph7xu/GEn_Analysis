@@ -52,7 +52,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	TH1D *her = new TH1D("her","Actual energy dep/expected energy dep",200,0.0,0.4);
 	TH1D *hpN = new TH1D("hpN","Outgoing nucleon momentum",1000,-0.1,4);
 
-	TH2D *hfsample = new TH2D("hfsample","Sampling fraction vs xHCAL distribution",300,-3,1.5,200,0,0.3);
+	TH2D *hfsample = new TH2D("hfsample","Sampling fraction vs xHCAL distribution",200,-3,1.5,200,0,0.3);
 	TH2D *hdxdy = new TH2D("hdxdy","dx vs dy distribution",400,-2,2,800,-4,4);
 	TH2D *heratio = new TH2D("heratio", "Actual energy dep/expected energy dep vs xHCAL",100,-3,1.5,200,0.0,0.4);
 
@@ -135,7 +135,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	TProfile *profX2 = hfsvblkid->ProfileX();
 
 	// get the sampling fraction for each bin written to txt file with the index
-	std::ofstream outFile(Form("%s_sampling_fractions_each_blk.txt",kin));
+	std::ofstream outFile(Form("txt/%s_sampling_fractions_each_blk.txt",kin));
 	double sampling_fraction_means [300];
 
 	for (int i = 1; i <=profX2->GetNbinsX();++i){
@@ -148,9 +148,9 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	TCutG *cut_elipse = CreateOvalCut("cut_elipse",cutsobject.dy_C,cutsobject.dx_C,cutsobject.dy_R*sqrt(2.5),cutsobject.dx_R*sqrt(2.5),100); 
 
 	TCanvas *c = new TCanvas("c","c",3200,2400);
-	TCanvas *c1 = new TCanvas("c1","c1",2400,3200);
-	TCanvas *c2 = new TCanvas("c2","c2",2400,3200);
-	TCanvas *c3 = new TCanvas("c3","c3",2400,3200);
+	TCanvas *c1 = new TCanvas("c1","c1",1800,1200);
+	TCanvas *c2 = new TCanvas("c2","c2",3200,2400);
+	TCanvas *c3 = new TCanvas("c3","c3",3200,2400);
 	
 	c->Divide(1,2);
 	c->cd(1);

@@ -16,26 +16,26 @@
 vector<World_Data> data_points;
 
 //const int npoints_new = 3;
-const int npoints_new = 1;
+const int npoints_new = 2;
 
 //double Q2_new[npoints_new] = {2.90,6.62,9.48};
-double Q2_new[npoints_new] = {6.6};
+double Q2_new[npoints_new] = {2.91,6.60};
 
 //double GEGM_new[npoints_new] = {-0.1952,-0.3527,-0.5127};
 //double GEGM_stat_err_new[npoints_new] = {0.0194,0.1026,0.2629};
 //double GEGM_sys_err_new[npoints_new] = {0.0130,0.0262,0.0552};
-double GEGM_new[npoints_new] = {-0.34469};
-double GEGM_stat_err_new[npoints_new] = {0.090659};
-double GEGM_sys_err_new[npoints_new] = {0.0214585};
+double GEGM_new[npoints_new] = {-0.192974,-0.34469};
+double GEGM_stat_err_new[npoints_new] = {0.020347,0.090659};
+double GEGM_sys_err_new[npoints_new] = {0.012413,0.0214585};
 
 double GEGM_err_new[npoints_new];
 
 //double GE_new[npoints_new] = {0.0157,0.0067,0.0046};
 //double GE_stat_err_new[npoints_new] = {0.0016,0.0019,0.0023};
 //double GE_sys_err_new[npoints_new] = {0.0011,0.0005,0.0005};
-double GE_new[npoints_new] = {0.0065146788};
-double GE_stat_err_new[npoints_new] = {0.001714851292};
-double GE_sys_err_new[npoints_new] = {0.0004055680032};
+double GE_new[npoints_new] = {0.015496,0.0065146788};
+double GE_stat_err_new[npoints_new] = {0.001643,0.001714851292};
+double GE_sys_err_new[npoints_new] = {0.000997,0.0004055680032};
 
 double GE_err_new[npoints_new];
 
@@ -257,11 +257,12 @@ void GEN_plotter(){
   
   TGraphErrors *g_new = new TGraphErrors(npoints_new,Q2_new,GEGM_new,0,GEGM_err_new);
   g_new->SetMarkerStyle(20);
-  g_new->SetMarkerSize(1.5);
+  g_new->SetMarkerSize(3);
+  g_new->SetLineWidth(4);
   g_new->SetMarkerColor(kRed);  
   g_new->SetLineColor(kRed);  
   
-  TCanvas *c = new TCanvas("c","",800,600);
+  TCanvas *c = new TCanvas("c","",2400,1800);
   g_new->SetTitle("G_{E}/G_{M} Neutron Results;Q^{2} (GeV^{2});#mu_{n}G_{E}^{n}/G_{M}^{n}");
   g_new->Draw("AP");
 
@@ -283,7 +284,8 @@ void GEN_plotter(){
     g->SetMarkerColor(icolor);
     g->SetLineColor(icolor);
     g->SetMarkerStyle(istyle);
-    g->SetMarkerSize(1.5);
+    g->SetMarkerSize(3);
+    g->SetLineWidth(4);
     g->Draw("P");
     
     legend1->AddEntry(g,exp.name,"p");
@@ -298,12 +300,12 @@ void GEN_plotter(){
   gGEGM_global->Draw("same");
 
   gGEGM_RCQM->SetLineColor(kBlue);
-  gGEGM_RCQM->SetLineWidth(2);
+  gGEGM_RCQM->SetLineWidth(3);
   gGEGM_RCQM->SetLineStyle(2);
 
   PSM_theory_curve->SetLineStyle(9);
   
-  gGEGM_global->SetLineWidth(2);
+  gGEGM_global->SetLineWidth(3);
 
   g_new->GetXaxis()->SetLimits(0,12);
   g_new->GetYaxis()->SetRangeUser(-0.5,1.5);
@@ -341,12 +343,13 @@ void GEN_plotter(){
 
   TGraphErrors *gGE_new = new TGraphErrors(npoints_new,Q2_new,GE_new,0,GE_err_new);
   gGE_new->SetMarkerStyle(20);
-  gGE_new->SetMarkerSize(1.5);
+  gGE_new->SetMarkerSize(3);
+  gGE_new->SetLineWidth(4);
   gGE_new->SetMarkerColor(kRed);  
   gGE_new->SetLineColor(kRed); 
 
 
-  TCanvas *c2 = new TCanvas("c2","",800,600);
+  TCanvas *c2 = new TCanvas("c2","",2400,1800);
   gGE_new->SetTitle("G_{E} Neutron Results;Q^{2} (GeV^{2});G_{E}^{n}");
   gGE_new->Draw("AP");
 
@@ -361,7 +364,8 @@ void GEN_plotter(){
     g->SetMarkerColor(icolor);
     g->SetLineColor(icolor);
     g->SetMarkerStyle(istyle);
-    g->SetMarkerSize(1.5);
+    g->SetMarkerSize(3);
+    g->SetLineWidth(4);
     g->Draw("P");
 
     icolor++;
@@ -379,8 +383,14 @@ void GEN_plotter(){
   legend4->Draw("same");
   pt->Draw("same");
 
-  gGE_global->SetLineWidth(2);
+  gGE_global->SetLineWidth(3);
   
   gGE_new->GetXaxis()->SetLimits(0,12);
   gGE_new->GetYaxis()->SetRangeUser(0,0.08);
+
+  c->SaveAs("kin23Ratio.png");
+  c2->SaveAs("kin23GEn.png");
+
+  c->SaveAs("kin23Ratio.jpg");
+  c2->SaveAs("kin23GEn.jpg");
 }

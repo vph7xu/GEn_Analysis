@@ -1,0 +1,3 @@
+Aphy_sum = 0.122027
+err_Aphy_stat_sum = 0.00891536
+err_Aphy_sys = 0.00610698

@@ -1,0 +1,8 @@
+N_plus_all = 22019
+N_minus_all = 22098
+A_acc = -0.00179069
+err_A_acc = 0.00476098
+accidental_events = 7622
+QE_events = 134804
+f_acc = 0.0565413
+err_f_acc = 0.000647637

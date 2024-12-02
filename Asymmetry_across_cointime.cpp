@@ -263,7 +263,7 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
     box_anti2->SetLineColor(kRed);         // Outline color (optional)
 
     //Create a box
-    TBox* box_dxdy = new TBox(-0.4,-0.4,0.4,0.4);
+    TBox* box_dxdy = new TBox(dy_L,dx_L,dy_H,dx_H);
     box_dxdy->SetFillStyle(0);
     box_dxdy->SetLineColor(kRed);
 

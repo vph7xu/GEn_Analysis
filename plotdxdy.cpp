@@ -193,13 +193,17 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 	TH2D *h_dyW2 = new TH2D("h_dyW2","dy v W2",200,-1,3,200,-4,4);
 	TH2D *h_dxW2 = new TH2D("h_dxW2","dx v W2",200,-1,3,200,-2,2);
 	TH1D *h_coin_time = new TH1D("h_coin_time","coin_time",200,0,200);
+	TH1D *h_eHCAL_cut_QE = new TH1D("h_eHCAL_cut_QE","eHCAL with cointime, W2, dx and dy cuts;eHCAL(GeV)", 200, 0, 1.5);
+	TH1D *h_eHCAL_cut_cointime_W2 = new TH1D("h_eHCAL_cut_cointime_W2","eHCAL with cointime and W2 cuts;eHCAL(GeV)",200,0,1.5);
+	TH1D *h_eHCAL_cut_cointime = new TH1D("h_eHCAL_cut_cointime","eHCAL with cointime cut;eHCAL(GeV)",200,0,1.5);
+	TH1D *h_eHCAL = new TH1D("h_eHCAL","eHCAL;eHCAL(GeV)",200,0,1.5);
 
-
-	TH1D *h_dx_W2_cut = new TH1D("h_dx_W2_cut","dx after W2 and Coin cut",200,-10,10);
-	TH1D *h_dy_W2_cut = new TH1D("h_dy_W2_cut","dy after W2 and Coin cut",200,-10,10);
+	TH1D *h_dx_W2_cut = new TH1D("h_dx_W2_cut","dx after W2, cointime and dy cut",200,-10,10);
+	TH1D *h_dy_W2_cut = new TH1D("h_dy_W2_cut","dy after W2 and cointime cut",200,-10,10);
 	//TH1D *h_W2 = new TH1D("h_W2","W2",1000,-4,8);
-	TH2D *h_dxdy_W2_cut = new TH2D("h_dxdy_W2_cut","dxdy after W2 and coin cut",250,-2,2,250,-4,4);
+	TH2D *h_dxdy_W2_cut = new TH2D("h_dxdy_W2_cut","dxdy after W2 and cointime cut",250,-2,2,250,-4,4);
 	TH1D *h_coin_time_W2_cut = new TH1D("h_coin_time_W2_cut","cointime after W2 cut",200,0,200);
+
 
 	double eHCAL_L = cutsobject.eHCAL_L;
 		
@@ -215,6 +219,7 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 		h_dx->Fill(dx);
 		h_dy->Fill(dy);
 		h_dxdy->Fill(dy,dx);
+		h_eHCAL->Fill(eHCAL);
 		//h_dyW2->Fill(W2,dy);
 		//h_dxW2->Fill(W2,dx);
 		if (eHCAL>eHCAL_L){
@@ -222,25 +227,33 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 			h_coin_time->Fill(coin_time);
         }
 
-        if (eHCAL>eHCAL_L and cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H){
+        if (eHCAL>eHCAL_L and cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H /*and dy<cutsobject.dy_H and cutsobject.dy_L<dy*/){
         	h_W2_cut_cointime->Fill(W2);
         }
 
 
-		if (eHCAL>eHCAL_L and cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H){
+		if (eHCAL>eHCAL_L and cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H ){
 			h_dyW2->Fill(W2,dy);
 			h_dxW2->Fill(W2,dx);
+			h_eHCAL_cut_cointime->Fill(eHCAL);
 		}
 
 		//add a cut on W2 and coin time
-		if (eHCAL>eHCAL_L and (cutsobject.W2_L<W2 and W2<cutsobject.W2_H) and (cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H)){
-			h_dx_W2_cut->Fill(dx);
+		if (eHCAL>eHCAL_L and (cutsobject.W2_L<W2 and W2<cutsobject.W2_H) and (cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H) ){
+			if (dy<cutsobject.dy_H and cutsobject.dy_L<dy){
+				h_dx_W2_cut->Fill(dx);
+				if (dx<cutsobject.dx_H and cutsobject.dx_L<dx){
+					h_eHCAL_cut_QE->Fill(eHCAL);
+				}
+			}
+
 			h_dy_W2_cut->Fill(dy);
 			h_dxdy_W2_cut->Fill(dy,dx);
+			h_eHCAL_cut_cointime_W2->Fill(eHCAL);
 			//h_dyW2->Fill(W2,dy);
 			
 		}	
-		if(eHCAL>eHCAL_L and (cutsobject.W2_L<W2 and W2<cutsobject.W2_H)){
+		if(eHCAL>eHCAL_L and (cutsobject.W2_L<W2 and W2<cutsobject.W2_H) /*and dy<cutsobject.dy_H and cutsobject.dy_L<dy*/){
 			h_coin_time_W2_cut->Fill(coin_time);
 		}	
 
@@ -277,14 +290,20 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 	line4->SetLineColor(kBlue);
 	line4->SetLineWidth(2);
 
+	TLine *line5 = new TLine(cutsobject.eHCAL_L,0.0,cutsobject.eHCAL_L,h_eHCAL_cut_cointime->GetMaximum());
+	line5->SetLineColor(kBlue);
+	line5->SetLineColor(2);
+
 	TBox* box_dxdy_n = new TBox(cutsobject.dy_L,cutsobject.dx_L,cutsobject.dy_H,cutsobject.dx_H);
     box_dxdy_n->SetFillStyle(0);
     box_dxdy_n->SetLineColor(kRed);
+    box_dxdy_n->SetLineWidth(3);
 
 	TCanvas* c = new TCanvas("c","c",3600,3000);
 	TCanvas* c1 = new TCanvas("c1","c1",3600,3000);
 	TCanvas* c2 = new TCanvas("c2","c2",3600,3000);
 	TCanvas* c3 = new TCanvas("c3","c3",3600,3000);
+	TCanvas* c4 = new TCanvas("c4","c4",3600,3000);
 
 	c->Divide(3,2);
 	c->cd(1);
@@ -350,8 +369,21 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 	h_dxdy_W2_cut->SetXTitle("HCAL_Y(exp)-HCAL_Y(act) (m)");
 	//cutsq->Draw("L");
 
+	c4->Divide(2,2);
+	c4->cd(1);
+	h_eHCAL->Draw();
+	line5->Draw();
+	c4->cd(2);
+	h_eHCAL_cut_cointime->Draw();
+	line5->Draw();
+	c4->cd(3);
+	h_eHCAL_cut_cointime_W2->Draw();
+	c4->cd(4);
+	h_eHCAL_cut_QE->Draw();
+
 	c1->Print(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.pdf(",kin,std::to_string(flag_eHCAL_cut).c_str()));
-	c2->Print(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	c2->Print(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	c4->Print(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));
 	c3->SaveAs(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.png",kin,std::to_string(flag_eHCAL_cut).c_str()));
 	c1->SaveAs(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.png",kin,std::to_string(flag_eHCAL_cut).c_str()));
 }

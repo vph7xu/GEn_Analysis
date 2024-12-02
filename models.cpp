@@ -11,9 +11,10 @@ Double_t customFunction(Double_t *x, Double_t *par) {
     return gExistingHist->GetBinContent(bin);
 }
 
-TH1D* bkg_model(TH2D *hist2D, double xmin, double xmax, const char* kin, bool flag_eHCAL_cut){
+TH1D* bkg_model(TH2D *hist2D, double xmin, double xmax, const char* kin, bool flag_eHCAL_cut, double eHCAL_L){
 
 	//std::map<std::string, std::string> config = parseConfig(Form("cut_%s.txt",kin));
+
 
 	TH2D *h2_anticut = (TH2D*)hist2D->Clone("h2_anticut");
    	h2_anticut->Reset();
@@ -51,8 +52,8 @@ TH1D* bkg_model(TH2D *hist2D, double xmin, double xmax, const char* kin, bool fl
         hist2D->GetYaxis()->SetRangeUser(-4,4);
 	hist2D->Draw("COLZ");
 
-	c->Print(Form("plots/bkg_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
-	c->SaveAs(Form("plots/bkg_%s_eHCAL_cut_%s.png",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	c->Print(Form("plots/bkg_%s_eHCAL_cut_%s_%f.pdf",kin,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L));
+	c->SaveAs(Form("plots/bkg_%s_eHCAL_cut_%s_%f.png",kin,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L));
 
 	gExistingHist = projY;
 
@@ -308,7 +309,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
         //add lines to W2 plot to show the cut
 	//
 	
-	hist_bkg=bkg_model(h_dxdy_bkg, dy_ac_L, dy_ac_H, kin, flag_eHCAL_cut);//background dist, hard coded for GEN3
+	hist_bkg=bkg_model(h_dxdy_bkg, dy_ac_L, dy_ac_H, kin, flag_eHCAL_cut, eHCAL_L);//background dist, hard coded for GEN3
 	
 	//scale everything
 	double scale_data = h_dx_W2_cut->Integral();
@@ -318,12 +319,12 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	hist_bkg->Scale(1.0/hist_bkg->Integral());
 
 	//bkg_model(h_dxdy_W2_cut,-1.5,1.5, kin);
-	TBox *box1 = new TBox(1.0,-4,2,3.05);
+	TBox *box1 = new TBox(dy_ac_H,-4,4,3.05);
 	box1->SetLineColor(kRed);
 	box1->SetFillStyle(3002);
 	box1->SetLineWidth(3);
 
-	TBox *box2 = new TBox(-1.5,-4,-2,3.05);
+	TBox *box2 = new TBox(dy_ac_L,-4,-4,3.05);
 	box2->SetLineColor(kRed);
 	box2->SetFillStyle(3002);	
 	box2->SetLineWidth(3);
@@ -334,7 +335,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	h_dxdy_W2_cut->Draw("COLZ");
 	c1->cd(2);
 	h_dxdy_bkg->SetStats(0);
-	h_dxdy_bkg->GetXaxis()->SetRangeUser(-2,2);
+	h_dxdy_bkg->GetXaxis()->SetRangeUser(-4,4);
 	h_dxdy_bkg->SetYTitle("HCAL_X(exp)-HCAL_X(act) (m)");
 	h_dxdy_bkg->SetXTitle("HCAL_Y(exp)-HCAL_Y(act) (m)");
 	h_dxdy_bkg->Draw("COLZ");
@@ -414,11 +415,13 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	//get the inelastic fraction
 	double inelastic_events = 0.0; 
 	double QE_events = 0.0;
+	double N_events = 0.0;
 	double inelastic_frac = 0.0;
 	double errinelastic_frac = 0.0;
 
 	inelastic_events = hist_bkg->Integral(hist_bkg->FindBin(dx_L),hist_bkg->FindBin(dx_H)); //integrate background hist to get inelastic events under the neutron peak
 	QE_events = h_dx_W2_cut->Integral(h_dx_W2_cut->FindBin(dx_L),h_dx_W2_cut->FindBin(dx_H)); //integrate data to get the QE neutrons within the dx cut
+	N_events = hist_n->Integral(hist_n->FindBin(dx_L),hist_n->FindBin(dx_H));
 	inelastic_frac = inelastic_events/QE_events;// this is not correct should remove other fractions before doing this
 	errinelastic_frac = (inelastic_events/QE_events)*sqrt((1/inelastic_events)+(1/QE_events)); // this is not correct should remove other fractions before doing this
 	
@@ -476,24 +479,26 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	std::cout<<"errAin : "<<errAin<<endl;
 	std::cout<<"inelastic_events : "<< inelastic_events<<endl;
 	std::cout<<"QE_events : "<<QE_events<<endl;
+	std::cout<<"N_events : "<<N_events;
 	std::cout<<"inelastic fraction (double counting) : "<<inelastic_frac<<endl; //not correct , double counting
 	std::cout<<"error inelastic fraction (double counting) : "<<errinelastic_frac<<endl; //not correct , double counting
 	//fit_data->Draw();
 
     	std::ofstream outfile;
-    	outfile.open(Form("txt/%s_inelastic_asymmetry_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    	outfile.open(Form("txt/%s_inelastic_asymmetry_eHCAL_cut_%s_%f.txt",kin,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L));
     	outfile<<"N_plus = "<<Nplus<<endl;
     	outfile<<"N_minus = "<<Nminus<<endl;
     	outfile<<"A_in = "<<Ain<<endl;
     	outfile<<"err_A_in= "<<errAin<<endl;
     	outfile<<"inelastic_events = "<<inelastic_events<<endl;
     	outfile<<"QE_events = "<<QE_events<<endl;
+    	outfile<<"N_events = "<<N_events<<endl;
     	outfile<<"f_bkg = "<<inelastic_frac<<endl;
     	outfile<<"err_f_bkg = "<<errinelastic_frac<<endl;
 
-	cfit->Print(Form("plots/models_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
-	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s.png",kin,std::to_string(flag_eHCAL_cut).c_str()));
-	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s.jpg",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	cfit->Print(Form("plots/models_%s_eHCAL_cut_%s_%f.pdf",kin,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L));
+	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s_%f.png",kin,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L));
+	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s_%f.jpg",kin,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L));
 
 } 
 
