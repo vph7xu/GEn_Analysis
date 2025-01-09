@@ -22,6 +22,8 @@ public:
   double W2_H = 0.0;
   double W2_width = 0.0;
   double eHCAL_L = 0.0;
+  double P_sbs_L = 0.0;
+  double P_sbs_H = 0.0;
   double dy_L = 0.0;
   double dy_H = 0.0;
   double dx_L = 0.0;
@@ -61,6 +63,9 @@ public:
 	W2_width = getDoubleValue(config,"W2_width");
 	
 	eHCAL_L = getDoubleValue(config,"eHCAL_L");
+
+	P_sbs_L = getDoubleValue(config,"P_sbs_L"); 
+	P_sbs_H = getDoubleValue(config,"P_sbs_H");
 
         dy_L = getDoubleValue(config,"dy_L");
         dy_H = getDoubleValue(config,"dy_H");

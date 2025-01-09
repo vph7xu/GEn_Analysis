@@ -169,7 +169,7 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	tree->SetBranchAddress("datetime", &datetime);
 
 	TH1I *h_IHWP = new TH1I("h_IHWP","IHWP",10,-2,2);
-	TH1I *h_runnum = new TH1I("h_runnum","runnum",300,0,3000);
+	TH1I *h_runnum = new TH1I("h_runnum","runnum",700,0,7000);
 
 	TGraphErrors *gAsym = new TGraphErrors();
 	TGraphErrors *gAp_sym = new TGraphErrors();
@@ -218,10 +218,13 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 		TDatime lookupTime = *datetime;
 
-		h_IHWP->Fill(IHWP);
+		//h_IHWP->Fill(IHWP);
 		h_runnum->Fill(runnum);
-		if (eHCAL>eHCAL_L and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
+		if (eHCAL>eHCAL_L and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)and lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
 			nspot_cut->Fill(dy,dx);
+			if ((dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
+				h_IHWP->Fill(-1*IHWP_flip*IHWP*helicity);
+			}
 		}
 		if (i==0){
 			runx = runnum;

@@ -5,7 +5,7 @@
 
 void sbs_tracking_plots(const char* filename, const char* printfilename, const char *kin){
 
-	std::map<std::string, std::string> config = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
+	std::map<std::string, std::string> config = parseConfig(Form("cuts/calib/cut_%s.txt",kin)); //parse the cuts
 	cuts cutsobject;	
 	cutsobject.parsecuts(config);
 
@@ -40,6 +40,10 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 
 	double IHWP_flip = getDoubleValue(config,"IHWP_flip");
 
+	double eHCAL_L = getDoubleValue(config,"eHCAL_L");
+	double P_sbs_L = getDoubleValue(config,"P_sbs_L");
+	double P_sbs_H = getDoubleValue(config,"P_sbs_H");
+
     double coin_time_offset_L = coin_time_L+30.0;
     double coin_time_offset_H = coin_time_H+30.0;
 
@@ -64,6 +68,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	double vz = 0.0;
 	double vz_sbs = 0.0;
 	double ntrack_sbs = 0.0;
+	int runnum = 0.0;
 
 	tree->SetBranchAddress("dx",&dx);
 	tree->SetBranchAddress("dy",&dy);
@@ -82,7 +87,10 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	tree->SetBranchAddress("trph_sbs",&trph_sbs);
 	tree->SetBranchAddress("vz",&vz);
 	tree->SetBranchAddress("vz_sbs",&vz_sbs);
-	//tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
+	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
+	tree->SetBranchAddress("runnum",&runnum);
+
+	int nbins =200;
 
 	TH1D *h_delta_ptheta = new TH1D("h_delta_ptheta","h_delta_ptheta",200,-0.1,0.1);
 	TH1D *h_delta_pphi = new TH1D("h_delta_pphi","h_delta_pphi",200,-0.1,0.1);
@@ -92,22 +100,22 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	
 	TH2D *h_ptheta_corr = new TH2D("h_ptheta_corr","h_ptheta_corr",200,0.1,0.5,200,0.1,0.5);
 	TH2D *h_pphi_corr = new TH2D("h_pphi_corr","h_pphi_corr",200,2.8,3.6,200,-0.3,0.45);
-	TH2D *h_pmag_corr = new TH2D("h_pmag_corr","h_pmag_corr",200,5,8,200,0,10);
+	TH2D *h_pmag_corr = new TH2D("h_pmag_corr","h_pmag_corr",200,P_sbs_L,P_sbs_H,200,P_sbs_L,P_sbs_H);
 
-	TH2D *h_delta_ptheta_v_trthsbs = new TH2D("h_delta_ptheta_v_trthsbs","h_delta_ptheta_v_trthsbs",50,-0.23,0,50,-0.1,-0.1);
-	TH2D *h_delta_ptheta_v_trphsbs = new TH2D("h_delta_ptheta_v_trphsbs","h_delta_ptheta_v_trphsbs",50,-0.04,0.06,50,-0.1,0.1);
-	TH2D *h_delta_ptheta_v_trxsbs = new TH2D("h_delta_ptheta_v_trxsbs","h_delta_ptheta_v_trxsbs",50,-0.3,0.8,50,-0.1,0.1);
-	TH2D *h_delta_ptheta_v_trysbs = new TH2D("h_delta_ptheta_v_trysbs","h_delta_ptheta_v_trysbs",50,-0.25,0.25,50,-0.1,0.1);
+	TH2D *h_delta_ptheta_v_trthsbs = new TH2D("h_delta_ptheta_v_trthsbs","h_delta_ptheta_v_trthsbs",nbins,-0.23,0,nbins,-0.1,-0.1);
+	TH2D *h_delta_ptheta_v_trphsbs = new TH2D("h_delta_ptheta_v_trphsbs","h_delta_ptheta_v_trphsbs",nbins,-0.04,0.06,nbins,-0.1,0.1);
+	TH2D *h_delta_ptheta_v_trxsbs = new TH2D("h_delta_ptheta_v_trxsbs","h_delta_ptheta_v_trxsbs",nbins,-0.3,0.8,nbins,-0.1,0.1);
+	TH2D *h_delta_ptheta_v_trysbs = new TH2D("h_delta_ptheta_v_trysbs","h_delta_ptheta_v_trysbs",nbins,-0.25,0.25,nbins,-0.1,0.1);
 
-	TH2D *h_delta_pphi_v_trthsbs = new TH2D("h_delta_pphi_v_trthsbs","h_delta_pphi_v_trthsbs",50,-0.23,0.0,50,-0.1,0.1);
-	TH2D *h_delta_pphi_v_trphsbs = new TH2D("h_delta_pphi_v_trphsbs","h_delta_pphi_v_trphsbs",50,-0.04,0.06,50,-0.1,0.1);
-	TH2D *h_delta_pphi_v_trxsbs = new TH2D("h_delta_pphi_v_trxsbs","h_delta_pphi_v_trxsbs",50,-0.3,0.8,50,-0.1,0.1);
-	TH2D *h_delta_pphi_v_trysbs = new TH2D("h_delta_pphi_v_trysbs","h_delta_pphi_v_trysbs",50,-0.25,0.25,50,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trthsbs = new TH2D("h_delta_pphi_v_trthsbs","h_delta_pphi_v_trthsbs",nbins,-0.23,0.0,nbins,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trphsbs = new TH2D("h_delta_pphi_v_trphsbs","h_delta_pphi_v_trphsbs",nbins,-0.04,0.06,nbins,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trxsbs = new TH2D("h_delta_pphi_v_trxsbs","h_delta_pphi_v_trxsbs",nbins,-0.3,0.8,nbins,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trysbs = new TH2D("h_delta_pphi_v_trysbs","h_delta_pphi_v_trysbs",nbins,-0.25,0.25,nbins,-0.1,0.1);
 
-	TH2D *h_delta_pmag_v_trthsbs = new TH2D("h_delta_pmag_v_trthsbs","h_delta_pmag_v_trthsbs",50,-0.23,0.0,50,-1,1);
-	TH2D *h_delta_pmag_v_trphsbs = new TH2D("h_delta_pmag_v_trphsbs","h_delta_pmag_v_trphsbs",50,-0.04,0.06,50,-1,1);
-	TH2D *h_delta_pmag_v_trxsbs = new TH2D("h_delta_pmag_v_trxsbs","h_delta_pmag_v_trxsbs",50,-0.3,0.8,50,-1,1);
-	TH2D *h_delta_pmag_v_trysbs = new TH2D("h_delta_pmag_v_trysbs","h_delta_pmag_v_trysbs",50,-0.25,0.25,50,-1,1);
+	TH2D *h_delta_pmag_v_trthsbs = new TH2D("h_delta_pmag_v_trthsbs","h_delta_pmag_v_trthsbs",nbins,-0.23,0.0,nbins,-1,1);
+	TH2D *h_delta_pmag_v_trphsbs = new TH2D("h_delta_pmag_v_trphsbs","h_delta_pmag_v_trphsbs",nbins,-0.04,0.06,nbins,-1,1);
+	TH2D *h_delta_pmag_v_trxsbs = new TH2D("h_delta_pmag_v_trxsbs","h_delta_pmag_v_trxsbs",nbins,-0.3,0.8,nbins,-1,1);
+	TH2D *h_delta_pmag_v_trysbs = new TH2D("h_delta_pmag_v_trysbs","h_delta_pmag_v_trysbs",nbins,-0.25,0.25,nbins,-1,1);
 
 	TH2D *h_delta_vz_v_trthsbs = new TH2D("h_delta_vz_v_trthsbs","h_delta_vz_v_trthsbs",500,-0.23,0.0,500,-0.5,0.5);
 	TH2D *h_delta_vz_v_trphsbs = new TH2D("h_delta_vz_v_trphsbs","h_delta_vz_v_trphsbs",500,-0.04,0.06,500,-0.5,0.5);
@@ -127,52 +135,53 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	for (int i = 0; i<nentries; i++){
 		tree->GetEntry(i);
 		//no QE cuts for coin_time plot
-		//if(ntrack_sbs>0){
-		h_coin_time->Fill(coin_time);
+		if(ntrack_sbs>0 and runnum>5800 ){
+			//std::cout<<"sbs track found"<<endl;
+			h_coin_time->Fill(coin_time);
 
-		//coin_time cut only
-		cutcoin_time = coin_time_L<coin_time and coin_time<coin_time_H;
-		if (cutcoin_time) {
-			h_W2->Fill(W2);
-			h_delta_vz_v_trthsbs->Fill(trth_sbs,(vz_sbs-vz));
-			h_delta_vz_v_trphsbs->Fill(trph_sbs,(vz_sbs-vz));
-			h_delta_vz_v_trxsbs->Fill(trx_sbs,(vz_sbs-vz));
-			h_delta_vz_v_trysbs->Fill(try_sbs,(vz_sbs-vz));
-		};
+			//coin_time cut only
+			cutcoin_time = coin_time_L<coin_time and coin_time<coin_time_H;
+			if (cutcoin_time) {
+				h_W2->Fill(W2);
+				h_delta_vz_v_trthsbs->Fill(trth_sbs,(vz_sbs-vz));
+				h_delta_vz_v_trphsbs->Fill(trph_sbs,(vz_sbs-vz));
+				h_delta_vz_v_trxsbs->Fill(trx_sbs,(vz_sbs-vz));
+				h_delta_vz_v_trysbs->Fill(try_sbs,(vz_sbs-vz));
+			};
+			
+			//coin_time and W2 cuts only
+			cutW2_coin_time = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H);
+			if (cutW2_coin_time) h_dxdy->Fill(dy,dx);
+
+			cutQE = (abs(vz-vz_sbs)<0.1&&/*abs(pN_expect-trP_sbs-0.2)<0.2&&*/ (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (sqrt(pow((dx-dx_C)/dx_R,2)+pow((dy-dy_C)/dy_R,2)))<=1);
+			if (cutQE){
+				h_delta_ptheta->Fill(ptheta-ptheta_cal);
+				h_delta_pphi->Fill(pphi-pphi_cal+M_PI);
+				h_delta_pmag->Fill(pN_expect-trP_sbs);
 		
-		//coin_time and W2 cuts only
-		cutW2_coin_time = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H);
-		if (cutW2_coin_time) h_dxdy->Fill(dy,dx);
+				h_pmag_ratio->Fill(pN_expect/trP_sbs);
 
-		cutQE = (/*abs(vz-vz_sbs)<0.1&&*//*abs(pN_expect-trP_sbs-0.2)<0.2&&*/ (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (sqrt(pow((dx-dx_C)/dx_R,2)+pow((dy-dy_C)/dy_R,2)))<1);
-		if (cutQE){
-			h_delta_ptheta->Fill(ptheta-ptheta_cal);
-			h_delta_pphi->Fill(pphi-pphi_cal+M_PI);
-			h_delta_pmag->Fill(pN_expect-trP_sbs);
-	
-			h_pmag_ratio->Fill(pN_expect/trP_sbs);
+				h_ptheta_corr->Fill(ptheta_cal,ptheta);
+				h_pphi_corr->Fill(pphi_cal,pphi);
+				h_pmag_corr->Fill(pN_expect,trP_sbs);
 
-			h_ptheta_corr->Fill(ptheta_cal,ptheta);
-			h_pphi_corr->Fill(pphi_cal,pphi);
-			h_pmag_corr->Fill(pN_expect,trP_sbs);
+				h_delta_ptheta_v_trthsbs->Fill(trth_sbs,ptheta-ptheta_cal);
+				h_delta_ptheta_v_trphsbs->Fill(trph_sbs,ptheta-ptheta_cal);
+				h_delta_ptheta_v_trxsbs->Fill(trx_sbs,ptheta-ptheta_cal);
+				h_delta_ptheta_v_trysbs->Fill(try_sbs,ptheta-ptheta_cal);
 
-			h_delta_ptheta_v_trthsbs->Fill(trth_sbs,ptheta-ptheta_cal);
-			h_delta_ptheta_v_trphsbs->Fill(trph_sbs,ptheta-ptheta_cal);
-			h_delta_ptheta_v_trxsbs->Fill(trx_sbs,ptheta-ptheta_cal);
-			h_delta_ptheta_v_trysbs->Fill(try_sbs,ptheta-ptheta_cal);
+				h_delta_pphi_v_trthsbs->Fill(trth_sbs,pphi-pphi_cal+M_PI);
+				h_delta_pphi_v_trphsbs->Fill(trph_sbs,pphi-pphi_cal+M_PI);
+				h_delta_pphi_v_trxsbs->Fill(trx_sbs,pphi-pphi_cal+M_PI);
+				h_delta_pphi_v_trysbs->Fill(try_sbs,pphi-pphi_cal+M_PI);
 
-			h_delta_pphi_v_trthsbs->Fill(trth_sbs,pphi-pphi_cal+M_PI);
-			h_delta_pphi_v_trphsbs->Fill(trph_sbs,pphi-pphi_cal+M_PI);
-			h_delta_pphi_v_trxsbs->Fill(trx_sbs,pphi-pphi_cal+M_PI);
-			h_delta_pphi_v_trysbs->Fill(try_sbs,pphi-pphi_cal+M_PI);
+				h_delta_pmag_v_trthsbs->Fill(trth_sbs,pN_expect-trP_sbs);
+				h_delta_pmag_v_trphsbs->Fill(trph_sbs,pN_expect-trP_sbs);
+				h_delta_pmag_v_trxsbs->Fill(trx_sbs,pN_expect-trP_sbs);
+				h_delta_pmag_v_trysbs->Fill(try_sbs,pN_expect-trP_sbs);
 
-			h_delta_pmag_v_trthsbs->Fill(trth_sbs,pN_expect-trP_sbs);
-			h_delta_pmag_v_trphsbs->Fill(trph_sbs,pN_expect-trP_sbs);
-			h_delta_pmag_v_trxsbs->Fill(trx_sbs,pN_expect-trP_sbs);
-			h_delta_pmag_v_trysbs->Fill(try_sbs,pN_expect-trP_sbs);
-
+			}
 		}
-		//}
 		if (i %1000 == 0 ) std::cout << (i * 100.0/ nentries) << "% \r"; 
 		std::cout.flush();
 
@@ -213,8 +222,8 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	c3->cd(1);
 	h_coin_time->Draw();
 	h_coin_time->SetXTitle("coin_time (ns)");
-	TLine *line01 = new TLine(coin_time_L, 0, coin_time_L, 275);
-    TLine *line02 = new TLine(coin_time_H, 0, coin_time_H, 275);
+	TLine *line01 = new TLine(coin_time_L, 0, coin_time_L, h_coin_time->GetMaximum()*0.8);
+    TLine *line02 = new TLine(coin_time_H, 0, coin_time_H, h_coin_time->GetMaximum()*0.8);
     line01->SetLineColor(kRed);
     line02->SetLineColor(kRed);
     line01->SetLineWidth(2);
@@ -237,14 +246,14 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	c3->cd(2);
 	h_W2->Draw();
 	h_W2->SetXTitle("W2(GeV2)");
-    	TLine *line1 = new TLine(W2_L, 0, W2_L, 300);
-    	TLine *line2 = new TLine(W2_H, 0, W2_H, 300);
-    	line1->SetLineColor(kRed);
-    	line2->SetLineColor(kRed);
-    	line1->SetLineWidth(2);
-    	line2->SetLineWidth(2);
-    	line1->Draw("same");
-    	line2->Draw("same");
+    TLine *line1 = new TLine(W2_L, 0, W2_L, h_W2->GetMaximum()*0.8);
+    TLine *line2 = new TLine(W2_H, 0, W2_H, h_W2->GetMaximum()*0.8);
+    line1->SetLineColor(kRed);
+    line2->SetLineColor(kRed);
+    line1->SetLineWidth(2);
+    line2->SetLineWidth(2);
+    line1->Draw("same");
+    line2->Draw("same");
 
 	c2->cd(3);
 	h_pmag_ratio->Draw();

@@ -6,7 +6,7 @@
 
 void Hcal_fsam(const char* filename, const char* printfilename, const char* kin){
 
-	std::map<std::string, std::string> config = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
+	std::map<std::string, std::string> config = parseConfig(Form("cuts/calib/cut_%s.txt",kin)); //parse the cuts
     cuts cutsobject;
     cutsobject.parsecuts(config);
 
@@ -24,9 +24,12 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	double trP_sbs = 0.0;
 	double nblk_HCAL = 0.0;
 	double ntrack_sbs = 0.0;
+	double vz = 0.0;
+	double vz_sbs = 0.0;
 	double hcal_clus_id[1000];
 	double hcal_clus_mem_id[1000];
 	double hcal_clus_mem_e[1000];
+	int runnum = 0;
 	
 	tree->SetBranchAddress("eHCAL",&eHCAL);
 	tree->SetBranchAddress("xHCAL",&xHCAL);
@@ -42,6 +45,9 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	tree->SetBranchAddress("hcal_clus_mem_e",&hcal_clus_mem_e);
 	tree->SetBranchAddress("nblk_HCAL",&nblk_HCAL);
 	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
+	tree->SetBranchAddress("vz",&vz);
+	tree->SetBranchAddress("vz_sbs",&vz_sbs);
+	tree->SetBranchAddress("runnum",&runnum);
 
 	double mp = 0.938272;
 	double fs = 0;
@@ -54,56 +60,65 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 
 	TH2D *hfsample = new TH2D("hfsample","Sampling fraction vs xHCAL distribution",200,-3,1.5,200,0,0.3);
 	TH2D *hdxdy = new TH2D("hdxdy","dx vs dy distribution",400,-2,2,800,-4,4);
-	TH2D *heratio = new TH2D("heratio", "Actual energy dep/expected energy dep vs xHCAL",100,-3,1.5,200,0.0,0.4);
+	TH2D *heratio = new TH2D("heratio", "Actual energy dep/expected energy dep vs xHCAL",200,-3,1.5,200,0.0,0.4);
 
 	TH2D *hfsvblkid = new TH2D("hfsvblkid","sampling fraction vs blk id",300,0,300,200,0.025,0.3);
 
-	TH1D *hcointime = new TH1D("hcointime", "cointime distribution",1000,40,150);
+	TH1D *hcointime = new TH1D("hcointime", "cointime distribution",1000,40,200);
 	TH1D *hW2 = new TH1D("hW2","W2 distribution",1000,-4,4);
+
+	TH2D *hvertexcorr = new TH2D("hvertexcorr", "vertex correlation", 100,-0.5,0.5,100,-0.5,0.5);
+	TH1D *hdeltavertex = new TH1D("hdeltavertex","delta vertex", 100, -0.5, 0.5);
 
 	TGraphErrors *graph = new TGraphErrors(hfsample->GetNbinsX());
 	
 	for (int i = 0; i<nentries; i++){
 		tree->GetEntry(i);
 		
-		//if (ntrack_sbs>0){
+		if (ntrack_sbs>0){
 		
-		elastic_cut = (((pow((dy-cutsobject.dy_C)/cutsobject.dy_R,2)+pow((dx-cutsobject.dx_C)/cutsobject.dx_R,2))<=2.5)
-		&&(abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width));//? true:false;
-		
-		//std::cout<<"elastic cut : "<<elastic_cut<<endl;
-		hcointime->Fill(coin_time);
+			elastic_cut = (abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width and abs(vz-vz_sbs)<0.1 /*and 0<W2 and W2<5*/);
 
-		if (abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width){
-
-		hW2->Fill(W2);
-		
-		}
+			//elastic_cut = (((pow((dy-cutsobject.dy_C)/cutsobject.dy_R,2)+pow((dx-cutsobject.dx_C)/cutsobject.dx_R,2))<=2.5)
+			//&&(abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width));//? true:false;
+			
+			//std::cout<<"elastic cut : "<<elastic_cut<<endl;
+			hcointime->Fill(coin_time);
+			hvertexcorr->Fill(vz,vz_sbs);
+			hdeltavertex->Fill(vz-vz_sbs);
 
 
-		if((abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width)){
-			hdxdy->Fill(dy,dx);
+			if (abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width and abs(vz-vz_sbs)<0.1 /*and 0<W2 and W2<5*/){
 
-		}
-
-		if(elastic_cut){
-			fs = eHCAL*2*mp/Q2;	
-			//fs = eHCAL*2*mp/(trP_sbs*trP_sbs);
-			hfs->Fill(fs);
-			hfsample->Fill(xHCAL,fs);
-			heratio->Fill(xHCAL,eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
-			her->Fill(eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
-			hpN->Fill(trP_sbs);
-
-			for (int i = 0; i<nblk_HCAL; i++){
-				//hfsvblkid->Fill(hcal_clus_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
-				//hfsvblkid->Fill(hcal_clus_mem_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
-				hfsvblkid->Fill(hcal_clus_mem_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
+				hW2->Fill(W2);
+			
 			}
 
-			//hdxdy->Fill(dy,dx);
+
+			if((abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)and abs(vz-vz_sbs)<0.1 /*and 0<W2 and W2<5*/){//&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width)){
+				
+				hdxdy->Fill(dy,dx);
+
+			}
+
+			if(elastic_cut){
+				fs = eHCAL*2*mp/Q2;	
+				//fs = eHCAL*2*mp/(trP_sbs*trP_sbs);
+				hfs->Fill(fs);
+				hfsample->Fill(xHCAL,fs);
+				heratio->Fill(xHCAL,eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
+				her->Fill(eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
+				hpN->Fill(trP_sbs);
+
+				for (int i = 0; i<nblk_HCAL; i++){
+					//hfsvblkid->Fill(hcal_clus_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
+					//hfsvblkid->Fill(hcal_clus_mem_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
+					hfsvblkid->Fill(hcal_clus_mem_id[i],eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp));
+				}
+
+				hdxdy->Fill(dy,dx);
+			}
 		}
-		//}
                 if (i %1000 == 0 ) std::cout << (i * 100.0/ nentries) << "% \r";
                 std::cout.flush();
 	}
@@ -148,9 +163,10 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	TCutG *cut_elipse = CreateOvalCut("cut_elipse",cutsobject.dy_C,cutsobject.dx_C,cutsobject.dy_R*sqrt(2.5),cutsobject.dx_R*sqrt(2.5),100); 
 
 	TCanvas *c = new TCanvas("c","c",3200,2400);
-	TCanvas *c1 = new TCanvas("c1","c1",1800,1200);
+	TCanvas *c1 = new TCanvas("c1","c1",3200,2400);
 	TCanvas *c2 = new TCanvas("c2","c2",3200,2400);
 	TCanvas *c3 = new TCanvas("c3","c3",3200,2400);
+	TCanvas *c4 = new TCanvas("c4", "c4", 3200, 2400);
 	
 	c->Divide(1,2);
 	c->cd(1);
@@ -224,10 +240,27 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
 	profX2->SetLineColor(kBlack);
 	profX2->Draw("SAME");
 
+	c4->Divide(2,2);
+	c4->cd(1);
+	hdeltavertex->SetXTitle("vz_bb-vz_sbs (m)");
+	hdeltavertex->Draw();
+	c4->cd(2);
+	hvertexcorr->SetXTitle("vz_bb (m)");
+	hvertexcorr->SetYTitle("vz_sbs (m)");
+	hvertexcorr->Draw("COLZ");
+	c4->cd(3);
+	hcointime->Draw();
+	c4->cd(4);
+	hW2->Draw();
+
+
 
 	c->SaveAs(Form("../plots/%s_test_fs.png",printfilename));
+	c2->SaveAs(Form("../plots/%s_test_fs_sbstracking.png",printfilename));
+	c4->SaveAs(Form("../plots/%s_test_fs_goodtrackscuts.png",printfilename));
 	c->Print(Form("../plots/%s_test_fs.pdf(",printfilename));
 	c1->Print(Form("../plots/%s_test_fs.pdf",printfilename));
 	c2->Print(Form("../plots/%s_test_fs.pdf",printfilename));
-	c3->Print(Form("../plots/%s_test_fs.pdf)",printfilename));
+	c3->Print(Form("../plots/%s_test_fs.pdf",printfilename));
+	c4->Print(Form("../plots/%s_test_fs.pdf)",printfilename));
 }

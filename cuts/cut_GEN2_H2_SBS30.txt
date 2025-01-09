@@ -3,16 +3,33 @@ coin_time_L = 90
 coin_time_H = 110
 coin_time_width = 10 
 
+coin_time_ac_L = 40.0
+coin_time_ac_H = 180.0
+
 W2_mean = 0.88
 W2_L = 0
 W2_H = 1.6
 W2_width = 0.5
+
+eHCAL_L = 0.025
+
+P_sbs_L = 2.0
+P_sbs_H = 3.0
 
 dy_L = -0.5
 dy_H = 0.5
 
 dx_L = -0.5
 dx_H = 0.5
+
+dy_p_L = -0.9
+dy_p_H = 0.1
+
+dx_p_L = -0.7
+dx_p_H = -1.7
+
+dy_ac_L = -3.5
+dy_ac_H = 2.5
 
 dx_C = -1.2
 dx_R = 0.12

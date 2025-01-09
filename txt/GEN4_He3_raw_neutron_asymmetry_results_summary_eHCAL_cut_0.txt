@@ -1,0 +1,4 @@
+Nplus_total = 5626
+Nminus_total = 5360
+Aexp_total = 0.0242126
+errAexp_total = 0.0095379

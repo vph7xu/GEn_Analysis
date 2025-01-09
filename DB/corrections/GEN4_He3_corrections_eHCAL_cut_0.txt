@@ -1,0 +1,25 @@
+Aacc = 0.003463
+Api = 0.000000
+Ain = 0.005032
+Ap = 0.002355
+Afsi = 0.000000
+
+facc = 0.105684
+fN2 = 0.015700
+fpi = 0.000000
+fin = 0.535546
+fp = 0.021285
+ffsi = 0.000000
+
+errAacc = 0.01154
+errApi = 0.00000
+errAin = 0.00131
+errAp = 0.00654
+errAfsi = 0.00000
+
+errfacc = 0.00295
+errfN2 = 0.00008
+errfpi = 0.00000
+errfin = 0.0097222
+errfp = 0.00134
+errffsi = 0.00000

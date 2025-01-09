@@ -63,7 +63,7 @@ TH1D* bkg_model(TH2D *hist2D, double xmin, double xmax, const char* kin, bool fl
 
 }
 
-std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, double W2_H_sim, double dy_L_sim, double dy_H_sim){
+std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, double W2_H_sim, double dy_L_sim, double dy_H_sim, double eHCAL_L_sim){
 	TFile* sim_file = TFile::Open(sim_filename);
 
 	TTree* sim_tree = (TTree*)sim_file->Get("Tout");
@@ -74,6 +74,7 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 	double Q2 = 0.0;
 	double weight = 0.0;
 	double fnucl = 0.0;
+	double eHCAL = 0.0;
 
 	sim_tree->SetBranchAddress("dx",&dx);
 	sim_tree->SetBranchAddress("dy",&dy);
@@ -81,6 +82,8 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 	sim_tree->SetBranchAddress("Q2",&Q2);
 	sim_tree->SetBranchAddress("weight",&weight);
 	sim_tree->SetBranchAddress("fnucl",&fnucl);
+	sim_tree->SetBranchAddress("eHCAL",&eHCAL);
+
 
         TH1D *h_dx_n = new TH1D("h_dx_n","dx neutrons",100,-4,3);
         TH1D *h_dx_p = new TH1D("h_dx_p","dx_protons",100,-4,3);
@@ -90,7 +93,7 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 	for (int i = 0; i<nentries; i++){
                 sim_tree->GetEntry(i);
 
-		if (W2_L_sim<W2 and W2<W2_H_sim and dy_L_sim<dy and dy<dy_H_sim){
+		if (W2_L_sim<W2 and W2<W2_H_sim and dy_L_sim<dy and dy<dy_H_sim and eHCAL_L_sim<eHCAL){
                         if (fnucl == 0.0){
                                 h_dx_n->Fill(dx,weight);
                         }
@@ -166,7 +169,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	//TTree* sim_tree = (TTree*)sim_file->Get("Tout");
 
 	//p and n dist
-	auto sim_histograms = sim_hist(sim_filename,W2_L,W2_H,dy_L,dy_H);
+	auto sim_histograms = sim_hist(sim_filename,W2_L,W2_H,dy_L,dy_H,eHCAL_L);
 	hist_p = sim_histograms.second;
 	hist_n = sim_histograms.first;
 
