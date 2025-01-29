@@ -1,6 +1,6 @@
-coin_time_mean = 105
-coin_time_L = 93
-coin_time_H = 117
+coin_time_mean = 102
+coin_time_L = 90
+coin_time_H = 114
 coin_time_width = 12 
 
 coin_time_ac_L = 40.0
@@ -34,7 +34,7 @@ dy_ac_H = 2.5
 dx_C = -2.7
 dx_R = 0.4
 
-dy_C = 0.2
+dy_C = -0.2
 dy_R = 0.2
 
 IHWP_flip = -1

@@ -1,0 +1,5 @@
+Q2_avg = 0
+tau_avg = 0
+epsilon_avg = 0
+Px_avg = 0
+Pz_avg = 0

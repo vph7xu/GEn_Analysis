@@ -92,39 +92,42 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 
 	int nbins =200;
 
-	TH1D *h_delta_ptheta = new TH1D("h_delta_ptheta","h_delta_ptheta",200,-0.1,0.1);
-	TH1D *h_delta_pphi = new TH1D("h_delta_pphi","h_delta_pphi",200,-0.1,0.1);
-	TH1D *h_delta_pmag = new TH1D("h_delta_pmag","h_delta_pmag",200,-1,1);
+	TH1D *h_delta_ptheta = new TH1D("h_delta_ptheta","delta ptheta",200,-0.1,0.1);
+	TH1D *h_delta_pphi = new TH1D("h_delta_pphi","delta pphi",200,-0.1,0.1);
+	TH1D *h_delta_pmag = new TH1D("h_delta_pmag","delta pN",200,-1,1);
 	
-	TH1D *h_pmag_ratio = new TH1D("h_pmag_ratio","h_pmag_ratio",200,0.7,1.3);
+	TH1D *h_pmag_ratio = new TH1D("h_pmag_ratio","pN_BB/pN_SBS",200,0.7,1.3);
 	
-	TH2D *h_ptheta_corr = new TH2D("h_ptheta_corr","h_ptheta_corr",200,0.1,0.5,200,0.1,0.5);
-	TH2D *h_pphi_corr = new TH2D("h_pphi_corr","h_pphi_corr",200,2.8,3.6,200,-0.3,0.45);
-	TH2D *h_pmag_corr = new TH2D("h_pmag_corr","h_pmag_corr",200,P_sbs_L,P_sbs_H,200,P_sbs_L,P_sbs_H);
+	TH2D *h_ptheta_corr = new TH2D("h_ptheta_corr","ptheta corr",200,0.1,0.5,200,0.1,0.5);
+	TH2D *h_pphi_corr = new TH2D("h_pphi_corr","pphi corr",200,2.8,3.6,200,-0.3,0.45);
+	TH2D *h_pmag_corr = new TH2D("h_pmag_corr","pN_BB and pN_SBS correlation",200,P_sbs_L,P_sbs_H,200,P_sbs_L,P_sbs_H);
 
-	TH2D *h_delta_ptheta_v_trthsbs = new TH2D("h_delta_ptheta_v_trthsbs","h_delta_ptheta_v_trthsbs",nbins,-0.23,0,nbins,-0.1,-0.1);
-	TH2D *h_delta_ptheta_v_trphsbs = new TH2D("h_delta_ptheta_v_trphsbs","h_delta_ptheta_v_trphsbs",nbins,-0.04,0.06,nbins,-0.1,0.1);
-	TH2D *h_delta_ptheta_v_trxsbs = new TH2D("h_delta_ptheta_v_trxsbs","h_delta_ptheta_v_trxsbs",nbins,-0.3,0.8,nbins,-0.1,0.1);
-	TH2D *h_delta_ptheta_v_trysbs = new TH2D("h_delta_ptheta_v_trysbs","h_delta_ptheta_v_trysbs",nbins,-0.25,0.25,nbins,-0.1,0.1);
+	TH2D *h_delta_ptheta_v_trthsbs = new TH2D("h_delta_ptheta_v_trthsbs","delta ptheta vs trthsbs",nbins,-0.23,0,nbins,-0.1,-0.1);
+	TH2D *h_delta_ptheta_v_trphsbs = new TH2D("h_delta_ptheta_v_trphsbs","delta ptheta vs trphsbs",nbins,-0.04,0.06,nbins,-0.1,0.1);
+	TH2D *h_delta_ptheta_v_trxsbs = new TH2D("h_delta_ptheta_v_trxsbs","delta ptheta vs trxsbs",nbins,-0.3,0.8,nbins,-0.1,0.1);
+	TH2D *h_delta_ptheta_v_trysbs = new TH2D("h_delta_ptheta_v_trysbs","delta ptheta vs trysbs",nbins,-0.25,0.25,nbins,-0.1,0.1);
 
-	TH2D *h_delta_pphi_v_trthsbs = new TH2D("h_delta_pphi_v_trthsbs","h_delta_pphi_v_trthsbs",nbins,-0.23,0.0,nbins,-0.1,0.1);
-	TH2D *h_delta_pphi_v_trphsbs = new TH2D("h_delta_pphi_v_trphsbs","h_delta_pphi_v_trphsbs",nbins,-0.04,0.06,nbins,-0.1,0.1);
-	TH2D *h_delta_pphi_v_trxsbs = new TH2D("h_delta_pphi_v_trxsbs","h_delta_pphi_v_trxsbs",nbins,-0.3,0.8,nbins,-0.1,0.1);
-	TH2D *h_delta_pphi_v_trysbs = new TH2D("h_delta_pphi_v_trysbs","h_delta_pphi_v_trysbs",nbins,-0.25,0.25,nbins,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trthsbs = new TH2D("h_delta_pphi_v_trthsbs","delta pphi vs trthsbs",nbins,-0.23,0.0,nbins,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trphsbs = new TH2D("h_delta_pphi_v_trphsbs","delta pphi vs trphsbs",nbins,-0.04,0.06,nbins,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trxsbs = new TH2D("h_delta_pphi_v_trxsbs","delta pphi vs trxsbs",nbins,-0.3,0.8,nbins,-0.1,0.1);
+	TH2D *h_delta_pphi_v_trysbs = new TH2D("h_delta_pphi_v_trysbs","delta pphi vs trysbs",nbins,-0.25,0.25,nbins,-0.1,0.1);
 
-	TH2D *h_delta_pmag_v_trthsbs = new TH2D("h_delta_pmag_v_trthsbs","h_delta_pmag_v_trthsbs",nbins,-0.23,0.0,nbins,-1,1);
-	TH2D *h_delta_pmag_v_trphsbs = new TH2D("h_delta_pmag_v_trphsbs","h_delta_pmag_v_trphsbs",nbins,-0.04,0.06,nbins,-1,1);
-	TH2D *h_delta_pmag_v_trxsbs = new TH2D("h_delta_pmag_v_trxsbs","h_delta_pmag_v_trxsbs",nbins,-0.3,0.8,nbins,-1,1);
-	TH2D *h_delta_pmag_v_trysbs = new TH2D("h_delta_pmag_v_trysbs","h_delta_pmag_v_trysbs",nbins,-0.25,0.25,nbins,-1,1);
+	TH2D *h_delta_pmag_v_trthsbs = new TH2D("h_delta_pmag_v_trthsbs","delta pN vs trthsbs",nbins,-0.23,0.0,nbins,-1,1);
+	TH2D *h_delta_pmag_v_trphsbs = new TH2D("h_delta_pmag_v_trphsbs","delta pN vs trphsbs",nbins,-0.04,0.06,nbins,-1,1);
+	TH2D *h_delta_pmag_v_trxsbs = new TH2D("h_delta_pmag_v_trxsbs","delta pN vs trxsbs",nbins,-0.3,0.8,nbins,-1,1);
+	TH2D *h_delta_pmag_v_trysbs = new TH2D("h_delta_pmag_v_trysbs","delta pN vs trysbs",nbins,-0.25,0.25,nbins,-1,1);
 
-	TH2D *h_delta_vz_v_trthsbs = new TH2D("h_delta_vz_v_trthsbs","h_delta_vz_v_trthsbs",500,-0.23,0.0,500,-0.5,0.5);
-	TH2D *h_delta_vz_v_trphsbs = new TH2D("h_delta_vz_v_trphsbs","h_delta_vz_v_trphsbs",500,-0.04,0.06,500,-0.5,0.5);
-	TH2D *h_delta_vz_v_trxsbs = new TH2D("h_delta_vz_v_trxsbs","h_delta_vz_v_trxsbs",500,-0.3,0.8,500,-0.5,0.5);
-	TH2D *h_delta_vz_v_trysbs = new TH2D("h_delta_vz_v_trysbs","h_delta_vz_v_trysbs",500,-0.25,0.25,500,-0.5,0.5);
+	TH2D *h_delta_vz_v_trthsbs = new TH2D("h_delta_vz_v_trthsbs","delta vz vs trthsbs",500,-0.23,0.0,500,-0.5,0.5);
+	TH2D *h_delta_vz_v_trphsbs = new TH2D("h_delta_vz_v_trphsbs","delta vz vs trphsbs",500,-0.04,0.06,500,-0.5,0.5);
+	TH2D *h_delta_vz_v_trxsbs = new TH2D("h_delta_vz_v_trxsbs","delta vz vs trxsbs",500,-0.3,0.8,500,-0.5,0.5);
+	TH2D *h_delta_vz_v_trysbs = new TH2D("h_delta_vz_v_trysbs","delta vz vs trysbs",500,-0.25,0.25,500,-0.5,0.5);
 
-	TH1D *h_coin_time = new TH1D("h_coin_time","h_coin_time",100,40,180);
-	TH1D *h_W2 = new TH1D("h_W2","h_W2",1000,-2,4);
-	TH2D *h_dxdy = new TH2D("h_dxdy","h_dxdy",200,-2,2,200,-6,2);
+	TH1D *h_coin_time = new TH1D("h_coin_time","coincidence time",100,40,180);
+	TH1D *h_W2 = new TH1D("h_W2","W^{2}",1000,-2,4);
+	TH2D *h_dxdy = new TH2D("h_dxdy","delta-x delta-y",200,-2,2,200,-6,2);
+
+	TH1D *h_delta_vz = new TH1D("h_delta_vz","delta vz",200,-0.6,0.6);
+	TH2D *h_vz_corr = new TH2D("h_vz_corr","vz_BB and vz_SBS correlation",200,-0.3,0.3,200,-0.3,0.3);
 
 	bool cutcoin_time = false;
 	bool cutW2_coin_time = false;
@@ -135,7 +138,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	for (int i = 0; i<nentries; i++){
 		tree->GetEntry(i);
 		//no QE cuts for coin_time plot
-		if(ntrack_sbs>0 and runnum>5800 ){
+		if(ntrack_sbs>0 ){
 			//std::cout<<"sbs track found"<<endl;
 			h_coin_time->Fill(coin_time);
 
@@ -147,6 +150,8 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 				h_delta_vz_v_trphsbs->Fill(trph_sbs,(vz_sbs-vz));
 				h_delta_vz_v_trxsbs->Fill(trx_sbs,(vz_sbs-vz));
 				h_delta_vz_v_trysbs->Fill(try_sbs,(vz_sbs-vz));
+				h_delta_vz->Fill(vz-vz_sbs);
+				h_vz_corr->Fill(vz,vz_sbs);
 			};
 			
 			//coin_time and W2 cuts only
@@ -194,6 +199,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	TCanvas* c5 = new TCanvas("c5","c5",2400,1800);
 	TCanvas* c6 = new TCanvas("c6","c6",2400,1800);
 	TCanvas* c7 = new TCanvas("c7","c7",2400,1800);
+	TCanvas* c8 = new TCanvas("c8","c8",2400,1800);
 
 	c->Divide(2,2);
 	c1->Divide(2,2);
@@ -203,6 +209,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	c5->Divide(2,2);
 	c6->Divide(2,2);
 	c7->Divide(2,2);
+	c8->Divide(2,2);
 
 	c->cd(1);
 	h_ptheta_corr->Draw("COLZ");
@@ -216,12 +223,12 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 
 	c2->cd(1);
 	h_pmag_corr->Draw("COLZ");
-	h_pmag_corr->SetXTitle("pN_expect (GeV)");
-	h_pmag_corr->SetYTitle("trP_sbs (GeV)");
+	h_pmag_corr->SetXTitle("pN_BB (GeV)");
+	h_pmag_corr->SetYTitle("pN_SBS (GeV)");
 
 	c3->cd(1);
 	h_coin_time->Draw();
-	h_coin_time->SetXTitle("coin_time (ns)");
+	h_coin_time->SetXTitle("coincidence time (ns)");
 	TLine *line01 = new TLine(coin_time_L, 0, coin_time_L, h_coin_time->GetMaximum()*0.8);
     TLine *line02 = new TLine(coin_time_H, 0, coin_time_H, h_coin_time->GetMaximum()*0.8);
     line01->SetLineColor(kRed);
@@ -241,11 +248,11 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 
 	c2->cd(2);
 	h_delta_pmag->Draw();
-	h_delta_pmag->SetXTitle("pN_expect-trP_sbs (GeV)");
+	h_delta_pmag->SetXTitle("pN_BB-pN_SBS (GeV)");
 
 	c3->cd(2);
 	h_W2->Draw();
-	h_W2->SetXTitle("W2(GeV2)");
+	h_W2->SetXTitle("W^{2}(GeV^{2})");
     TLine *line1 = new TLine(W2_L, 0, W2_L, h_W2->GetMaximum()*0.8);
     TLine *line2 = new TLine(W2_H, 0, W2_H, h_W2->GetMaximum()*0.8);
     line1->SetLineColor(kRed);
@@ -257,7 +264,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 
 	c2->cd(3);
 	h_pmag_ratio->Draw();
-	h_pmag_ratio->SetXTitle("pN_expect/trP_sbs");
+	h_pmag_ratio->SetXTitle("pN_BB/pN_SBS");
 	
 
 	c3->cd(3);
@@ -355,6 +362,16 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
     h_delta_vz_v_trysbs->SetXTitle("try_sbs (m)");
     h_delta_vz_v_trysbs->SetYTitle("vz_sbs - vz_bb (m)");
 
+    
+    c8->cd(1);
+    h_delta_vz->Draw();
+    h_delta_vz->SetXTitle("vz_BB - vz_SBS (m)");
+
+    c8->cd(2);
+    h_vz_corr->Draw("COLZ");
+    h_vz_corr->SetXTitle("vz_BB (m)");
+    h_vz_corr->SetYTitle("vz_SBS (m)");
+
 	c->Print(Form("../plots/%s_sbstracking.pdf(",printfilename));
 	c1->Print(Form("../plots/%s_sbstracking.pdf",printfilename));
 	c2->Print(Form("../plots/%s_sbstracking.pdf",printfilename));
@@ -362,7 +379,8 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	c4->Print(Form("../plots/%s_sbstracking.pdf",printfilename));
 	c5->Print(Form("../plots/%s_sbstracking.pdf",printfilename));
 	c6->Print(Form("../plots/%s_sbstracking.pdf",printfilename));
-	c7->Print(Form("../plots/%s_sbstracking.pdf)",printfilename));
+	c7->Print(Form("../plots/%s_sbstracking.pdf",printfilename));
+	c8->Print(Form("../plots/%s_sbstracking.pdf)",printfilename));
 
 
 	c->SaveAs(Form("../plots/%s_ptheta_sbstracking.png",printfilename));
@@ -373,4 +391,5 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	c5->SaveAs(Form("../plots/%s_deltapphi_sbstracking.png",printfilename));
 	c6->SaveAs(Form("../plots/%s_deltapmag_sbstracking.png",printfilename));
 	c7->SaveAs(Form("../plots/%s_deltavz_sbstracking.png",printfilename));
+	c8->SaveAs(Form("../plots/%s_deltavz_1D_sbstracking.png",printfilename));
 }

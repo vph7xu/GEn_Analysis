@@ -152,9 +152,9 @@ void proton_contamination(const char* filename, const char* printfilename, const
     box_dxdy_n->Draw("SAME");
     box_dxdy_p->Draw("SAME");
 
+    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf(",kin,std::to_string(flag_eHCAL_cut).c_str()));
     c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
-    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
-    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	double proton_frac = proton_events/QE_events;// this is not correct should remove other fractions before doing this
 	double errproton_frac = (proton_events/QE_events)*sqrt((1/proton_events)+(1/QE_events)); // this is not correct should remove other fractions before doing this

@@ -151,7 +151,7 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
     //TH1D *h_dy = new TH1D("h_dy","dy",200,-10,10);
     //TH1D *h_W2 = new TH1D("h_W2","W2",250,-4,8);
     //TH2D *h_dxdy = new TH2D("h_dxdy","dxdy",100,dy_L,dy_H,100,-4,3);
-   	TH1D *h_coin_time = new TH1D("h_coin_time","cointime",100,0,200);
+   	TH1D *h_coin_time = new TH1D("h_coin_time","cointime",125,0,250);
     TH2D *h_dxdy_cut_W2_coin = new TH2D("h_dxdy_cut_W2_coin","dxdy with W2 and coin cuts",200,-4,4,200,-4,4);
 
     double N_plus_all = 0.0;
@@ -192,8 +192,8 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
                 if(eHCAL>eHCAL_L){
                     h_coin_time->Fill(coin_time);
                 }
-                //to get the asymmetry from accidentals 
-                if (((coin_time_ac_L<coin_time) and (coin_time<coin_time_L)) or ((coin_time_H<coin_time) and (coin_time<coin_time_ac_H))){
+                //to get the asymmetry from accidentals (coin_time_L-10 and coin_time_H+10 to avoid cutting too close to the QE peak)
+                if (((coin_time_ac_L<coin_time) and (coin_time<coin_time_L-10)) or ((coin_time_H+10<coin_time) and (coin_time<coin_time_ac_H))){
                     //std::cout<<"here"<<endl;
                     if (-1*IHWP*IHWP_flip*helicity == 1){
                         N_plus_all+=1;
@@ -253,12 +253,13 @@ void Asymmetry_across_cointime(const char* filename, const char* printfilename, 
     box_offset->SetLineColor(6);         // Outline color (optional)
 
     // Create a box
-    TBox* box_anti1 = new TBox(60, y1, coin_time_L, y2);
+
+    TBox* box_anti1 = new TBox(coin_time_ac_L, y1, coin_time_L-10, y2);
+    TBox* box_anti2 = new TBox(coin_time_H+10, y1, coin_time_ac_H, y2);
+
     box_anti1->SetFillColorAlpha(kRed, 0.3); // Red color with 30% transparency
     box_anti1->SetLineColor(kRed);         // Outline color (optional)
 
-    // Create a box
-    TBox* box_anti2 = new TBox(coin_time_H, y1, 170, y2);
     box_anti2->SetFillColorAlpha(kRed, 0.3); // Red color with 30% transparency
     box_anti2->SetLineColor(kRed);         // Outline color (optional)
 

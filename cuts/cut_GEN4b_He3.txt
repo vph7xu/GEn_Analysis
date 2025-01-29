@@ -3,15 +3,15 @@ coin_time_L = 149
 coin_time_H = 165
 coin_time_width = 8
 
-coin_time_ac_L = 60.0
-coin_time_ac_H = 170.0
+coin_time_ac_L = 105.0
+coin_time_ac_H = 240.0
 
 W2_mean = 0.88
 W2_L = -1
 W2_H = 2
 W2_width = 0.9
 
-eHCAL_L = 0.3
+eHCAL_L = 0.1
 
 P_sbs_L = 5.0
 P_sbs_H = 8.0
@@ -40,7 +40,7 @@ dy_R = 0.5
 IHWP_flip = 1
 
 run_num_L = 5000
-run_num_H = 6100
+run_num_H = 5800
 
 N_cut_cx = 0.0
 N_cut_cy = -0.025
