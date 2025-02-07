@@ -177,6 +177,7 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
     double Q2 = 0.0;
 	double coin_time = 0.0;
 	double eHCAL = 0.0;
+	int runnum = 0;
 
 	tree->SetBranchAddress("dx",&dx);
 	tree->SetBranchAddress("dy",&dy);
@@ -184,6 +185,7 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 	tree->SetBranchAddress("Q2",&Q2);
 	tree->SetBranchAddress("coin_time",&coin_time);
 	tree->SetBranchAddress("eHCAL",&eHCAL);
+	tree->SetBranchAddress("runnum",&runnum);
 
 	TH1D *h_dx = new TH1D("h_dx","dx",200,-10,10);
 	TH1D *h_dy = new TH1D("h_dy","dy",200,-10,10);
@@ -214,50 +216,51 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 	int nentries = tree->GetEntries();
 	for (int i = 0; i<nentries*1; i++){
 		tree->GetEntry(i);
-		
-		//before adding a cut on W2
-		h_dx->Fill(dx);
-		h_dy->Fill(dy);
-		h_dxdy->Fill(dy,dx);
-		h_eHCAL->Fill(eHCAL);
-		//h_dyW2->Fill(W2,dy);
-		//h_dxW2->Fill(W2,dx);
-		if (eHCAL>eHCAL_L){
-			h_W2->Fill(W2);
-			h_coin_time->Fill(coin_time);
-        }
+		if(cutsobject.run_num_L<runnum and runnum<cutsobject.run_num_H){
+			//before adding a cut on W2
+			h_dx->Fill(dx);
+			h_dy->Fill(dy);
+			h_dxdy->Fill(dy,dx);
+			h_eHCAL->Fill(eHCAL);
+			//h_dyW2->Fill(W2,dy);
+			//h_dxW2->Fill(W2,dx);
+			if (eHCAL>eHCAL_L){
+				h_W2->Fill(W2);
+				h_coin_time->Fill(coin_time);
+	        }
 
-        if (eHCAL>eHCAL_L and cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H /*and dy<cutsobject.dy_H and cutsobject.dy_L<dy*/){
-        	h_W2_cut_cointime->Fill(W2);
-        }
+	        if (eHCAL>eHCAL_L and cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H /*and dy<cutsobject.dy_H and cutsobject.dy_L<dy*/){
+	        	h_W2_cut_cointime->Fill(W2);
+	        }
 
 
-		if (eHCAL>eHCAL_L and cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H ){
-			h_dyW2->Fill(W2,dy);
-			h_dxW2->Fill(W2,dx);
-			h_eHCAL_cut_cointime->Fill(eHCAL);
-		}
-
-		//add a cut on W2 and coin time
-		if (eHCAL>eHCAL_L and (cutsobject.W2_L<W2 and W2<cutsobject.W2_H) and (cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H) ){
-			if (dy<cutsobject.dy_H and cutsobject.dy_L<dy){
-				h_dx_W2_cut->Fill(dx);
-				if (dx<cutsobject.dx_H and cutsobject.dx_L<dx){
-					h_eHCAL_cut_QE->Fill(eHCAL);
-				}
+			if (eHCAL>eHCAL_L and cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H ){
+				h_dyW2->Fill(W2,dy);
+				h_dxW2->Fill(W2,dx);
+				h_eHCAL_cut_cointime->Fill(eHCAL);
 			}
 
-			h_dy_W2_cut->Fill(dy);
-			h_dxdy_W2_cut->Fill(dy,dx);
-			h_eHCAL_cut_cointime_W2->Fill(eHCAL);
-			//h_dyW2->Fill(W2,dy);
-			
-		}	
-		if(eHCAL>eHCAL_L and (cutsobject.W2_L<W2 and W2<cutsobject.W2_H) /*and dy<cutsobject.dy_H and cutsobject.dy_L<dy*/){
-			h_coin_time_W2_cut->Fill(coin_time);
-		}	
+			//add a cut on W2 and coin time
+			if (eHCAL>eHCAL_L and (cutsobject.W2_L<W2 and W2<cutsobject.W2_H) and (cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H) ){
+				if (dy<cutsobject.dy_H and cutsobject.dy_L<dy){
+					h_dx_W2_cut->Fill(dx);
+					if (dx<cutsobject.dx_H and cutsobject.dx_L<dx){
+						h_eHCAL_cut_QE->Fill(eHCAL);
+					}
+				}
 
-	        if (i %1000 == 0 ) std::cout << (i * 100.0/ nentries) << "% \r"; 
+				h_dy_W2_cut->Fill(dy);
+				h_dxdy_W2_cut->Fill(dy,dx);
+				h_eHCAL_cut_cointime_W2->Fill(eHCAL);
+				//h_dyW2->Fill(W2,dy);
+				
+			}	
+			if(eHCAL>eHCAL_L and (cutsobject.W2_L<W2 and W2<cutsobject.W2_H) /*and dy<cutsobject.dy_H and cutsobject.dy_L<dy*/){
+				h_coin_time_W2_cut->Fill(coin_time);
+			}	
+		}
+
+	    if (i %1000 == 0 ) std::cout << (i * 100.0/ nentries) << "% \r"; 
 		std::cout.flush();
 
 

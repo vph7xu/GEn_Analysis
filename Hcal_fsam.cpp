@@ -90,7 +90,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
     for (int i = 0; i<nentries; i++){
         tree->GetEntry(i);
         
-        //if (ntrack_sbs>0){
+        if (ntrack_sbs>0){
             
             elastic_cut = (fabs(coin_time - cutsobject.coin_time_mean) < cutsobject.coin_time_width 
                            && fabs(vz - vz_sbs) < 0.1 /*and 0<W2 and W2<5*/);
@@ -153,7 +153,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
                 double Eexp = sqrt(mp*mp + trP_sbs*trP_sbs) - mp;
                 double ratio = 0;
                 
-                if(Eexp > 0.001 && abs(Eexp-5.25)<=0.75 ) {
+                if(Eexp > 0.001 /*&& abs(Eexp-5.25)<=0.75*/ ) {
                     ratio = eHCAL / Eexp;
                 
                     heratio->Fill(xHCAL, ratio);
@@ -178,7 +178,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
                 // For completeness, also fill dx/dy
                 hdxdy->Fill(dy,dx);
             }
-        //}
+        }
         if (i %1000 == 0) {
             std::cout << (i * 100.0 / nentries) << "% \r";
             std::cout.flush();
@@ -370,7 +370,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
     // Right pad: Fit her
     c5->cd(2);
     her->Draw();
-    TF1 *gaus_her = new TF1("gaus_her","gaus",her->GetMean()-0.02-1.0*her->GetRMS(),her->GetMean()-0.02+1.0*her->GetRMS());
+    TF1 *gaus_her = new TF1("gaus_her","gaus",her->GetMean()-0.02-1.2*her->GetRMS(),her->GetMean()-0.02+1.2*her->GetRMS());
     her->Fit(gaus_her,"R");
     gaus_her->SetLineColor(kBlue);
     gaus_her->SetLineWidth(2);

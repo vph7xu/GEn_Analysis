@@ -219,118 +219,121 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 		TDatime lookupTime = *datetime;
 
 		//h_IHWP->Fill(IHWP);
-		h_runnum->Fill(runnum);
-		if (eHCAL>eHCAL_L and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)and lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
-			nspot_cut->Fill(dy,dx);
-			if ((dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
-				h_IHWP->Fill(-1*IHWP_flip*IHWP*helicity);
-			}
-		}
-		if (i==0){
-			runx = runnum;
-		}
-		
 
-		//if(abs(helicity)>0){
-			if(runnum==runx and lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
-				
-				if (IHWP == 1) helicity = -IHWP*IHWP_flip*helicity;
-	            else if (IHWP == -1) helicity = -IHWP*IHWP_flip*helicity;
-	            else continue;
-
-				if ( eHCAL>eHCAL_L and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
-					//if(cutg->IsInside(dy,dx)){
-					if ((dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
-
-						if (helicity==1){
-							Nplus=Nplus+1;
-						}
-						else if (helicity==-1){
-							Nminus=Nminus+1;
-						}
-					}
-					else if((dx_p_L<dx and dx<dx_p_H) and (dy_p_L<dy and dy<dy_p_H)){
-						//std::cout<<"here"<<endl;
-						if (helicity==1){
-							Pplus=Pplus+1;
-						}
-						else if (helicity==-1){
-							Pminus=Pminus+1;
-						}					
-					}
-						//}
-						//else{
-						//	if (helicity==1){
-	                                        //                Nminus=Nminus+1;
-	                                        //        }
-	                                        //        else if (helicity==-1){
-	                                        //                Nplus=Nplus+1;
-	                                        //        }
-						//}
-					
+		if (run_num_L<runnum and runnum<run_num_H){
+			h_runnum->Fill(runnum);
+			if (eHCAL>eHCAL_L and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)and lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
+				nspot_cut->Fill(dy,dx);
+				if ((dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
+					h_IHWP->Fill(-1*IHWP_flip*IHWP*helicity);
 				}
 			}
-
-			else if(runnum!=runx and lookupValue(HelicityCheck,runx)==1 and lookupValue(MollerQuality,runnum)==1){
-				Aexp = (Nplus-Nminus)*100/(Nplus+Nminus);
-				errAexp = 2*100*sqrt((Nplus*Nminus)*(Nplus+Nminus))/((Nplus+Nminus)*(Nplus+Nminus));
-
-				Ap_exp = (Pplus-Pminus)*100/(Pplus+Pminus);
-				errAp_exp = 2*100*sqrt((Pplus*Pminus)*(Pplus+Pminus))/((Pplus+Pminus)*(Pplus+Pminus));
-
-				auto [beam_polarization, error] = searchData(data, lookupTime);
-
-				avg_He3Pol += (Nplus+Nminus)*He3Pol*0.01;
-				avg_beampol += (Nplus+Nminus)* beam_polarization*0.01;
-				total_QE +=(Nplus+Nminus);
-
-				err_avg_beampol += (Nplus+Nminus)*error*0.01;
-
-				Nplus_total+=Nplus;
-				Nminus_total+=Nminus;
-
-				gAsym->SetPoint(runx,runx,Aexp);
-				gAsym->SetPointError(runx,0,errAexp);
-
-				gAp_sym->SetPoint(runx,runx,Ap_exp);
-				gAp_sym->SetPointError(runx,0,errAp_exp);
-
-				//write asymmetries to files
-				outfile << "Run_number: " << runx << " | Aexp: " << Aexp/100 << " | errAexp: " << errAexp/100 << " | pol_He3: " << He3Pol <<  " | pol_beam: " << beam_polarization << std::endl;
-	            outfile_n_asym << "Run_number: " << runx << " Nplus : "<< Nplus<<" Nminus : "<<Nminus<<" | Aexp: " << Aexp/100 << " | errAexp: " << errAexp/100 << std::endl;
-	            outfile_p << "Run_number: " << runx << " | Ap_exp: " << Ap_exp/100 << " | errAexp: " << errAp_exp/100 << std::endl;
-	            outfile_pol_He3 << "Run_number: " << runx << " | pol_He3: " << He3Pol <<std::endl; //<< " | errAexp: " << errAp_exp << std::endl;
-	            outfile_pol_beam<< "Run_number: " << runx << " | pol_beam: " << beam_polarization<<std::endl;
-	            //write He3 polarizations to files
-
-
-	            //write beam polarization to files
-
-
-
-				std::cout<<"runnum : "<<runx<<" Nplus : "<<Nplus<<" Nminus : "<<Nminus<<" Aexp : "<<Aexp<<endl;
-				std::cout<<"runnum : "<<runx<<" Pplus : "<<Pplus<<" Pminus : "<<Pminus<<" Ap_exp : "<<Ap_exp<<endl;
-	            std::cout<< "Run_number: " << runx << " | pol_He3: " << He3Pol <<std::endl; //<< " | errAexp: " << errAp_exp << std::endl;
-	            std::cout<< "Run_number: " << runx << " | pol_beam: " << beam_polarization<<std::endl;
-
-				runx=runnum;
-				Nplus=0.0;
-				Nminus=0.0;
-				Aexp=0.0;
-				Pplus=0.0;
-				Pminus=0.0;
-				Ap_exp=0.0;
+			if (i==0){
+				runx = runnum;
 			}
+			
 
-			else if(runnum!=runx){
-	                      	runx=runnum;
-	                        Nplus=0.0;
-	                        Nminus=0.0;
-	                        Aexp=0.0;
-	                        Pplus=0.0;
-							Pminus=0.0;
-							Ap_exp=0.0;
-			}
+			//if(abs(helicity)>0){
+				if(runnum==runx and lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
+					
+					if (IHWP == 1) helicity = -IHWP*IHWP_flip*helicity;
+		            else if (IHWP == -1) helicity = -IHWP*IHWP_flip*helicity;
+		            else continue;
+
+					if ( eHCAL>eHCAL_L and (W2_L<W2 and W2<W2_H)and(coin_time_L<coin_time and coin_time<coin_time_H)){
+						//if(cutg->IsInside(dy,dx)){
+						if ((dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H)){
+
+							if (helicity==1){
+								Nplus=Nplus+1;
+							}
+							else if (helicity==-1){
+								Nminus=Nminus+1;
+							}
+						}
+						else if((dx_p_L<dx and dx<dx_p_H) and (dy_p_L<dy and dy<dy_p_H)){
+							//std::cout<<"here"<<endl;
+							if (helicity==1){
+								Pplus=Pplus+1;
+							}
+							else if (helicity==-1){
+								Pminus=Pminus+1;
+							}					
+						}
+							//}
+							//else{
+							//	if (helicity==1){
+		                                        //                Nminus=Nminus+1;
+		                                        //        }
+		                                        //        else if (helicity==-1){
+		                                        //                Nplus=Nplus+1;
+		                                        //        }
+							//}
+						
+					}
+				}
+
+				else if(runnum!=runx and lookupValue(HelicityCheck,runx)==1 and lookupValue(MollerQuality,runnum)==1){
+					Aexp = (Nplus-Nminus)*100/(Nplus+Nminus);
+					errAexp = 2*100*sqrt((Nplus*Nminus)*(Nplus+Nminus))/((Nplus+Nminus)*(Nplus+Nminus));
+
+					Ap_exp = (Pplus-Pminus)*100/(Pplus+Pminus);
+					errAp_exp = 2*100*sqrt((Pplus*Pminus)*(Pplus+Pminus))/((Pplus+Pminus)*(Pplus+Pminus));
+
+					auto [beam_polarization, error] = searchData(data, lookupTime);
+
+					avg_He3Pol += (Nplus+Nminus)*He3Pol*0.01;
+					avg_beampol += (Nplus+Nminus)* beam_polarization*0.01;
+					total_QE +=(Nplus+Nminus);
+
+					err_avg_beampol += (Nplus+Nminus)*error*0.01;
+
+					Nplus_total+=Nplus;
+					Nminus_total+=Nminus;
+
+					gAsym->SetPoint(runx,runx,Aexp);
+					gAsym->SetPointError(runx,0,errAexp);
+
+					gAp_sym->SetPoint(runx,runx,Ap_exp);
+					gAp_sym->SetPointError(runx,0,errAp_exp);
+
+					//write asymmetries to files
+					outfile << "Run_number: " << runx << " | Aexp: " << Aexp/100 << " | errAexp: " << errAexp/100 << " | pol_He3: " << He3Pol <<  " | pol_beam: " << beam_polarization << std::endl;
+		            outfile_n_asym << "Run_number: " << runx << " Nplus : "<< Nplus<<" Nminus : "<<Nminus<<" | Aexp: " << Aexp/100 << " | errAexp: " << errAexp/100 << std::endl;
+		            outfile_p << "Run_number: " << runx << " | Ap_exp: " << Ap_exp/100 << " | errAexp: " << errAp_exp/100 << std::endl;
+		            outfile_pol_He3 << "Run_number: " << runx << " | pol_He3: " << He3Pol <<std::endl; //<< " | errAexp: " << errAp_exp << std::endl;
+		            outfile_pol_beam<< "Run_number: " << runx << " | pol_beam: " << beam_polarization<<std::endl;
+		            //write He3 polarizations to files
+
+
+		            //write beam polarization to files
+
+
+
+					std::cout<<"runnum : "<<runx<<" Nplus : "<<Nplus<<" Nminus : "<<Nminus<<" Aexp : "<<Aexp<<endl;
+					std::cout<<"runnum : "<<runx<<" Pplus : "<<Pplus<<" Pminus : "<<Pminus<<" Ap_exp : "<<Ap_exp<<endl;
+		            std::cout<< "Run_number: " << runx << " | pol_He3: " << He3Pol <<std::endl; //<< " | errAexp: " << errAp_exp << std::endl;
+		            std::cout<< "Run_number: " << runx << " | pol_beam: " << beam_polarization<<std::endl;
+
+					runx=runnum;
+					Nplus=0.0;
+					Nminus=0.0;
+					Aexp=0.0;
+					Pplus=0.0;
+					Pminus=0.0;
+					Ap_exp=0.0;
+				}
+
+				else if(runnum!=runx){
+		                      	runx=runnum;
+		                        Nplus=0.0;
+		                        Nminus=0.0;
+		                        Aexp=0.0;
+		                        Pplus=0.0;
+								Pminus=0.0;
+								Ap_exp=0.0;
+				}
+		}
 
 		//}
 	}

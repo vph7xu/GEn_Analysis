@@ -42,6 +42,9 @@ void proton_contamination(const char* filename, const char* printfilename, const
 	double dy_ac_L = getDoubleValue(config,"dy_ac_L");
 	double dy_ac_H = getDoubleValue(config,"dy_ac_H");
 
+	double P_sbs_L = getDoubleValue(config,"P_sbs_L");
+	double P_sbs_H = getDoubleValue(config,"P_sbs_H");
+
 	double run_num_L = getDoubleValue(config,"run_num_L");
 	double run_num_H = getDoubleValue(config,"run_num_H");
 
@@ -68,6 +71,7 @@ void proton_contamination(const char* filename, const char* printfilename, const
     double vz = 0.0;
     double eHCAL = 0.0;
     double ePS = 0.0;
+    double trP_sbs = 0.0;
 
 	tree->SetBranchAddress("runnum",&runnum);
 	tree->SetBranchAddress("helicity",&helicity);
@@ -82,6 +86,7 @@ void proton_contamination(const char* filename, const char* printfilename, const
     tree->SetBranchAddress("vz", &vz);
     tree->SetBranchAddress("eHCAL", &eHCAL);
     tree->SetBranchAddress("ePS",&ePS);
+    tree->SetBranchAddress("trP_sbs",&trP_sbs);
 
 
     int nentries = tree->GetEntries();
@@ -94,49 +99,68 @@ void proton_contamination(const char* filename, const char* printfilename, const
 
     std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
 
-    TH2D *h_dxdy_p_cut_W2_cointime = new TH2D("h_dxdy_p_cut_W2_cointime","dxdy for protons; dy (m); dx (m)",200,-4,4,200,-4,4);
+    TH2D *h_dxdy_p_cut_W2_cointime = new TH2D("h_dxdy_p_cut_W2_cointime","dxdy (ntrack_sbs>0); dy (m); dx (m)",200,-4,4,200,-4,4);
+    TH1D *h_dx_p_cut_W2_cointime = new TH1D("h_dx_p_cut_W2_cointime", "dx (ntrack_sbs>0); dx (m)", 200,-4,4);
+    TH1D *h_dy_p_cut_W2_cointime = new TH1D("h_dy_p_cut_W2_cointime", "dy (ntrack_sbs>0); dy (m)", 200,-4,4);
+    TH1D *h_runnum_sbs_tracks = new TH1D("h_runnum_sbs_tracks","sbs tracks across the kinematic", run_num_H-run_num_L+1,run_num_L,run_num_H);
+
+    TH1D *h_trP_sbs = new TH1D("h_trP_sbs","tracking momentum of the hadron ; pN(GeV)",200,0,8);
 
     for (int i = 0; i<nentries; i++){
         tree->GetEntry(i);
+        if(run_num_L<runnum and runnum<run_num_H){
+	        if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1 and ( helicity == -1 or helicity == 1)){
+	        	bool cut_eHCAL = (eHCAL)>eHCAL_L;
+	        	bool cut_W2 = (W2_L<W2 and W2<W2_H);
+	        	bool cut_coin = (coin_time_L<coin_time and coin_time<coin_time_H);
+	        	bool cut_QE = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (dy_L<dy and dy<dy_H) and (dx_L<dx and dx<dx_H);
+	        	bool cut_p = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (dy_p_L<dy and dy<dy_p_H) and (dx_p_L<dx and dx<dx_p_H);
+	        	bool cut_sbs_track = (ntrack_sbs>0);
+	        	bool cut_trP_sbs = P_sbs_L<trP_sbs and trP_sbs<P_sbs_H;
 
-        if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1 and ( helicity == -1 or helicity == 1)){
-        	bool cut_eHCAL = (eHCAL)>eHCAL_L;
-        	bool cut_W2 = (W2_L<W2 and W2<W2_H);
-        	bool cut_coin = (coin_time_L<coin_time and coin_time<coin_time_H);
-        	bool cut_QE = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (dy_L<dy and dy<dy_H) and (dx_L<dx and dx<dx_H);
-        	bool cut_p = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (dy_p_L<dy and dy<dy_p_H) and (dx_p_L<dx and dx<dx_p_H);
-        	bool cut_sbs_track = (ntrack_sbs>0);
+				helicity = -1*IHWP*IHWP_flip*helicity;
 
-			helicity = -1*IHWP*IHWP_flip*helicity;
-
-			if(cut_eHCAL and cut_W2 and cut_coin and cut_sbs_track){	
-				h_dxdy_p_cut_W2_cointime->Fill(dy,dx);
-			}
-
-			if (cut_eHCAL and cut_QE and cut_sbs_track){ //proton events under the neutron peak
-				proton_events+=1;
-			}
-
-			if (cut_eHCAL and cut_QE){ //QE events in the neutron peak
-				QE_events+=1;
-			}
-
-			if (cut_eHCAL and cut_p){ //events under the proton peak
-				if (helicity == 1){
-					Nplus_total+=1;
+				if(cut_sbs_track){
+					h_runnum_sbs_tracks->Fill(runnum);
 				}
-				if (helicity == -1){
-					Nminus_total+=1;
+
+				if(cut_eHCAL and cut_W2 and cut_coin and cut_sbs_track ){
+					h_trP_sbs->Fill(trP_sbs);
+
+				}
+
+				if(cut_eHCAL and cut_W2 and cut_coin and cut_sbs_track and cut_trP_sbs){	
+					h_dxdy_p_cut_W2_cointime->Fill(dy,dx);
+					h_dx_p_cut_W2_cointime->Fill(dx);
+					h_dy_p_cut_W2_cointime->Fill(dy);
+				}
+
+				if (cut_eHCAL and cut_QE and cut_sbs_track and cut_trP_sbs){ //proton events under the neutron peak
+					proton_events+=1;
+				}
+
+				if (cut_eHCAL and cut_QE){ //QE events in the neutron peak
+					QE_events+=1;
+				}
+
+				if (cut_eHCAL and cut_p and cut_trP_sbs){ //events under the proton peak
+					if (helicity == 1){
+						Nplus_total+=1;
+					}
+					if (helicity == -1){
+						Nminus_total+=1;
+					}
 				}
 			}
 		}
-
 		if (i %1000 == 0 ) std::cout << (i * 100.0/ nentries) << "% \r";
         std::cout.flush();
 	}
 
     TCanvas * c = new TCanvas("c","c",3600,3000);
+    TCanvas * c1 = new TCanvas("c1","c1",3600,3000);
     c->Divide(2,2);
+    c1->Divide(2,2);
 		
     //Create a box
     TBox* box_dxdy_n = new TBox(dy_L,dx_L,dy_H,dx_H);
@@ -147,14 +171,39 @@ void proton_contamination(const char* filename, const char* printfilename, const
     box_dxdy_p->SetFillStyle(0);
     box_dxdy_p->SetLineColor(kBlue);
 
+    //Create lines
+    TLine *line1 = new TLine(P_sbs_L,0.0,P_sbs_L,h_trP_sbs->GetMaximum());
+	line1->SetLineColor(kBlue);
+	line1->SetLineWidth(2);
+
+    TLine *line2 = new TLine(P_sbs_H,0.0,P_sbs_H,h_trP_sbs->GetMaximum());
+	line2->SetLineColor(kBlue);
+	line2->SetLineWidth(2);
+
     c->cd(1);
     h_dxdy_p_cut_W2_cointime->Draw("COLZ");
     box_dxdy_n->Draw("SAME");
     box_dxdy_p->Draw("SAME");
 
+    c->cd(2);
+    h_runnum_sbs_tracks->Draw();
+    h_runnum_sbs_tracks->SetXTitle("run number");
+
+    c->cd(3);
+    h_dx_p_cut_W2_cointime->Draw();
+
+    c->cd(4);
+    h_dy_p_cut_W2_cointime->Draw();
+
+    c1->cd(1);
+    h_trP_sbs->Draw();
+    line1->Draw();
+    line2->Draw();
+
     c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf(",kin,std::to_string(flag_eHCAL_cut).c_str()));
-    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
-    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    c1->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    //c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    //c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
 	double proton_frac = proton_events/QE_events;// this is not correct should remove other fractions before doing this
 	double errproton_frac = (proton_events/QE_events)*sqrt((1/proton_events)+(1/QE_events)); // this is not correct should remove other fractions before doing this

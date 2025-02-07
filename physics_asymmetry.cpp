@@ -90,14 +90,16 @@ void physics_asymmetry(const char* kin, bool flag_eHCAL_cut){
 
         // Calculate denominator and check if it is safe to use
         double denominator = runData.pol_He3 * 0.01 * runData.pol_beam * 0.01 * pol_n * (1 - facc - fN2 - fpi - fin - fp - ffsi);
-        if (std::fabs(denominator) < epsilon) {
+        if (std::fabs(denominator) < epsilon || runData.Aexp == 0) {
             std::cerr << "Skipping run " << runNumber << " due to small denominator, potential division by zero." << std::endl;
             continue;
         }
 
         // Calculate Aphy and errAphy_stat (statistical error)
+
         double Aphy = (runData.Aexp - facc * Aacc - fpi * Api - fin * Ain - fp * Ap - ffsi * Afsi) / denominator;
         double errAphy_stat = runData.errAexp / denominator;
+        
 
         outfile << "Run_number: " << runNumber << " | Aphy: " << Aphy << " | errAphy: " << errAphy_stat << std::endl;
 

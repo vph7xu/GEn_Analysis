@@ -14,7 +14,7 @@ W2_width = 0.5
 eHCAL_L = 0.025
 
 P_sbs_L = 2.0
-P_sbs_H = 3.0
+P_sbs_H = 2.7
 
 dy_L = -0.9
 dy_H = 0.1

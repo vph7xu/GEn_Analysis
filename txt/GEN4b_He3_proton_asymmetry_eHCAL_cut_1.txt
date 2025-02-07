@@ -1,8 +1,8 @@
-Nplus = 7405
-Nminus = 7252
-A_p = 0.0104387
-err_A_p = 0.0082595
-proton_events = 1314
-QE_events = 6797
-f_p = 0.193321
-err_f_p = 0.00582585
+Nplus = 1109
+Nminus = 1118
+A_p = -0.00404131
+err_A_p = 0.0211903
+proton_events = 69
+QE_events = 4594
+f_p = 0.0150196
+err_f_p = 0.00182167

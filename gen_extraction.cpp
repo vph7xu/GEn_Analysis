@@ -150,9 +150,10 @@ void calAvgKin(const char* filename, const char* kin, bool flag_eHCAL_cut){
 
 		bool goodMoller = (lookupValue(HelicityCheck,runnum)==1);
 		bool goodHelicity = (lookupValue(MollerQuality,runnum)==1) and (abs(helicity)==1);
+		bool goodrun = (run_num_L<runnum and runnum<run_num_H);
 		bool goodQE = eHCAL>eHCAL_L and (coin_time_L<coin_time) and (coin_time<coin_time_H) and (W2_L<W2) and (W2<W2_H) and (dx_L<dx and dx<dx_H) and (dy_L<dy and dy<dy_H);
 
-		if (goodMoller and goodHelicity and goodQE){
+		if (goodMoller and goodHelicity and goodQE and goodrun){
 			TLorentzVector Pe(0,0,ebeam,ebeam);
 			TLorentzVector Peprime(trPx,trPy,trPz,trP);
 
