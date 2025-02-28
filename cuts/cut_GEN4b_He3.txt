@@ -1,7 +1,7 @@
-coin_time_mean = 153
-coin_time_L = 140
-coin_time_H = 166
-coin_time_width = 13
+coin_time_mean = 150
+coin_time_L = 145
+coin_time_H = 155
+coin_time_width = 5
 
 coin_time_ac_L = 105.0
 coin_time_ac_H = 240.0
@@ -11,13 +11,13 @@ W2_L = -1
 W2_H = 2
 W2_width = 0.9
 
-eHCAL_L = 0.3
+eHCAL_L = 0.025
 
 P_sbs_L = 5.4
 P_sbs_H = 6.6
 
-dy_L = -0.4
-dy_H = 0.4
+dy_L = -0.35
+dy_H = 0.45
 
 dx_H = 0.4
 dx_L = -0.4
@@ -40,7 +40,7 @@ dy_R = 0.5
 IHWP_flip = 1
 
 run_num_L = 5000
-run_num_H = 5800
+run_num_H = 6100
 
 N_cut_cx = 0.0
 N_cut_cy = -0.025

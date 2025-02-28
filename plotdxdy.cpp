@@ -178,6 +178,7 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 	double coin_time = 0.0;
 	double eHCAL = 0.0;
 	int runnum = 0;
+	double ntrack_sbs =0.0;
 
 	tree->SetBranchAddress("dx",&dx);
 	tree->SetBranchAddress("dy",&dy);
@@ -186,6 +187,7 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 	tree->SetBranchAddress("coin_time",&coin_time);
 	tree->SetBranchAddress("eHCAL",&eHCAL);
 	tree->SetBranchAddress("runnum",&runnum);
+	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
 
 	TH1D *h_dx = new TH1D("h_dx","dx",200,-10,10);
 	TH1D *h_dy = new TH1D("h_dy","dy",200,-10,10);
@@ -212,11 +214,16 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 	if (flag_eHCAL_cut == false) eHCAL_L=0.0;
 
     std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
+    std::cout<<"run_num_L: "<<cutsobject.run_num_L<<" run_num_H: "<<cutsobject.run_num_H<<endl;
+    std::cout<<"coin_time_L: "<<cutsobject.coin_time_L<<" coin_time_H: "<<cutsobject.coin_time_H<<endl;
+    std::cout<<"W2_L: "<<cutsobject.W2_L<<" W2_H: "<<cutsobject.W2_H<<endl;
+    std::cout<<"dx_L: "<<cutsobject.dx_L<<" dx_H: "<<cutsobject.dx_H<<endl;
+    std::cout<<"dy_L: "<<cutsobject.dy_L<<" dy_H: "<<cutsobject.dy_H<<endl;
 
 	int nentries = tree->GetEntries();
 	for (int i = 0; i<nentries*1; i++){
 		tree->GetEntry(i);
-		if(cutsobject.run_num_L<runnum and runnum<cutsobject.run_num_H){
+		if(cutsobject.run_num_L<runnum and runnum<cutsobject.run_num_H /*and ntrack_sbs>0*/){
 			//before adding a cut on W2
 			h_dx->Fill(dx);
 			h_dy->Fill(dy);
@@ -244,6 +251,7 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 			if (eHCAL>eHCAL_L and (cutsobject.W2_L<W2 and W2<cutsobject.W2_H) and (cutsobject.coin_time_L<coin_time and coin_time<cutsobject.coin_time_H) ){
 				if (dy<cutsobject.dy_H and cutsobject.dy_L<dy){
 					h_dx_W2_cut->Fill(dx);
+					//h_dxdy_W2_cut->Fill(dy,dx);
 					if (dx<cutsobject.dx_H and cutsobject.dx_L<dx){
 						h_eHCAL_cut_QE->Fill(eHCAL);
 					}
@@ -384,9 +392,9 @@ void plotdxdy(const char* filename,const char* printfilename,const char* kin, bo
 	c4->cd(4);
 	h_eHCAL_cut_QE->Draw();
 
-	c1->Print(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.pdf(",kin,std::to_string(flag_eHCAL_cut).c_str()));
-	c2->Print(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
-	c4->Print(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));
-	c3->SaveAs(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.png",kin,std::to_string(flag_eHCAL_cut).c_str()));
-	c1->SaveAs(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.png",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	c1->Print(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.pdf(",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
+	c2->Print(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.pdf",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
+	c4->Print(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.pdf)",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
+	c3->SaveAs(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.png",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
+	c1->SaveAs(Form("plots/%s_dxdyplots_withW2Cut_eHCAL_cut_%s.png",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
 }

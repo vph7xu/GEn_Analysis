@@ -10,6 +10,82 @@
 #include <iomanip>
 #include <TDatime.h>
 
+
+TGraphErrors* CalculateProtonAsymmetry(std::vector<TH1D*>& Helicity_histograms,
+                                 const char* printfilename,
+                                 const char* kin,
+                                 bool flag_eHCAL_cut)
+{
+    // Prepare arrays to store the bin centers, asymmetries, and errors
+    int nBins = Helicity_histograms.size();
+    std::vector<double> dx_bin_centers(nBins);
+    std::vector<double> asymmetries(nBins);
+    std::vector<double> errors(nBins);
+    
+    // Open a file to save the results
+    std::ofstream outfile(Form("txt/%s_proton_asymmetry_graph_dx_binned_eHCAL_cut_%s.txt",
+                               kin,
+                               std::to_string(flag_eHCAL_cut).c_str()));
+    outfile << "dx_bin_center, Proton asymmetry, Error\n";
+
+    for (int i = 0; i < nBins; ++i) {
+        TH1D* h = Helicity_histograms[i];
+        
+        // Get the bin content for helicity = +1 and helicity = -1
+        int bin_plus  = h->FindBin( 1.0);  // Helicity +1
+        int bin_minus = h->FindBin(-1.0);  // Helicity -1
+        
+        double N_plus  = h->GetBinContent(bin_plus);
+        double N_minus = h->GetBinContent(bin_minus);
+        double N_total = N_plus + N_minus;
+
+        double asymmetry = 0.0;
+        double error     = 0.0;
+
+        if (N_total > 0.0) {
+            asymmetry = 100.0 * (N_plus - N_minus) / N_total;
+            // Binomial error (approx)
+            error = 100.0 * std::sqrt((4.0 * N_plus * N_minus) / 
+                                      (N_total * N_total * N_total));
+        }
+
+        // For demonstration, define the bin center
+        // (You might want to base this on real cointime bin edges.)
+        double dx_bin_low_edge = -4.0;
+        double dx_bin_width    = 0.1;
+        double dx_bin_center   = i * dx_bin_width 
+                                     + dx_bin_low_edge 
+                                     + 0.5 * dx_bin_width;
+
+        // Store in vectors
+        dx_bin_centers[i] = dx_bin_center;
+        asymmetries[i]          = asymmetry;
+        errors[i]               = error;
+
+        // Write to file
+        outfile << dx_bin_center << "," 
+                << asymmetry << "," 
+                << error << "\n";
+    }
+    
+    outfile.close();
+
+    // Create the TGraphErrors
+    TGraphErrors* graph = new TGraphErrors(nBins,
+                                           &dx_bin_centers[0],
+                                           &asymmetries[0],
+                                           nullptr,  // no x errors
+                                           &errors[0]);
+    graph->SetTitle("Proton Asymmetry vs dx; dx (m); Asymmetry (%)");
+    graph->SetMarkerStyle(21);
+    graph->SetMarkerColor(kBlue);
+    graph->SetLineColor(kBlue);
+
+    // Return the graph to be drawn elsewhere
+    return graph;
+}
+
+
 void proton_contamination(const char* filename, const char* printfilename, const char* kin, bool flag_eHCAL_cut){
 
 	std::map<std::string, std::string> config = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
@@ -98,13 +174,41 @@ void proton_contamination(const char* filename, const char* printfilename, const
 	if (flag_eHCAL_cut == false) eHCAL_L=0.0;
 
     std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
+    std::cout<<"run_num_L: "<< run_num_L <<" run_num_H: "<< run_num_H <<endl;
+    std::cout<<"coin_time_L: "<< coin_time_L <<" coin_time_H: "<< coin_time_H <<endl;
+    std::cout<<"W2_L: "<< W2_L <<" W2_H: "<< W2_H <<endl;
+    std::cout<<"dx_L: "<< dx_L<<" dx_H: "<< dx_H<<endl;
+    std::cout<<"dy_L: "<< dy_L<<" dy_H: "<< dy_H<<endl;
+
 
     TH2D *h_dxdy_p_cut_W2_cointime = new TH2D("h_dxdy_p_cut_W2_cointime","dxdy (ntrack_sbs>0); dy (m); dx (m)",200,-4,4,200,-4,4);
     TH1D *h_dx_p_cut_W2_cointime = new TH1D("h_dx_p_cut_W2_cointime", "dx (ntrack_sbs>0); dx (m)", 200,-4,4);
+    TH1D *h_dx_p_cut_W2_cointime_dy = new TH1D("h_dx_p_cut_W2_cointime_dy", "dx (ntrack_sbs>0); dx (m)", 200,-4,4);
     TH1D *h_dy_p_cut_W2_cointime = new TH1D("h_dy_p_cut_W2_cointime", "dy (ntrack_sbs>0); dy (m)", 200,-4,4);
     TH1D *h_runnum_sbs_tracks = new TH1D("h_runnum_sbs_tracks","sbs tracks across the kinematic", run_num_H-run_num_L+1,run_num_L,run_num_H);
 
     TH1D *h_trP_sbs = new TH1D("h_trP_sbs","tracking momentum of the hadron ; pN(GeV)",200,0,8);
+
+
+    // Setup bins for dx
+    const double binMin   = -4.0;
+    const double binMax   = 4.0;
+    const double binWidth = 0.1;
+    const int nBins = static_cast<int>((binMax - binMin) / binWidth) + 1;
+
+    // Prepare histograms for helicity in each dx bin
+    std::vector<TH1D*> Helicity_histograms;
+    Helicity_histograms.reserve(nBins);
+    for (int i = 0; i < nBins; ++i) {
+        double binLowEdge  = binMin + i*binWidth;
+        double binHighEdge = binLowEdge + binWidth;
+        TH1D* hist = new TH1D(Form("hist_bin_%d", i),
+                              Form("Helicity for bin [%.1f,%.1f)", 
+                                   binLowEdge, binHighEdge),
+                              5, -2.5, 2.5);
+        Helicity_histograms.push_back(hist);
+    }
+
 
     for (int i = 0; i<nentries; i++){
         tree->GetEntry(i);
@@ -113,6 +217,7 @@ void proton_contamination(const char* filename, const char* printfilename, const
 	        	bool cut_eHCAL = (eHCAL)>eHCAL_L;
 	        	bool cut_W2 = (W2_L<W2 and W2<W2_H);
 	        	bool cut_coin = (coin_time_L<coin_time and coin_time<coin_time_H);
+	        	bool cut_dy_p = ((dy_p_L<dy and dy<dy_p_H));
 	        	bool cut_QE = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (dy_L<dy and dy<dy_H) and (dx_L<dx and dx<dx_H);
 	        	bool cut_p = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (dy_p_L<dy and dy<dy_p_H) and (dx_p_L<dx and dx<dx_p_H);
 	        	bool cut_sbs_track = (ntrack_sbs>0);
@@ -151,17 +256,30 @@ void proton_contamination(const char* filename, const char* printfilename, const
 						Nminus_total+=1;
 					}
 				}
+
+				if(cut_eHCAL and cut_W2 and cut_coin and cut_sbs_track and cut_trP_sbs and cut_dy_p){
+					h_dx_p_cut_W2_cointime_dy->Fill(dx);
+					// Fill the helicity histogram for dx bin
+	                int binIndex = static_cast<int>((dx - binMin) / binWidth);
+	                if (binIndex >= 0 && binIndex < nBins) {
+	                    Helicity_histograms[binIndex]->Fill(helicity);
+	                }
+            	}
 			}
 		}
 		if (i %1000 == 0 ) std::cout << (i * 100.0/ nentries) << "% \r";
         std::cout.flush();
 	}
 
+
     TCanvas * c = new TCanvas("c","c",3600,3000);
     TCanvas * c1 = new TCanvas("c1","c1",3600,3000);
+    TCanvas * c2 = new TCanvas("c2","c2",3600,3000);
+
     c->Divide(2,2);
     c1->Divide(2,2);
-		
+    c2->Divide(2,2);
+
     //Create a box
     TBox* box_dxdy_n = new TBox(dy_L,dx_L,dy_H,dx_H);
     box_dxdy_n->SetFillStyle(0);
@@ -200,8 +318,66 @@ void proton_contamination(const char* filename, const char* printfilename, const
     line1->Draw();
     line2->Draw();
 
+    c2->cd(1);
+    // top sub‐pad ( ~70% of vertical space )
+    TPad* p2_top = new TPad("p2_top", "p2_top", 0.0, 0.3, 1.0, 1.0);
+    p2_top->SetBottomMargin(0.02); // small bottom margin
+    p2_top->Draw();
+    p2_top->cd();
+
+    // Optionally hide the x label here, since we'll put it on bottom
+    h_dx_p_cut_W2_cointime_dy->GetXaxis()->SetTitle("");
+    h_dx_p_cut_W2_cointime_dy->Draw("hist");
+    //box_anti1->Draw("SAME");
+    //box_anti2->Draw("SAME");
+
+    p2_top->Update();
+
+    // --------------------------------------------------
+    // bottom sub‐pad ( ~30% ) for TGraphErrors
+    // --------------------------------------------------
+    c2->cd(1); // go back to main pad #2
+    TPad* p2_bottom = new TPad("p2_bottom","p2_bottom", 0.0, 0.0, 1.0, 0.3);
+    p2_bottom->SetTopMargin(0.02);
+    p2_bottom->SetBottomMargin(0.25); // enough space for axis labels
+    p2_bottom->Draw();
+    p2_bottom->cd();
+
+    // Build the TGraphErrors from Helicity_histograms
+    TGraphErrors* gAsym = CalculateProtonAsymmetry(Helicity_histograms,
+                                             printfilename,
+                                             kin,
+                                             flag_eHCAL_cut);
+
+    // Draw the TGraph in the bottom pad
+    gAsym->Draw("AP");
+    gAsym->SetMarkerStyle(kFullCircle);
+    gAsym->SetMarkerColor(kBlue);
+    gAsym->SetLineColor(kBlue);
+
+    // Force x range to match the histogram range (0 → 250)
+    //gAsym->GetXaxis()->SetRangeUser(-4.0, 4.0);
+    gAsym->GetXaxis()->SetLimits(-4.0, 4.0);
+
+    // Create a horizontal line at y=0, spanning -4 to 4 on the x-axis
+    TLine* lineZero = new TLine(-4.0, 0.0, 4.0, 0.0);
+    lineZero->SetLineColor(kRed);
+    lineZero->SetLineStyle(2);  // e.g. dashed line
+    lineZero->SetLineWidth(1);
+    lineZero->Draw("SAME");
+
+    // Now set the bottom pad’s X axis label
+    gAsym->GetXaxis()->SetTitle("dx (ns)");
+
+    gAsym->SetMaximum(20);
+    gAsym->SetMinimum(-20);
+
+    p2_bottom->Update();
+
+
     c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf(",kin,std::to_string(flag_eHCAL_cut).c_str()));
-    c1->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    c1->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    c2->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));
     //c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
     //c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
 

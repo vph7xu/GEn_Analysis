@@ -39,7 +39,7 @@ dy_R = 0.2
 
 IHWP_flip = -1
 
-run_num_L = 2100
+run_num_L = 2000
 run_num_H = 2350
 
 N_cut_cx = 0.0
