@@ -90,13 +90,13 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
     for (int i = 0; i<nentries; i++){
         tree->GetEntry(i);
         
-        if (ntrack_sbs>0){
+        //if (ntrack_sbs>0){
             
-            elastic_cut = (fabs(coin_time - cutsobject.coin_time_mean) < cutsobject.coin_time_width 
-                           && fabs(vz - vz_sbs) < 0.1 /*and 0<W2 and W2<5*/);
+            //elastic_cut = (fabs(coin_time - cutsobject.coin_time_mean) < cutsobject.coin_time_width 
+              //             && fabs(vz - vz_sbs) < 0.1 /*and 0.38<W2 and W2<1.38*/);
         
-            //elastic_cut = (((pow((dy-cutsobject.dy_C)/cutsobject.dy_R,2)+pow((dx-cutsobject.dx_C)/cutsobject.dx_R,2))<=2.5)
-            //&&(abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width));//? true:false;
+            elastic_cut = (((pow((dy-cutsobject.dy_C)/cutsobject.dy_R,2)+pow((dx-cutsobject.dx_C)/cutsobject.dx_R,2))<=2.5)
+            &&(abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width));//? true:false;
 
             // Fill a few diagnostic histograms
             hcointime->Fill(coin_time);
@@ -178,7 +178,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
                 // For completeness, also fill dx/dy
                 hdxdy->Fill(dy,dx);
             }
-        }
+        //}
         if (i %1000 == 0) {
             std::cout << (i * 100.0 / nentries) << "% \r";
             std::cout.flush();

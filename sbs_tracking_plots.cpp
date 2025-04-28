@@ -9,7 +9,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	cuts cutsobject;	
 	cutsobject.parsecuts(config);
 
-	std::cout<<"coin_time : "<<cutsobject.coin_time_L<<endl;
+	//std::cout<<"coin_time : "<<cutsobject.coin_time_L<<endl;
 	
 	double coin_time_L = getDoubleValue(config,"coin_time_L");
 	double coin_time_H = getDoubleValue(config,"coin_time_H");
@@ -46,6 +46,14 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 
     double coin_time_offset_L = coin_time_L+30.0;
     double coin_time_offset_H = coin_time_H+30.0;
+
+    std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
+    std::cout<<"run_num_L: "<< run_num_L <<" run_num_H: "<< run_num_H <<endl;
+    std::cout<<"coin_time_L: "<< coin_time_L <<" coin_time_H: "<< coin_time_H <<endl;
+    std::cout<<"W2_L: "<< W2_L <<" W2_H: "<< W2_H <<endl;
+    std::cout<<"dx_L: "<< dx_L<<" dx_H: "<< dx_H<<endl;
+    std::cout<<"dy_L: "<< dy_L<<" dy_H: "<< dy_H<<endl;
+
 
 	TFile* file = TFile::Open(filename);
 	TTree* tree = (TTree*)file->Get("Tout");
@@ -98,7 +106,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	
 	TH1D *h_pmag_ratio = new TH1D("h_pmag_ratio","pN_BB/pN_SBS",200,0.7,1.3);
 	
-	TH2D *h_ptheta_corr = new TH2D("h_ptheta_corr","ptheta corr",200,0.1,0.5,200,0.1,0.5);
+	TH2D *h_ptheta_corr = new TH2D("h_ptheta_corr","ptheta corr",200,0.5,0.7,200,0.5,0.7);
 	TH2D *h_pphi_corr = new TH2D("h_pphi_corr","pphi corr",200,2.8,3.6,200,-0.3,0.45);
 	TH2D *h_pmag_corr = new TH2D("h_pmag_corr","pN_BB and pN_SBS correlation",200,P_sbs_L,P_sbs_H,200,P_sbs_L,P_sbs_H);
 
@@ -122,7 +130,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	TH2D *h_delta_vz_v_trxsbs = new TH2D("h_delta_vz_v_trxsbs","delta vz vs trxsbs",500,-0.3,0.8,500,-0.5,0.5);
 	TH2D *h_delta_vz_v_trysbs = new TH2D("h_delta_vz_v_trysbs","delta vz vs trysbs",500,-0.25,0.25,500,-0.5,0.5);
 
-	TH1D *h_coin_time = new TH1D("h_coin_time","coincidence time",100,40,180);
+	TH1D *h_coin_time = new TH1D("h_coin_time","coincidence time",100,40,250);
 	TH1D *h_W2 = new TH1D("h_W2","W^{2}",1000,-2,4);
 	TH2D *h_dxdy = new TH2D("h_dxdy","delta-x delta-y",200,-2,2,200,-6,2);
 
@@ -213,13 +221,13 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 
 	c->cd(1);
 	h_ptheta_corr->Draw("COLZ");
-	h_ptheta_corr->SetXTitle("ptheta_cal (rad)");
-	h_ptheta_corr->SetYTitle("ptheta (rad)");
+	h_ptheta_corr->SetXTitle("ptheta_BB (rad)");
+	h_ptheta_corr->SetYTitle("ptheta_SBS (rad)");
 
 	c1->cd(1);
 	h_pphi_corr->Draw("COLZ");
-	h_pphi_corr->SetXTitle("pphi_cal (rad)");
-	h_pphi_corr->SetYTitle("pphi (rad)");
+	h_pphi_corr->SetXTitle("pphi_BB (rad)");
+	h_pphi_corr->SetYTitle("pphi_SBS (rad)");
 
 	c2->cd(1);
 	h_pmag_corr->Draw("COLZ");
@@ -240,11 +248,11 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 
 	c->cd(2);
 	h_delta_ptheta->Draw();
-	h_delta_ptheta->SetXTitle("ptheta-ptheta_cal (rad)");
+	h_delta_ptheta->SetXTitle("ptheta_SBS-ptheta_BB (rad)");
 
 	c1->cd(2);
 	h_delta_pphi->Draw();
-	h_delta_pphi->SetXTitle("pphi-pphi_cal+pi (rad)");
+	h_delta_pphi->SetXTitle("pphi_SBS-pphi_BB+pi (rad)");
 
 	c2->cd(2);
 	h_delta_pmag->Draw();
@@ -281,65 +289,65 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
     c4->cd(1);
     h_delta_ptheta_v_trthsbs->Draw("COLZ");
     h_delta_ptheta_v_trthsbs->SetXTitle("trth_sbs (rad)");
-    h_delta_ptheta_v_trthsbs->SetYTitle("ptheta-ptheta_cal (rad)");
+    h_delta_ptheta_v_trthsbs->SetYTitle("ptheta_SBS-ptheta_BB (rad)");
 
     c4->cd(2);
     h_delta_ptheta_v_trphsbs->Draw("COLZ");
     h_delta_ptheta_v_trphsbs->SetXTitle("trph_sbs (rad)");
-    h_delta_ptheta_v_trphsbs->SetYTitle("ptheta-ptheta_cal (rad)");
+    h_delta_ptheta_v_trphsbs->SetYTitle("ptheta_SBS-ptheta_BB (rad)");
 
     c4->cd(3);
     h_delta_ptheta_v_trxsbs->Draw("COLZ");
     h_delta_ptheta_v_trxsbs->SetXTitle("trx_sbs (m)");
-    h_delta_ptheta_v_trxsbs->SetYTitle("ptheta-ptheta_cal (rad)");
+    h_delta_ptheta_v_trxsbs->SetYTitle("ptheta_SBS-ptheta_BB (rad)");
 
     c4->cd(4);
     h_delta_ptheta_v_trysbs->Draw("COLZ");
     h_delta_ptheta_v_trysbs->SetXTitle("try_sbs (m)");
-    h_delta_ptheta_v_trysbs->SetYTitle("ptheta-ptheta_cal (rad)");
+    h_delta_ptheta_v_trysbs->SetYTitle("ptheta_SBS-ptheta_BB (rad)");
 
     //c5
     c5->cd(1);
     h_delta_pphi_v_trthsbs->Draw("COLZ");
     h_delta_pphi_v_trthsbs->SetXTitle("trth_sbs (rad)");
-    h_delta_pphi_v_trthsbs->SetYTitle("pphi-pphi_cal+pi (rad)");
+    h_delta_pphi_v_trthsbs->SetYTitle("pphi_SBS-pphi_BB+pi (rad)");
 
     c5->cd(2);
     h_delta_pphi_v_trphsbs->Draw("COLZ");
     h_delta_pphi_v_trphsbs->SetXTitle("trph_sbs (rad)");
-    h_delta_pphi_v_trphsbs->SetYTitle("pphi-pphi_cal+pi (rad)");
+    h_delta_pphi_v_trphsbs->SetYTitle("pphi_SBS-pphi_BB+pi (rad)");
     
     c5->cd(3);
     h_delta_pphi_v_trxsbs->Draw("COLZ");
     h_delta_pphi_v_trxsbs->SetXTitle("trx_sbs (m)");
-    h_delta_pphi_v_trxsbs->SetYTitle("pphi-pphi_cal+pi (rad)");
+    h_delta_pphi_v_trxsbs->SetYTitle("pphi_SBS-pphi_BB+pi (rad)");
 
     c5->cd(4);
     h_delta_pphi_v_trysbs->Draw("COLZ");
     h_delta_pphi_v_trysbs->SetXTitle("try_sbs (m)");
-    h_delta_pphi_v_trysbs->SetYTitle("pphi-pphi_cal+pi (rad)");
+    h_delta_pphi_v_trysbs->SetYTitle("pphi_SBS-pphi_BB+pi (rad)");
 
 
     //c6
     c6->cd(1);
     h_delta_pmag_v_trthsbs->Draw("COLZ");
     h_delta_pmag_v_trthsbs->SetXTitle("trth_sbs (rad)");
-    h_delta_pmag_v_trthsbs->SetYTitle("pN_expect-trP_sbs (GeV)");
+    h_delta_pmag_v_trthsbs->SetYTitle("pN_BB-pN_SBS (GeV)");
 
     c6->cd(2);
     h_delta_pmag_v_trphsbs->Draw("COLZ");
     h_delta_pmag_v_trphsbs->SetXTitle("trph_sbs (rad)");
-    h_delta_pmag_v_trphsbs->SetYTitle("pN_expect-trP_sbs (GeV)");
+    h_delta_pmag_v_trphsbs->SetYTitle("pN_BB-pN_SBS (GeV)");
 
     c6->cd(3);
     h_delta_pmag_v_trxsbs->Draw("COLZ");
     h_delta_pmag_v_trxsbs->SetXTitle("trx_sbs (m)");
-    h_delta_pmag_v_trxsbs->SetYTitle("pN_expect-trP_sbs (GeV)");
+    h_delta_pmag_v_trxsbs->SetYTitle("pN_BB-pN_SBS (GeV)");
 
     c6->cd(4);
     h_delta_pmag_v_trysbs->Draw("COLZ");
     h_delta_pmag_v_trysbs->SetXTitle("try_sbs (m)");
-    h_delta_pmag_v_trysbs->SetYTitle("pN_expect-trP_sbs (GeV)");
+    h_delta_pmag_v_trysbs->SetYTitle("pN_BB-pN_SBS (GeV)");
 
     //c7
     c7->cd(1);

@@ -63,7 +63,7 @@ TGraphErrors* CalculateAsymmetry(std::vector<TH1D*>& Helicity_histograms,
         // For demonstration, define the bin center
         // (You might want to base this on real cointime bin edges.)
         double cointime_bin_low_edge = 0.0;
-        double cointime_bin_width    = 20.0;
+        double cointime_bin_width    = 10.0;
         double cointime_bin_center   = i * cointime_bin_width 
                                      + cointime_bin_low_edge 
                                      + 0.5 * cointime_bin_width;
@@ -126,8 +126,8 @@ void Asymmetry_across_cointime(const char* filename,
     double run_num_H     = getDoubleValue(config,"run_num_H");
     double IHWP_flip     = getDoubleValue(config,"IHWP_flip");
 
-    double coin_time_offset_L = coin_time_L + 30.0;
-    double coin_time_offset_H = coin_time_H + 30.0;
+    double coin_time_offset_L = coin_time_L + 35.0;
+    double coin_time_offset_H = coin_time_H + 35.0;
 
     // Possibly override eHCAL_L if no cut
     if (!flag_eHCAL_cut) {
@@ -194,6 +194,14 @@ void Asymmetry_across_cointime(const char* filename,
                               5, -2.5, 2.5);
         Helicity_histograms.push_back(hist);
     }
+
+
+    std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
+    std::cout<<"run_num_L: "<< run_num_L <<" run_num_H: "<< run_num_H <<endl;
+    std::cout<<"coin_time_L: "<< coin_time_L <<" coin_time_H: "<< coin_time_H <<endl;
+    std::cout<<"W2_L: "<< W2_L <<" W2_H: "<< W2_H <<endl;
+    std::cout<<"dx_L: "<< dx_L<<" dx_H: "<< dx_H<<endl;
+    std::cout<<"dy_L: "<< dy_L<<" dy_H: "<< dy_H<<endl;
 
     // -- Loop over entries, fill histos --
     int nentries = tree->GetEntries();
@@ -307,7 +315,7 @@ void Asymmetry_across_cointime(const char* filename,
     // Some boxes for the cointime histogram
     double y1 = -10.0;
     double y2 = h_coin_time->GetMaximum();
-    TBox* box_offset = new TBox(coin_time_L+30, y1, coin_time_H+30, y2);
+    TBox* box_offset = new TBox(coin_time_offset_L, y1, coin_time_offset_H, y2);
     box_offset->SetFillColorAlpha(6, 0.3);
     box_offset->SetLineColor(6);
 
@@ -349,6 +357,7 @@ void Asymmetry_across_cointime(const char* filename,
     h_coin_time->Draw("hist");
     box_anti1->Draw("SAME");
     box_anti2->Draw("SAME");
+    box_offset->Draw("SAME");
 
     p2_top->Update();
 
@@ -376,6 +385,8 @@ void Asymmetry_across_cointime(const char* filename,
 
     // Force x range to match the histogram range (0 → 250)
     gAsym->GetXaxis()->SetRangeUser(0, 250);
+    gAsym->SetMinimum(-10);
+    gAsym->SetMaximum(10);
 
     // Now set the bottom pad’s X axis label
     gAsym->GetXaxis()->SetTitle("cointime (ns)");

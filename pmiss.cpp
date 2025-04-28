@@ -8,7 +8,7 @@
 
 void pmiss(const char* filename, const char* printfilename, const char *kin){
 	//read the sampling fraction for each blk
-	std::ifstream inFile("sampling_fractions_each_blk.txt");	
+	std::ifstream inFile("txt/sampling_fractions_each_blk.txt");	
 
 	std::vector<double> sampling_fractions_each_blk;
 
@@ -212,21 +212,29 @@ void pmiss(const char* filename, const char* printfilename, const char *kin){
 
 	for (int i = 0; i<nentries; i++){	
 		tree->GetEntry(i);
-		//if (ntrack_sbs>0){
+		if (ntrack_sbs==0){
+			continue;
+		}
 
 		double KinE = 0.0;
 
-		for (int j = 0; j<nblk_HCAL; j++){
+		KinE = sqrt(pow(0.938,2)+pow(trP_sbs,2)) - 0.938;
+
+		/*for (int j = 0; j<nblk_HCAL; j++){
 			//KinE += hcal_clus_e[j]/sampling_fractions_each_blk[hcal_clus_id[j]];
 			KinE += hcal_clus_mem_e[j]/sampling_fractions_each_blk[hcal_clus_mem_id[j]];
 
 			//if (i%1000 == 0){ 
 			//	std::cout<<"event : "<<i<<"blk id: "<<hcal_clus_mem_id[j]<<" blk energy : "<<hcal_clus_mem_e[j]<<" blk sf : " <<sampling_fractions_each_blk[hcal_clus_mem_id[j]]<<endl;
 			//}
-		}
+		}*/
+
 		//if (i%1000 == 0){ 
 		//	std::cout<<"event : "<<i<<" kinE : "<<KinE<<endl;
 		//}
+
+
+
 		double Pperp = theta_pq * pN_expect;
 		double realPperp = (theta_pq * sqrt(-pow(0.938,2)+pow((KinE+0.938),2))); // assuming mN and mP is equal
 		double realPpar = (cos(theta_pq) * sqrt(-pow(0.938,2)+pow((KinE+0.938),2)))-pN_expect;

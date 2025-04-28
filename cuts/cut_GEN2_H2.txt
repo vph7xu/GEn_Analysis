@@ -1,7 +1,7 @@
-coin_time_mean = 104
-coin_time_L = 100
-coin_time_H = 108
-coin_time_width = 4 
+coin_time_mean = 136
+coin_time_L = 126
+coin_time_H = 146
+coin_time_width = 10
 
 coin_time_ac_L = 40.0
 coin_time_ac_H = 180.0

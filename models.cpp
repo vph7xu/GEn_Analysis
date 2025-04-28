@@ -434,17 +434,17 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 
         TLegend *legend = new TLegend(0.6,0.6,0.9,0.9);
         legend->AddEntry(h_dx_W2_cut_plotting,"Data","p");
-        legend->AddEntry(hist_p,"sim proton","lf");
-        legend->AddEntry(hist_n,"sim neutron","lf");
-        legend->AddEntry(hist_bkg,"bkg data","lf");
-        legend->AddEntry(h_dx_sim_n_bkg,"full model","lf");
+        legend->AddEntry(hist_p,"simulated protons","lf");
+        legend->AddEntry(hist_n,"simulated neutrons","lf");
+        legend->AddEntry(hist_bkg,"background from data","lf");
+        legend->AddEntry(h_dx_sim_n_bkg,"N(sim_p+R*sim_n+Nbg*bkg)","lf");
         //legend->Draw();
 
-	TLine *line1 = new TLine(dx_L,0.0,dx_L,2000);
+	TLine *line1 = new TLine(dx_L,0.0,dx_L,hist_n->GetMaximum());
 	line1->SetLineColor(kRed);
 	line1->SetLineWidth(2);
 	
-	TLine *line2 = new TLine(dx_H,0.0,dx_H,2000);
+	TLine *line2 = new TLine(dx_H,0.0,dx_H,hist_n->GetMaximum());
 	line2->SetLineColor(kRed);
 	line2->SetLineWidth(2);
 
