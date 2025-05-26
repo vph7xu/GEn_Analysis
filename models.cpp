@@ -98,7 +98,7 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
                                 h_dx_n->Fill(dx,weight);
                         }
                         else if (fnucl == 1.0){
-                                h_dx_p->Fill(dx/*+0.05*/,weight); // change this later
+                                h_dx_p->Fill(dx+0.05,weight); // change this later
                         }
                 }
 
