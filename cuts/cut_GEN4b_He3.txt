@@ -1,7 +1,7 @@
-coin_time_mean = 192
-coin_time_L = 179
-coin_time_H = 205
-coin_time_width = 13
+coin_time_mean = 186
+coin_time_L = 183
+coin_time_H = 189
+coin_time_width = 3
 
 coin_time_ac_L = 105.0
 coin_time_ac_H = 240.0
@@ -16,14 +16,14 @@ eHCAL_L = 0.025
 P_sbs_L = 5.4
 P_sbs_H = 6.6
 
-dy_L = -0.35
-dy_H = 0.45
+dy_L = -0.15
+dy_H = 0.15
 
-dx_H = 0.4
-dx_L = -0.4
+dx_H = 0.15
+dx_L = -0.15
 
-dy_p_L = -0.4
-dy_p_H = 0.4
+dy_p_L = -0.2
+dy_p_H = 0.2
 
 dx_p_L = -1.35
 dx_p_H = -0.85

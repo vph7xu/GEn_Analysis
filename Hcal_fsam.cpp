@@ -3,7 +3,7 @@
 #include <cmath>
 #include <fstream>
 
-void Hcal_fsam(const char* filename, const char* printfilename, const char* kin){
+void Hcal_fsam(const char* filename, const char* printfilename, const char* kin , bool sbs_tracking){
 
 	gStyle->SetOptFit(1111);
 
@@ -72,7 +72,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
     TH1D *hehcal = new TH1D("hehcal","energy measured by Hcal",100,0,2);
     TH1D *hekin = new TH1D("hekin","kinetic energy (tracking)",500,0,10);
 
-    TH1D *hcointime = new TH1D("hcointime", "cointime distribution",1000,40,200);
+    TH1D *hcointime = new TH1D("hcointime", "cointime distribution",1000,-50,200);
     TH1D *hW2 = new TH1D("hW2","W2 distribution",1000,-4,4);
 
     TH1D *hnblk_hcal = new TH1D("hnblk_hcal","number of blocks in the primary cluster", 100, 0, 15);
@@ -92,11 +92,20 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin)
         
         //if (ntrack_sbs>0){
             
-            //elastic_cut = (fabs(coin_time - cutsobject.coin_time_mean) < cutsobject.coin_time_width 
-              //             && fabs(vz - vz_sbs) < 0.1 /*and 0.38<W2 and W2<1.38*/);
-        
-            elastic_cut = (((pow((dy-cutsobject.dy_C)/cutsobject.dy_R,2)+pow((dx-cutsobject.dx_C)/cutsobject.dx_R,2))<=2.5)
-            &&(abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width));//? true:false;
+
+
+
+            if (sbs_tracking){
+                elastic_cut = (fabs(coin_time - cutsobject.coin_time_mean) < cutsobject.coin_time_width
+                && fabs(vz - vz_sbs) < 0.1 /*and 0.38<W2 and W2<1.38*/);
+                if (ntrack_sbs<1){
+                    continue;
+                }
+            }
+            else{
+                elastic_cut = (((pow((dy-cutsobject.dy_C)/cutsobject.dy_R,2)+pow((dx-cutsobject.dx_C)/cutsobject.dx_R,2))<=2.5)
+                &&(abs(coin_time-cutsobject.coin_time_mean)<cutsobject.coin_time_width)&&(abs(W2-cutsobject.W2_mean)<cutsobject.W2_width));
+            }
 
             // Fill a few diagnostic histograms
             hcointime->Fill(coin_time);

@@ -211,13 +211,13 @@ void QE_cuts(const char* filename, const char* printfilename, const char* kin, b
     TH1D *h_W2_g_eHCAL_coin_W2_dy_cuts = new TH1D("h_W2_g_eHCAL_coin_W2_dy_cuts", "W^{2} distribution; W^{2} (GeV^{2})", 100, 0, 4);
     TH1D *h_W2_g_eHCAL_coin_W2_dy_dx_cuts = new TH1D("h_W2_g_eHCAL_coin_W2_dy_dx_cuts", "W^{2} distribution; W^{2} (GeV^{2})", 100, 0, 4);
 
-    TH1D *h_coin_time = new TH1D("h_coin_time", "coincidence time distribution; coincidence time (ns)", 200, 0, 200);
-    TH1D *h_coin_time_gcuts = new TH1D("h_coin_time_gcuts", "coincidence time distribution; coincidence time (ns)", 200, 0, 200);
-    TH1D *h_coin_time_g_eHCAL_cuts = new TH1D("h_coin_time_g_eHCAL_cuts", "coincidence time distribution; coincidence time (ns)", 200, 0, 200);
-    TH1D *h_coin_time_g_eHCAL_coin_cuts = new TH1D("h_coin_time_g_eHCAL_coin_cuts", "coincidence time distribution; coincidence time (ns)", 200, 0, 200);
-    TH1D *h_coin_time_g_eHCAL_coin_W2_cuts = new TH1D("h_coin_time_g_eHCAL_coin_W2_cuts", "coincidence time distribution; coincidence time (ns)", 200, 0, 200);
-    TH1D *h_coin_time_g_eHCAL_coin_W2_dy_cuts = new TH1D("h_coin_time_g_eHCAL_coin_W2_dy_cuts", "coincidence time distribution; coincidence time (ns)", 200, 0, 200);
-    TH1D *h_coin_time_g_eHCAL_coin_W2_dy_dx_cuts = new TH1D("h_coin_time_g_eHCAL_coin_W2_dx_cuts", "coincidence time distribution; coincidence time (ns)", 200, 0, 200);
+    TH1D *h_coin_time = new TH1D("h_coin_time", "coincidence time distribution; coincidence time (ns)", 200, -50, 50);
+    TH1D *h_coin_time_gcuts = new TH1D("h_coin_time_gcuts", "coincidence time distribution; coincidence time (ns)", 200, -50, 50);
+    TH1D *h_coin_time_g_eHCAL_cuts = new TH1D("h_coin_time_g_eHCAL_cuts", "coincidence time distribution; coincidence time (ns)", 200, -50, 50);
+    TH1D *h_coin_time_g_eHCAL_coin_cuts = new TH1D("h_coin_time_g_eHCAL_coin_cuts", "coincidence time distribution; coincidence time (ns)", 200, -50, 50);
+    TH1D *h_coin_time_g_eHCAL_coin_W2_cuts = new TH1D("h_coin_time_g_eHCAL_coin_W2_cuts", "coincidence time distribution; coincidence time (ns)", 200, -50, 50);
+    TH1D *h_coin_time_g_eHCAL_coin_W2_dy_cuts = new TH1D("h_coin_time_g_eHCAL_coin_W2_dy_cuts", "coincidence time distribution; coincidence time (ns)", 200, -50, 50);
+    TH1D *h_coin_time_g_eHCAL_coin_W2_dy_dx_cuts = new TH1D("h_coin_time_g_eHCAL_coin_W2_dx_cuts", "coincidence time distribution; coincidence time (ns)", 200, -50, 50);
 
     double eHCAL_L = cutsobject.eHCAL_L;
     if (flag_eHCAL_cut == false) eHCAL_L = 0.0;

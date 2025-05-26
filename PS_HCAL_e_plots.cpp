@@ -22,13 +22,13 @@ void PS_HCAL_e_plot(const char* filename, const char* printfilename){
 	tree->SetBranchAddress("W2",&W2);
 	tree->SetBranchAddress("coin_time",&coin_time);
 
-	TH1D *h_ePS = new TH1D("h_ePS","Preshower Energy",1000,0,4);
-	TH1D *h_eHCAL = new TH1D("h_eHCAL","HCAL Energy",1000,0,2);
-	TH1D *h_trvz = new TH1D("h_trvz","vertex z",1000,-1,1);
+	TH1D *h_ePS = new TH1D("h_ePS","Preshower Energy",200,0,4);
+	TH1D *h_eHCAL = new TH1D("h_eHCAL","HCAL Energy",200,0,2);
+	TH1D *h_trvz = new TH1D("h_trvz","vertex z",200,-1,1);
 	TH1D *h_ntrack = new TH1D("h_ntrack","ntrack",60,0,6);
 	TH1D *h_nhits = new TH1D("h_nhits","nhits",60,0,6);
-	TH1D *h_W2 = new TH1D("h_W2","W^{2}",1000,-2,4);
-	TH1D *h_cointime = new TH1D("h_cointime","coincidence time",1000,40,180);
+	TH1D *h_W2 = new TH1D("h_W2","W^{2}",200,-2,4);
+	TH1D *h_cointime = new TH1D("h_cointime","coincidence time",200,-50,50);
 
 	TH1D *h_trvz_c = new TH1D("h_trvz_c","vertex z",1000,-1,1);
 
@@ -67,8 +67,8 @@ void PS_HCAL_e_plot(const char* filename, const char* printfilename){
 	c->cd(2);
 	h_cointime->SetXTitle("coincidence time(ns)");
 	h_cointime->Draw();
-	TLine *line01 = new TLine(90, h_cointime->GetMinimum(), 90, h_cointime->GetMaximum());
-    TLine *line02 = new TLine(110, h_cointime->GetMinimum(), 110, h_cointime->GetMaximum());
+	TLine *line01 = new TLine(-10, h_cointime->GetMinimum(), -10, h_cointime->GetMaximum());
+    TLine *line02 = new TLine(10, h_cointime->GetMinimum(), 10, h_cointime->GetMaximum());
     line01->SetLineColor(kRed);
     line02->SetLineColor(kRed);
     line01->SetLineWidth(2);

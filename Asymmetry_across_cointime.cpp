@@ -63,7 +63,7 @@ TGraphErrors* CalculateAsymmetry(std::vector<TH1D*>& Helicity_histograms,
         // For demonstration, define the bin center
         // (You might want to base this on real cointime bin edges.)
         double cointime_bin_low_edge = 0.0;
-        double cointime_bin_width    = 10.0;
+        double cointime_bin_width    = 5.0;
         double cointime_bin_center   = i * cointime_bin_width 
                                      + cointime_bin_low_edge 
                                      + 0.5 * cointime_bin_width;
@@ -150,6 +150,9 @@ void Asymmetry_across_cointime(const char* filename,
     double vz        = 0.0;
     double eHCAL     = 0.0;
     double ePS       = 0.0;
+    double grinch_clus_size = 0.0;
+    double grinch_track = 0.0;
+
 
     tree->SetBranchAddress("runnum",    &runnum);
     tree->SetBranchAddress("helicity",  &helicity);
@@ -163,6 +166,8 @@ void Asymmetry_across_cointime(const char* filename,
     tree->SetBranchAddress("vz",        &vz);
     tree->SetBranchAddress("eHCAL",     &eHCAL);
     tree->SetBranchAddress("ePS",       &ePS);
+    tree->SetBranchAddress("grinch_track",  &grinch_track);
+    tree->SetBranchAddress("grinch_clus_size",   &grinch_clus_size);
 
     // Histograms
     TH1D* h_coin_time = new TH1D("h_coin_time","Coincidence Time",125,0,250);
@@ -179,7 +184,7 @@ void Asymmetry_across_cointime(const char* filename,
     // Setup bins for cointime
     const double binMin   = 0.0;
     const double binMax   = 250.0;
-    const double binWidth = 20.0;
+    const double binWidth = 5.0;
     const int nBins = static_cast<int>((binMax - binMin) / binWidth) + 1;
 
     // Prepare histograms for helicity in each cointime bin
@@ -214,10 +219,11 @@ void Asymmetry_across_cointime(const char* filename,
         bool goodVz       = (std::abs(vz) < 0.27);
         bool goodPS       = (ePS > 0.2);
         bool goodRunRange = (run_num_L < runnum && runnum < run_num_H);
-        bool goodEHCAL    = (eHCAL > 0.025); 
+        bool goodEHCAL    = (eHCAL > eHCAL_L); 
         bool validHel     = (helicity == -1 || helicity == 1);
+        bool goodGrinch = (grinch_track == 0) and (grinch_clus_size>2);
 
-        if (goodHelicity && goodMoller && goodVz && goodPS && validHel && goodRunRange && goodEHCAL)
+        if (goodHelicity && goodMoller && goodVz && goodPS && validHel && goodRunRange && goodEHCAL && goodGrinch)
         {
             if ( (W2_L < W2 && W2 < W2_H) &&
                  (dx_L < dx && dx < dx_H) &&

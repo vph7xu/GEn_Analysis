@@ -98,7 +98,7 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
                                 h_dx_n->Fill(dx,weight);
                         }
                         else if (fnucl == 1.0){
-                                h_dx_p->Fill(dx,weight);
+                                h_dx_p->Fill(dx/*+0.05*/,weight); // change this later
                         }
                 }
 
@@ -193,6 +193,9 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	double trP_sbs = 0.0;
 	double ntrack_sbs = 0.0;
 	double vz = 0.0;	
+    	double grinch_clus_size = 0.0;
+    	double grinch_track = 0.0;
+    	double ePS       = 0.0;
 
 	tree->SetBranchAddress("runnum",&runnum);
 	tree->SetBranchAddress("helicity",&helicity);
@@ -214,7 +217,9 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	tree->SetBranchAddress("trP_sbs",&trP_sbs);
 	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
 	tree->SetBranchAddress("vz",&vz);
-
+    	tree->SetBranchAddress("grinch_track",  &grinch_track);
+    	tree->SetBranchAddress("grinch_clus_size",   &grinch_clus_size);
+	tree->SetBranchAddress("ePS",       &ePS);
 
         TH1D *h_dx = new TH1D("h_dx","dx",200,-10,10);
         TH1D *h_dy = new TH1D("h_dy","dy",200,-10,10);
@@ -236,7 +241,9 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
         double Nminus = 0.0;
 
 	std::cout<<"coin_L and H : "<<coin_time_L<<"  "<<coin_time_H<<endl;
-	std::cout<<"dx_L and H : "<<dy_L <<" "<<dy_H <<endl;
+	std::cout<<"dy_L and H : "<<dy_L <<" "<<dy_H <<endl;
+	std::cout<<"dx_L and H : "<<dx_L <<" "<<dx_H <<endl;
+	std::cout<<"W2_L and H : "<<W2_L <<" "<<W2_H <<endl;
 
 	if (flag_eHCAL_cut == false) eHCAL_L=0.0;
 
@@ -245,25 +252,36 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	//get the bkg from data
 	for (int i = 0; i<nentries; i++){
                 tree->GetEntry(i);
-                if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1 and ( helicity == -1 or helicity == 1) and (run_num_L<runnum and runnum<run_num_H)){
 
- 			double KinE = 0.0;
+	        // some conditions from your DB checks:
+	        bool goodHelicity = (lookupValue(HelicityCheck, runnum) == 1);
+	        bool goodMoller   = (lookupValue(MollerQuality, runnum) == 1);
+	        bool goodVz       = abs(vz) < 0.27;
+	        bool goodPS       = (ePS > 0.2);
+	        bool goodRunRange = (run_num_L < runnum && runnum < run_num_H);
+	        bool goodEHCAL    = (eHCAL > eHCAL_L); 
+	        bool validHel     = (helicity == -1 || helicity == 1);
+	        bool goodGrinch = (grinch_track == 0) && (grinch_clus_size>2);
 
-			for (int j = 0; j<nblk_HCAL; j++){
+                if(goodHelicity && goodMoller && goodPS && validHel && goodRunRange && goodEHCAL && goodVz && goodGrinch){
+
+ 			//double KinE = 0.0;
+
+			//for (int j = 0; j<nblk_HCAL; j++){
 			//KinE += hcal_clus_e[j]/sampling_fractions_each_blk[hcal_clus_id[j]];
-				KinE += hcal_clus_mem_e[j]/sampling_fractions_each_blk[hcal_clus_mem_id[j]];
+			//	KinE += hcal_clus_mem_e[j]/sampling_fractions_each_blk[hcal_clus_mem_id[j]];
 
 				//if (i%1000 == 0){ 
 				//std::cout<<"event : "<<i<<"blk id: "<<hcal_clus_mem_id[j]<<" blk energy : "<<hcal_clus_mem_e[j]<<" blk sf : " <<sampling_fractions_each_blk[hcal_clus_mem_id[j]]<<endl;
 				//}
-			}
+			//}
 			//if (i%1000 == 0){ 
 			//std::cout<<"event : "<<i<<" kinE : "<<KinE<<endl;
 			//}
 			//double Pperp = theta_pq * pN_expect;
-			double realPperp = (theta_pq * sqrt(-pow(0.938,2)+pow((KinE+0.938),2))); // assuming mN and mP is equal
-			double realPpar = (cos(theta_pq) * sqrt(-pow(0.938,2)+pow((KinE+0.938),2)))-pN_expect;
-			double Pmiss = sqrt(pow(realPperp,2)+pow(realPpar,2));          
+			//double realPperp = (theta_pq * sqrt(-pow(0.938,2)+pow((KinE+0.938),2))); // assuming mN and mP is equal
+			//double realPpar = (cos(theta_pq) * sqrt(-pow(0.938,2)+pow((KinE+0.938),2)))-pN_expect;
+			//double Pmiss = sqrt(pow(realPperp,2)+pow(realPpar,2));          
 
 			//before adding a cut on W2
 
@@ -274,28 +292,27 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
                 	h_dxdy->Fill(dy,dx);
                 	h_W2->Fill(W2);
 
-                	bool cut_Ppar = abs(realPpar)<1.5;
-                	bool cut_eHCAL = (eHCAL)>eHCAL_L;
+                	//bool cut_Ppar = abs(realPpar)<1.5;
 
-                	if (W2_L<W2 and W2<W2_H and cut_eHCAL){
+                	if (W2_L<W2 && W2<W2_H){
                 		h_coin_time->Fill(coin_time);
                 	}
 	        
 			//add a cut on W2
-                	if (cut_eHCAL and (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and dy_L<dy and dy<dy_H){
+                	if ((W2_L<W2 && W2<W2_H) && (coin_time_L<coin_time && coin_time<coin_time_H) && dy_L<dy && dy<dy_H){
                 		h_dx_W2_cut_plotting->Fill(dx);
                         	h_dx_W2_cut->Fill(dx);
                         	h_dy_W2_cut->Fill(dy);
                         	h_dxdy_W2_cut->Fill(dy,dx);
                 	}
 
-                	if(cut_eHCAL and (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H)){
+                	if((W2_L<W2 && W2<W2_H) && (coin_time_L<coin_time && coin_time<coin_time_H)){
 
                 		h_dxdy_bkg->Fill(dy,dx);
                 	}
 
                 	//inelastic asymmetry using anticut, no W2, Ppar cut here 
-                	if((coin_time_L<coin_time and coin_time<coin_time_H) and (dx_L<dx and dx<dx_H) and (dy_L>dy or dy>dy_H)){
+                	if((coin_time_L<coin_time && coin_time<coin_time_H) && (dx_L<dx && dx<dx_H) && (dy_L>dy && dy>dy_H)){
                 		if (helicity == 1){
                 			Nplus += 1;
                 		}
@@ -471,6 +488,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	cfit->cd(3);
 	h_coin_time->Draw();
 
+	cfit->cd(4);
+	h_dx_W2_cut_plotting->Draw();
 
 
 	std::cout<<" Neutrons : "<<hist_n->Integral()<<endl;
