@@ -34,13 +34,14 @@ struct Store {
 
 void OptimizeCuts(const char* dataFile,
                   const char* simFile,
+                  const char* kin,
                   int    nbinsDx = 120,
                   double wN_user = -1.0,
                   double wP_user = -1.0)
 {
     Store ev;
 
-    std::ofstream outfile("test_FOM.txt");
+    std::ofstream outfile(Form("test_FOM_%s.txt",kin));
 
     gStyle->SetOptFit(0);
 
@@ -62,7 +63,7 @@ void OptimizeCuts(const char* dataFile,
         ev.eHCAL.reserve(nData);
         ev.w.reserve(nData);
         ev.origin.reserve(nData);
-        for(Long64_t i=0; i<0.1*nData; ++i) {
+        for(Long64_t i=0; i<0.4*nData; ++i) {
             tData->GetEntry(i);
             ev.dx.push_back(dx);
             ev.dy.push_back(dy);
@@ -132,21 +133,21 @@ void OptimizeCuts(const char* dataFile,
     std::cout<<"wN="<<wN<<" wP="<<wP<<"\n";
 
     // 4. Define grid ranges and steps
-    const int nSteps=8; // adjust grid resolution 
+    const int nSteps=5; // adjust grid resolution 
     std::vector<double> dyL_vals, dyH_vals,
                         W2L_vals, W2H_vals, eL_vals,
                         tL_vals, tH_vals;
     // example: dxL from -1 to 0
     //for(int i=0;i<nSteps;++i) dxL_vals.push_back(-1.0 + i*(1.0/nSteps));
     //for(int i=0;i<nSteps;++i) dxH_vals.push_back( 0.0 + i*(1.0/nSteps));
-    for(int i=0;i<nSteps;++i) dyL_vals.push_back(-0.5 + i*(1.0/nSteps));
-    for(int i=0;i<nSteps;++i) dyH_vals.push_back( 0.5 - i*(1.0/nSteps));
-    for(int i=0;i<nSteps;++i) W2L_vals.push_back(-1.5 + i*(2.0/nSteps));
-    for(int i=0;i<nSteps;++i) W2H_vals.push_back( 1.0 + i*(3.0/nSteps));
-    for(int i=0;i<nSteps;++i) eL_vals.push_back(0.025 + i*(0.2/nSteps));
+    for(int i=0;i<nSteps;++i) dyL_vals.push_back(-0.5 + i*(0.3/nSteps));
+    for(int i=0;i<nSteps;++i) dyH_vals.push_back( 0.5 - i*(0.3/nSteps));
+    for(int i=0;i<nSteps;++i) W2L_vals.push_back(-1.0 + i*(1.0/nSteps));
+    for(int i=0;i<nSteps;++i) W2H_vals.push_back( 1.0 + i*(1.0/nSteps));
+    for(int i=0;i<nSteps;++i) eL_vals.push_back(0.025 + i*(0.25/nSteps));
     //for(int i=0;i<nSteps;++i) eH_vals.push_back(0.5 + i*(2.0/nSteps));
-    for(int i=0;i<nSteps;++i) tL_vals.push_back(120 - i*(8/nSteps));
-    for(int i=0;i<nSteps;++i) tH_vals.push_back(120 + i*(8/nSteps));
+    for(int i=0;i<nSteps;++i) tL_vals.push_back(120 - i*(5/nSteps));
+    for(int i=0;i<nSteps;++i) tH_vals.push_back(120 + i*(5/nSteps));
 
     // 5. Loop over grid, compute FOM
     double bestFOM = 0.1;
@@ -182,10 +183,10 @@ void OptimizeCuts(const char* dataFile,
         // normalize
         double scale_data = h_data->Integral();
 
-        std::cout<<"scale_data : "<<scale_data<<endl;
-        std::cout<<"n : "<<h_n->Integral()<<endl;
-        std::cout<<"p : "<<h_p->Integral()<<endl;
-        std::cout<<"bkg : "<<h_bkg->Integral()<<endl;
+        //std::cout<<"scale_data : "<<scale_data<<endl;
+        //std::cout<<"n : "<<h_n->Integral()<<endl;
+        //std::cout<<"p : "<<h_p->Integral()<<endl;
+        //std::cout<<"bkg : "<<h_bkg->Integral()<<endl;
 
 
         if(h_bkg->Integral()>0) h_bkg->Scale(1.0/h_bkg->Integral());
@@ -199,10 +200,10 @@ void OptimizeCuts(const char* dataFile,
         // compose
         //TH1D h_model = h_n; h_model.Add(&h_p); h_model.Add(&h_bkg);
         
-        std::cout<<"data : "<<h_data->Integral()<<endl;
-        std::cout<<"n : "<<h_n->Integral()<<endl;
-        std::cout<<"p : "<<h_p->Integral()<<endl;
-        std::cout<<"bkg : "<<h_bkg->Integral()<<endl;
+        //std::cout<<"data : "<<h_data->Integral()<<endl;
+        //std::cout<<"n : "<<h_n->Integral()<<endl;
+        //std::cout<<"p : "<<h_p->Integral()<<endl;
+        //std::cout<<"bkg : "<<h_bkg->Integral()<<endl;
 
         TF1 *fit_data = new TF1("fit_data", fit_sim_n_bkg, h_data->GetXaxis()->GetXmin(), h_data->GetXaxis()->GetXmax(),3);
 
@@ -231,28 +232,27 @@ void OptimizeCuts(const char* dataFile,
         h_data->Scale(scale_data);
 
         // compute FOM
-        double FOM = hist_p->Integral()/sqrt(hist_n->Integral()+hist_bkg->Integral());
+        double FOM = hist_n->Integral(hist_n->FindBin(-0.4),hist_n->FindBin(0.4))/
+        sqrt(hist_n->Integral(hist_n->FindBin(-0.4),hist_n->FindBin(0.4))+hist_bkg->Integral(hist_bkg->FindBin(-0.4),hist_bkg->FindBin(0.4)));
 
-        std::cout<<"FOM : "<<FOM<<endl;
+        //std::cout<<"FOM : "<<FOM<<endl;
         //std::cout<<"dy_H :"<<dyH<<endl;
-        std::cout<<"{dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
-        <<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
+        //std::cout<<"{dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
+        //<<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
 
 
-        if (count % 50000 == 0) {
-            std::cout
-            << "Scan fit " << count << " / " << total
-            << "  (" << (100.0*count/total) << "%)\r"
-            << std::flush;
-        }
+        //if (count % 10 == 0) {
+            std::cout<< "Scan fit " << count << " / " << total<< " : " << (100.0*count/total) <<endl;
+            //<< std::flush;
+        //}
 
         count++;   
 
         if(FOM > bestFOM) {
             bestFOM = FOM;
             bestCuts = {dyL,dyH,W2L,W2H,eL,tL,tH};
-            std::cout<<"NEW BEST FOM : "<<" {dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
-            <<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
+            //std::cout<<"NEW BEST FOM : "<<" {dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
+            //<<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
 
             outfile<<"NEW BEST FOM : "<<bestFOM<<" {dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
             <<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
@@ -261,10 +261,10 @@ void OptimizeCuts(const char* dataFile,
     }
 
     // 6. Report best
-    std::cout<<"Best χ²="<<bestFOM<<" with cuts: \n";
-    std::cout<<" dx ∈ ["<<bestCuts[0]<<","<<bestCuts[1]<<"]\n";
-    std::cout<<" dy ∈ ["<<bestCuts[2]<<","<<bestCuts[3]<<"]\n";
-    std::cout<<" W2 ∈ ["<<bestCuts[4]<<","<<bestCuts[5]<<"]\n";
-    std::cout<<" eHCAL ∈ ["<<bestCuts[6]<<","<<bestCuts[7]<<"]\n";
-    std::cout<<" coin_time ∈ ["<<bestCuts[8]<<","<<bestCuts[9]<<"]\n";
+    std::cout<<"Best FOM="<<bestFOM<<" with cuts: \n";
+    //std::cout<<" dx ∈ ["<<bestCuts[0]<<","<<bestCuts[1]<<"]\n";
+    std::cout<<" dy ∈ ["<<bestCuts[0]<<","<<bestCuts[1]<<"]\n";
+    std::cout<<" W2 ∈ ["<<bestCuts[2]<<","<<bestCuts[3]<<"]\n";
+    std::cout<<" eHCAL_L : ["<<bestCuts[4]<<"]\n";
+    std::cout<<" coin_time ∈ ["<<bestCuts[5]<<","<<bestCuts[6]<<"]\n";
 }
