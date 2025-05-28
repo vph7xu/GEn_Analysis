@@ -98,7 +98,7 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
                                 h_dx_n->Fill(dx,weight);
                         }
                         else if (fnucl == 1.0){
-                                h_dx_p->Fill(dx+0.05,weight); // change this later
+                                h_dx_p->Fill(dx/*+0.05*/,weight); // change this later
                         }
                 }
 
@@ -113,7 +113,7 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 }
 
 
-void models(const char* filename,const char* sim_filename,const char* printfilename, const char* kin, bool flag_eHCAL_cut){
+void models(const char* filename,const char* sim_filename,const char* printfilename, const char* kin, bool flag_eHCAL_cut, bool sbs_veto){
         
 	//read the sampling fraction for each blk
 	std::ifstream inFile(Form("txt/%s_sampling_fractions_each_blk.txt",kin));	
@@ -196,7 +196,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
     	double grinch_clus_size = 0.0;
     	double grinch_track = 0.0;
     	double ePS       = 0.0;
-
+    	
 	tree->SetBranchAddress("runnum",&runnum);
 	tree->SetBranchAddress("helicity",&helicity);
 	tree->SetBranchAddress("IHWP",&IHWP);
@@ -262,6 +262,12 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	        bool goodEHCAL    = (eHCAL > eHCAL_L); 
 	        bool validHel     = (helicity == -1 || helicity == 1);
 	        bool goodGrinch = (grinch_track == 0) && (grinch_clus_size>2);
+
+	        if (sbs_veto==1){
+	        	if (ntrack_sbs>0){
+	        		continue;
+	        	}
+	        }
 
                 if(goodHelicity && goodMoller && goodPS && validHel && goodRunRange && goodEHCAL && goodVz && goodGrinch){
 
@@ -518,9 +524,9 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
     	outfile<<"f_bkg = "<<inelastic_frac<<endl;
     	outfile<<"err_f_bkg = "<<errinelastic_frac<<endl;
 
-	cfit->Print(Form("plots/models_%s_eHCAL_cut_%s_%f.pdf",kin,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L));
-	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s_%f.png",kin,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L));
-	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s_%f.jpg",kin,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L));
+	cfit->Print(Form("plots/models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.pdf",printfilename,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L,std::to_string(sbs_veto).c_str()));
+	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.png",printfilename,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L,std::to_string(sbs_veto).c_str()));
+	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.jpg",printfilename,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L,std::to_string(sbs_veto).c_str()));
 
 } 
 

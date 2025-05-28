@@ -25,23 +25,25 @@
 #include <sstream>
 #include <TStyle.h>  // for extern TStyle *gStyle
 #include <TROOT.h>   // if you also use gROOT anywhere
+#include <TCanvas.h>
 
 
 struct Store {
-    std::vector<double> dx, dy, W2, ct, eHCAL, w;
+    std::vector<double> vz, ePS, dx, dy, W2, ct, eHCAL, w;
     std::vector<char>   origin;  // 0=nMC,1=pMC,2=data
 };
 
 void OptimizeCuts(const char* dataFile,
                   const char* simFile,
                   const char* kin,
-                  int    nbinsDx = 120,
+                  int    nbinsDx = 100,
                   double wN_user = -1.0,
                   double wP_user = -1.0)
 {
     Store ev;
 
     std::ofstream outfile(Form("test_FOM_%s.txt",kin));
+    std::ofstream outfile_all(Form("test_FOM_all_%s.txt",kin));
 
     gStyle->SetOptFit(0);
 
@@ -49,13 +51,17 @@ void OptimizeCuts(const char* dataFile,
     {
         TFile fData(dataFile, "READ");
         TTree* tData = (TTree*)fData.Get("Tout");
-        double dx, dy, W2, ct, eHCAL;
+        double vz,ePS,dx, dy, W2, ct, eHCAL;
+        tData->SetBranchAddress("vz",&vz);
+        tData->SetBranchAddress("ePS",&ePS);
         tData->SetBranchAddress("dx", &dx);
         tData->SetBranchAddress("dy", &dy);
         tData->SetBranchAddress("W2", &W2);
         tData->SetBranchAddress("coin_time", &ct);
         tData->SetBranchAddress("eHCAL", &eHCAL);
         Long64_t nData = tData->GetEntries();
+        ev.vz.reserve(nData);
+        ev.ePS.reserve(nData);
         ev.dx.reserve(nData);
         ev.dy.reserve(nData);
         ev.W2.reserve(nData);
@@ -63,8 +69,10 @@ void OptimizeCuts(const char* dataFile,
         ev.eHCAL.reserve(nData);
         ev.w.reserve(nData);
         ev.origin.reserve(nData);
-        for(Long64_t i=0; i<0.4*nData; ++i) {
+        for(Long64_t i=0; i<1*nData; ++i) {
             tData->GetEntry(i);
+            ev.vz.push_back(vz);
+            ev.ePS.push_back(ePS);
             ev.dx.push_back(dx);
             ev.dy.push_back(dy);
             ev.W2.push_back(W2);
@@ -87,7 +95,9 @@ void OptimizeCuts(const char* dataFile,
     {
         TFile fSim(simFile, "READ");
         TTree* tSim = (TTree*)fSim.Get("Tout");
-        double dx, dy, W2, ctSim, eHCAL, wt, fnucl;
+        double vz, ePS, dx, dy, W2, ctSim, eHCAL, wt, fnucl;
+        tSim->SetBranchAddress("vz", &vz);
+        tSim->SetBranchAddress("ePS", &ePS);
         tSim->SetBranchAddress("dx", &dx);
         tSim->SetBranchAddress("dy", &dy);
         tSim->SetBranchAddress("W2", &W2);
@@ -102,6 +112,8 @@ void OptimizeCuts(const char* dataFile,
             tSim->GetEntry(i);
             // only accept fnucl 0 or 1
             if(fnucl != 0.0 && fnucl != 1.0) continue;
+            ev.vz.push_back(vz);
+            ev.ePS.push_back(ePS);
             ev.dx.push_back(dx);
             ev.dy.push_back(dy);
             ev.W2.push_back(W2);
@@ -144,13 +156,13 @@ void OptimizeCuts(const char* dataFile,
     for(int i=0;i<nSteps;++i) dyH_vals.push_back( 0.5 - i*(0.3/nSteps));
     for(int i=0;i<nSteps;++i) W2L_vals.push_back(-1.0 + i*(1.0/nSteps));
     for(int i=0;i<nSteps;++i) W2H_vals.push_back( 1.0 + i*(1.0/nSteps));
-    for(int i=0;i<nSteps;++i) eL_vals.push_back(0.025 + i*(0.25/nSteps));
+    for(int i=0;i<nSteps;++i) eL_vals.push_back(0.025 + i*(0.5/nSteps));
     //for(int i=0;i<nSteps;++i) eH_vals.push_back(0.5 + i*(2.0/nSteps));
-    for(int i=0;i<nSteps;++i) tL_vals.push_back(120 - i*(5/nSteps));
-    for(int i=0;i<nSteps;++i) tH_vals.push_back(120 + i*(5/nSteps));
+    for(int i=0;i<nSteps;++i) tL_vals.push_back(186 - i*(5/nSteps));
+    for(int i=0;i<nSteps;++i) tH_vals.push_back(186 + i*(5/nSteps));
 
     // 5. Loop over grid, compute FOM
-    double bestFOM = 0.1;
+    double bestFOM = 0.0001;
     std::array<double,10> bestCuts{};
     size_t total = dyL_vals.size() * dyH_vals.size() * W2L_vals.size()* W2H_vals.size() * eL_vals.size() * tL_vals.size() * tH_vals.size();
     size_t count = 0;
@@ -162,13 +174,15 @@ void OptimizeCuts(const char* dataFile,
     for(double eL:eL_vals)   //for(double eH:eH_vals)
     for(double tL:tL_vals)   for(double tH:tH_vals) {
         // build histograms
-        TH1D *h_bkg = new TH1D("b",";dx;",nbinsDx,-6,6);
-        TH1D *h_data = new TH1D("d",";dx;",nbinsDx,-6,6);
-        TH1D *h_n = new TH1D("n",";dx;",nbinsDx,-6,6);
-        TH1D *h_p = new TH1D("p",";dx;",nbinsDx,-6,6);
+        TH1D *h_bkg = new TH1D("b",";dx;",nbinsDx,-4,3);
+        TH1D *h_data = new TH1D("d",";dx;",nbinsDx,-4,3);
+        TH1D *h_n = new TH1D("n",";dx;",nbinsDx,-4,3);
+        TH1D *h_p = new TH1D("p",";dx;",nbinsDx,-4,3);
         // fill
         for(size_t i=0;i<ev.dx.size();++i){
             bool base = //ev.dx[i]>dxL && ev.dx[i]<dxH &&
+                        abs(ev.vz[i])<0.27&&
+                        ev.ePS[i]>0.2&&
                         ev.W2[i]>W2L && ev.W2[i]<W2H &&
                         ev.eHCAL[i]>eL;
             bool inct = ev.ct[i]>tL    && ev.ct[i]<tH;
@@ -178,7 +192,7 @@ void OptimizeCuts(const char* dataFile,
             if(o==2){ if(base && inct && antiDy) h_bkg->Fill(ev.dx[i]);
                       if(base && inct && inDy)  h_data->Fill(ev.dx[i]); }
             if(o==0 && base&&inDy) h_n->Fill(ev.dx[i], wt);
-            if(o==1 && base&&inDy) h_p->Fill(ev.dx[i], wt);
+            if(o==1 && base&&inDy) h_p->Fill((ev.dx[i]/*+0.05*/), wt);
         }
         // normalize
         double scale_data = h_data->Integral();
@@ -235,27 +249,57 @@ void OptimizeCuts(const char* dataFile,
         double FOM = hist_n->Integral(hist_n->FindBin(-0.4),hist_n->FindBin(0.4))/
         sqrt(hist_n->Integral(hist_n->FindBin(-0.4),hist_n->FindBin(0.4))+hist_bkg->Integral(hist_bkg->FindBin(-0.4),hist_bkg->FindBin(0.4)));
 
+        double FOM_1 = 1/(sqrt(h_data->Integral(h_data->FindBin(-0.4),h_data->FindBin(0.4)))/
+        (hist_n->Integral(hist_n->FindBin(-0.4),hist_n->FindBin(0.4))/h_data->Integral(h_data->FindBin(-0.4),h_data->FindBin(0.4))));
+
         //std::cout<<"FOM : "<<FOM<<endl;
         //std::cout<<"dy_H :"<<dyH<<endl;
-        //std::cout<<"{dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
-        //<<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
+        outfile_all<<"FOM : "<<FOM<<" FOM_1 : "<<FOM_1<<"{dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
+        <<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
 
 
         //if (count % 10 == 0) {
-            std::cout<< "Scan fit " << count << " / " << total<< " : " << (100.0*count/total) <<endl;
+        std::cout<< "Scan fit " << count << " / " << total<< " : " << (100.0*count/total) <<endl;
             //<< std::flush;
         //}
 
         count++;   
 
-        if(FOM > bestFOM) {
+        if(FOM > bestFOM && 
+            (h_data->Integral(h_data->FindBin(-0.4),h_data->FindBin(0.4)) > 
+            hist_n->Integral(hist_n->FindBin(-0.4),hist_n->FindBin(0.4))) &&
+            (h_data->Integral(h_data->FindBin(-1.2),h_data->FindBin(-0.8)) > 
+            hist_p->Integral(hist_p->FindBin(-1.2),hist_n->FindBin(-0.8))) //some fail safes
+            ) {
             bestFOM = FOM;
             bestCuts = {dyL,dyH,W2L,W2H,eL,tL,tH};
             //std::cout<<"NEW BEST FOM : "<<" {dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
             //<<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
 
-            outfile<<"NEW BEST FOM : "<<bestFOM<<" {dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
+            outfile<<"NEW BEST FOM : "<<bestFOM<<" FOM_1 : "<<FOM_1<<" {dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
             <<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
+
+            hist_p->SetFillColorAlpha(6,0.5);
+            hist_p->SetFillStyle(3004);
+            hist_n->SetFillColorAlpha(9,0.5);
+            hist_n->SetFillStyle(3005);
+            hist_bkg->SetFillColorAlpha(7,0.5);
+            hist_bkg->SetFillStyle(3003);
+            h_data->SetMarkerStyle(20);
+            h_data->SetMarkerColor(kBlack);
+
+            TCanvas* cfit = new TCanvas("cfit","Fit with models",3600,3000);
+            cfit->Divide(2,2);
+            cfit->cd(1);
+            //h_dx_sim_n_bkg->SetXTitle("HCAL_X(exp)-HCAL_X(act) (m)");
+            //h_dx_sim_n_bkg->Draw("HIST");
+            h_data->SetXTitle("HCAL_X(exp)-HCAL_X(act) (m)");
+            h_data->Draw("P");
+            hist_p->Draw("HIST SAME");
+            hist_n->Draw("HIST SAME");
+            hist_bkg->Draw("HIST SAME");
+
+            cfit->SaveAs(Form("plots/FOM_dx_test_%s_%f.jpg",kin,FOM));
 
         }
     }

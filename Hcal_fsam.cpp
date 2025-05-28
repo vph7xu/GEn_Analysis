@@ -302,7 +302,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
     // ---- Canvas c2 ----
     c2->Divide(1,2);
     c2->cd(1);
-    heratio->SetYTitle("eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp)");
+    heratio->SetYTitle("E_{i}/((m_{N}^{2}+p_{N}^2)^{1/2}-m_{N})");
     heratio->SetXTitle("xHCAL (m)");
     heratio->Draw("COLZ");
     profX1->SetMarkerStyle(20);
@@ -313,7 +313,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
     profX1->Draw("SAME");
 
     c2->cd(2);
-    heratioy->SetYTitle("eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp)");
+    heratioy->SetYTitle("E_{i}/((m_{N}^{2}+p_{N}^2)^{1/2}-m_{N})");
     heratioy->SetXTitle("yHCAL (m)");
     heratioy->Draw("COLZ");
     profXy1->SetMarkerStyle(20);
@@ -325,7 +325,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
     // ---- Canvas cc2 ----
     cc2->Divide(1,1);
     cc2->cd(1);
-    her->SetXTitle("eHCAL/(sqrt(mp*mp+trP_sbs*trP_sbs)-mp)");
+    her->SetXTitle("E_{i}/((m_{N}^{2}+p_{N}^2)^{1/2}-m_{N})");
     her->Draw();
 
     // ---- Canvas c3 ----

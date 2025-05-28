@@ -118,5 +118,15 @@
 ./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TAttText.h
 ./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TColor.h
 ./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TROOT.h
+./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TCanvas.h
+./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TPad.h
+./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TVirtualPad.h
+./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TAttPad.h
+./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TQObject.h
+./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TVirtualQConnection.h
+./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/GuiTypes.h
+./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/Buttons.h
+./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TAttBBox2D.h
+./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/TAttCanvas.h
 ./OptimizeCuts_cpp.so: /home/vimukthi/root_install/include/RVersion.h /home/vimukthi/root_install/include/RConfig.h /home/vimukthi/root_install/include/TClass.h /home/vimukthi/root_install/include/TDictAttributeMap.h /home/vimukthi/root_install/include/TInterpreter.h /home/vimukthi/root_install/include/TROOT.h /home/vimukthi/root_install/include/TBuffer.h /home/vimukthi/root_install/include/TMemberInspector.h /home/vimukthi/root_install/include/TError.h /home/vimukthi/root_install/include/RtypesImp.h /home/vimukthi/root_install/include/TIsAProxy.h /home/vimukthi/root_install/include/TFileMergeInfo.h /home/vimukthi/root_install/include/TCollectionProxyInfo.h /home/vimukthi/root_install/bin/rootcling
 OptimizeCuts_cpp__ROOTBUILDVERSION= 6.26/10
