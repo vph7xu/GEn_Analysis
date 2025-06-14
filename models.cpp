@@ -192,7 +192,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	double hcal_clus_mem_id[1000];
 	double trP_sbs = 0.0;
 	double ntrack_sbs = 0.0;
-	double vz = 0.0;	
+	double vz = 0.0;
+	double vz_sbs = 0.0;	
     	double grinch_clus_size = 0.0;
     	double grinch_track = 0.0;
     	double ePS       = 0.0;
@@ -217,6 +218,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	tree->SetBranchAddress("trP_sbs",&trP_sbs);
 	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
 	tree->SetBranchAddress("vz",&vz);
+	tree->SetBranchAddress("vz_sbs",&vz_sbs);
     	tree->SetBranchAddress("grinch_track",  &grinch_track);
     	tree->SetBranchAddress("grinch_clus_size",   &grinch_clus_size);
 	tree->SetBranchAddress("ePS",       &ePS);
@@ -262,14 +264,15 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	        bool goodEHCAL    = (eHCAL > eHCAL_L); 
 	        bool validHel     = (helicity == -1 || helicity == 1);
 	        bool goodGrinch = (grinch_track == 0) && (grinch_clus_size>2);
+	        bool goodSbs_track = ntrack_sbs>0 && abs(vz_sbs)<0.27;
 
 	        if (sbs_veto==1){
-	        	if (ntrack_sbs>0){
+	        	if (goodSbs_track){
 	        		continue;
 	        	}
 	        }
 
-                if(goodHelicity && goodMoller && goodPS && validHel && goodRunRange && goodEHCAL && goodVz && goodGrinch){
+                if(goodHelicity && goodMoller && goodPS && validHel && goodRunRange && goodEHCAL && goodVz /*&& goodGrinch*/){
 
  			//double KinE = 0.0;
 
@@ -293,6 +296,9 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 
                 	helicity = -1*IHWP*IHWP_flip*helicity;
 
+
+                	//std::cout<<"debug helicity : "<<helicity<<endl;
+
                 	h_dx->Fill(dx);
                 	h_dy->Fill(dy);
                 	h_dxdy->Fill(dy,dx);
@@ -312,18 +318,20 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
                         	h_dxdy_W2_cut->Fill(dy,dx);
                 	}
 
-                	if((W2_L<W2 && W2<W2_H) && (coin_time_L<coin_time && coin_time<coin_time_H)){
+                	if((W2_L<W2 && W2<3) && (coin_time_L<coin_time && coin_time<coin_time_H)){
 
                 		h_dxdy_bkg->Fill(dy,dx);
                 	}
 
                 	//inelastic asymmetry using anticut, no W2, Ppar cut here 
-                	if((coin_time_L<coin_time && coin_time<coin_time_H) && (dx_L<dx && dx<dx_H) && (dy_L>dy && dy>dy_H)){
+                	if((coin_time_L<coin_time && coin_time<coin_time_H) && (dx_L<dx && dx<dx_H) && (dy_ac_L>dy || dy>dy_ac_H)){
                 		if (helicity == 1){
                 			Nplus += 1;
+                			//std::cout<<"debug here +1, Nplus : "<<Nplus<<endl;
                 		}
                 		else if (helicity == -1){
                 			Nminus += 1;
+                			//std::cout<<"debug here -1"<<endl;
                 		}
                 	}
                 	

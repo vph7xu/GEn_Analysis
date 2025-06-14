@@ -25,7 +25,7 @@
 TGraphErrors* CalculateAsymmetry(std::vector<TH1D*>& Helicity_histograms,
                                  const char* printfilename,
                                  const char* kin,
-                                 bool flag_eHCAL_cut)
+                                 bool flag_eHCAL_cut, double lower_edge)
 {
     // Prepare arrays to store the bin centers, asymmetries, and errors
     int nBins = Helicity_histograms.size();
@@ -62,8 +62,8 @@ TGraphErrors* CalculateAsymmetry(std::vector<TH1D*>& Helicity_histograms,
 
         // For demonstration, define the bin center
         // (You might want to base this on real cointime bin edges.)
-        double cointime_bin_low_edge = 0.0;
-        double cointime_bin_width    = 5.0;
+        double cointime_bin_low_edge = lower_edge;
+        double cointime_bin_width    = 10.0;
         double cointime_bin_center   = i * cointime_bin_width 
                                      + cointime_bin_low_edge 
                                      + 0.5 * cointime_bin_width;
@@ -126,6 +126,7 @@ void Asymmetry_across_cointime(const char* filename,
     double run_num_H     = getDoubleValue(config,"run_num_H");
     double IHWP_flip     = getDoubleValue(config,"IHWP_flip");
 
+
     double coin_time_offset_L = coin_time_L + 35.0;
     double coin_time_offset_H = coin_time_H + 35.0;
 
@@ -150,6 +151,8 @@ void Asymmetry_across_cointime(const char* filename,
     double vz        = 0.0;
     double eHCAL     = 0.0;
     double ePS       = 0.0;
+    double eSH       = 0.0;
+    double trP       = 0.0;
     double grinch_clus_size = 0.0;
     double grinch_track = 0.0;
 
@@ -166,11 +169,13 @@ void Asymmetry_across_cointime(const char* filename,
     tree->SetBranchAddress("vz",        &vz);
     tree->SetBranchAddress("eHCAL",     &eHCAL);
     tree->SetBranchAddress("ePS",       &ePS);
+    tree->SetBranchAddress("eSH",       &eSH);
+    tree->SetBranchAddress("trP",       &trP);
     tree->SetBranchAddress("grinch_track",  &grinch_track);
     tree->SetBranchAddress("grinch_clus_size",   &grinch_clus_size);
 
     // Histograms
-    TH1D* h_coin_time = new TH1D("h_coin_time","Coincidence Time",125,0,250);
+    TH1D* h_coin_time = new TH1D("h_coin_time",Form("Coincidence Time (%s)", kin),coin_time_ac_H-coin_time_ac_L+40,coin_time_ac_L-20,coin_time_ac_H+20);
     TH2D* h_dxdy_cut_W2_coin = new TH2D("h_dxdy_cut_W2_coin",
                                         "dx-dy with W2+coin cuts",
                                         200,-4,4,
@@ -182,9 +187,9 @@ void Asymmetry_across_cointime(const char* filename,
     double QE_events         = 0.0;
 
     // Setup bins for cointime
-    const double binMin   = 0.0;
-    const double binMax   = 250.0;
-    const double binWidth = 5.0;
+    const double binMin   = coin_time_ac_L-20;
+    const double binMax   = coin_time_ac_H+20;
+    const double binWidth = 10.0;
     const int nBins = static_cast<int>((binMax - binMin) / binWidth) + 1;
 
     // Prepare histograms for helicity in each cointime bin
@@ -213,6 +218,8 @@ void Asymmetry_across_cointime(const char* filename,
     for (int i = 0; i < nentries; i++){
         tree->GetEntry(i);
 
+        double eoverp = (eSH+ePS)/trP;
+
         // some conditions from your DB checks:
         bool goodHelicity = (lookupValue(HelicityCheck, runnum) == 1);
         bool goodMoller   = (lookupValue(MollerQuality, runnum) == 1);
@@ -222,8 +229,9 @@ void Asymmetry_across_cointime(const char* filename,
         bool goodEHCAL    = (eHCAL > eHCAL_L); 
         bool validHel     = (helicity == -1 || helicity == 1);
         bool goodGrinch = (grinch_track == 0) and (grinch_clus_size>2);
+        bool goodEoverp = abs(eoverp-1)<0.8;
 
-        if (goodHelicity && goodMoller && goodVz && goodPS && validHel && goodRunRange && goodEHCAL && goodGrinch)
+        if (goodHelicity && goodMoller && goodVz && goodPS && validHel && goodRunRange && goodEHCAL /*&& goodGrinch*/)
         {
             if ( (W2_L < W2 && W2 < W2_H) &&
                  (dx_L < dx && dx < dx_H) &&
@@ -338,18 +346,48 @@ void Asymmetry_across_cointime(const char* filename,
     box_dxdy->SetFillStyle(0);
     box_dxdy->SetLineColor(kRed);
 
+
+    // Utility to draw a vertical dashed line spanning the full y-range of pad’s frame
+    auto drawVLine = [](double x, double y1, double y2, int color=kGray+2) {
+        TLine *L = new TLine(x, y1, x, y2);
+        L->SetLineStyle(2);   // dashed
+        L->SetLineWidth(2);
+        L->SetLineColor(color);
+        L->Draw("same");
+    };
+
     // ------------------------------------------------------------
     // pad (1): Just cointime + offset box
     // ------------------------------------------------------------
     ccoin->cd(1);
+    h_coin_time->SetLineWidth(3);
     h_coin_time->SetXTitle("cointime (ns)");
     h_coin_time->Draw("hist");
     box_offset->Draw("SAME");
+
+    // span in y the visible histogram
+    double yLow = 0.;                 // or -10. if you prefer matching your Box y1
+    double yHigh = h_coin_time->GetMaximum()*1.05;
+
+    // interior bin edges
+    for (int i=1;i<nBins;++i) {
+        double xEdge = binMin + i*binWidth;
+        drawVLine(xEdge, yLow, yHigh);
+    }
+
+    // optional “special” borders (QE and accidental window limits)
+    drawVLine(coin_time_L,      yLow, yHigh, kRed+1);
+    drawVLine(coin_time_H,      yLow, yHigh, kRed+1);
+    drawVLine(coin_time_offset_L, yLow, yHigh, kGreen+2);
+    drawVLine(coin_time_offset_H, yLow, yHigh, kGreen+2);
+
 
     // ------------------------------------------------------------
     // pad (2): we subdivide it into top and bottom sub‐pads
     // ------------------------------------------------------------
     ccoin->cd(2);
+
+    h_coin_time->SetStats(0);
 
     // top sub‐pad ( ~70% of vertical space )
     TPad* p2_top = new TPad("p2_top", "p2_top", 0.0, 0.3, 1.0, 1.0);
@@ -364,6 +402,16 @@ void Asymmetry_across_cointime(const char* filename,
     box_anti1->Draw("SAME");
     box_anti2->Draw("SAME");
     box_offset->Draw("SAME");
+
+    // reuse same y limits (they’re the same histogram)
+    for (int i=1;i<nBins;++i) {
+        drawVLine(binMin + i*binWidth, yLow, yHigh);
+    }
+    drawVLine(coin_time_L,      yLow, yHigh, kRed+1);
+    drawVLine(coin_time_H,      yLow, yHigh, kRed+1);
+    drawVLine(coin_time_offset_L, yLow, yHigh, kGreen+2);
+    drawVLine(coin_time_offset_H, yLow, yHigh, kGreen+2);
+
 
     p2_top->Update();
 
@@ -381,21 +429,30 @@ void Asymmetry_across_cointime(const char* filename,
     TGraphErrors* gAsym = CalculateAsymmetry(Helicity_histograms,
                                              printfilename,
                                              kin,
-                                             flag_eHCAL_cut);
+                                             flag_eHCAL_cut, coin_time_ac_L-20);
 
     // Draw the TGraph in the bottom pad
     gAsym->Draw("AP");
+    gAsym->SetLineWidth(3);
     gAsym->SetMarkerStyle(kFullCircle);
     gAsym->SetMarkerColor(kBlue);
     gAsym->SetLineColor(kBlue);
 
     // Force x range to match the histogram range (0 → 250)
-    gAsym->GetXaxis()->SetRangeUser(0, 250);
+    gAsym->GetXaxis()->SetRangeUser(coin_time_ac_L-20, coin_time_ac_H+20);
     gAsym->SetMinimum(-10);
     gAsym->SetMaximum(10);
 
+    gAsym->GetXaxis()->SetTitleSize(0.07);   // bottom pad is smaller ⇒ larger text
+    gAsym->GetXaxis()->SetLabelSize(0.06);
+    gAsym->GetXaxis()->SetTitleOffset(0.95);
+
+    gAsym->GetYaxis()->SetTitleSize(0.07);
+    gAsym->GetYaxis()->SetLabelSize(0.06);
+    gAsym->GetYaxis()->SetTitleOffset(0.8);
+
     // Now set the bottom pad’s X axis label
-    gAsym->GetXaxis()->SetTitle("cointime (ns)");
+    gAsym->GetXaxis()->SetTitle("coincidence time (ns)");
 
     p2_bottom->Update();
 

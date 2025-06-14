@@ -145,6 +145,7 @@ void proton_contamination(const char* filename, const char* printfilename, const
 	double ntrack = 0;
 	double ntrack_sbs = 0;
     double vz = 0.0;
+    double vz_sbs = 0.0;
     double eHCAL = 0.0;
     double ePS = 0.0;
     double trP_sbs = 0.0;
@@ -160,6 +161,7 @@ void proton_contamination(const char* filename, const char* printfilename, const
 	tree->SetBranchAddress("ntrack", &ntrack);
 	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
     tree->SetBranchAddress("vz", &vz);
+    tree->SetBranchAddress("vz_sbs", &vz_sbs);
     tree->SetBranchAddress("eHCAL", &eHCAL);
     tree->SetBranchAddress("ePS",&ePS);
     tree->SetBranchAddress("trP_sbs",&trP_sbs);
@@ -181,13 +183,26 @@ void proton_contamination(const char* filename, const char* printfilename, const
     std::cout<<"dy_L: "<< dy_L<<" dy_H: "<< dy_H<<endl;
 
 
-    TH2D *h_dxdy_p_cut_W2_cointime = new TH2D("h_dxdy_p_cut_W2_cointime","dxdy (ntrack_sbs>0); dy (m); dx (m)",200,-4,4,200,-4,4);
-    TH1D *h_dx_p_cut_W2_cointime = new TH1D("h_dx_p_cut_W2_cointime", "dx (ntrack_sbs>0); dx (m)", 200,-4,4);
-    TH1D *h_dx_p_cut_W2_cointime_dy = new TH1D("h_dx_p_cut_W2_cointime_dy", "dx (ntrack_sbs>0); dx (m)", 200,-4,4);
-    TH1D *h_dy_p_cut_W2_cointime = new TH1D("h_dy_p_cut_W2_cointime", "dy (ntrack_sbs>0); dy (m)", 200,-4,4);
+    TH2D *h_dxdy_p_cut_W2_cointime = new TH2D("h_dxdy_p_cut_W2_cointime","dxdy (ntrack_sbs>0); dy (m); dx (m)",100,-4,4,100,-4,4);
+    TH2D *h_dxdy_cut_W2_cointime = new TH2D("h_dxdy_cut_W2_cointime","dxdy ; dy (m); dx (m)",100,-4,4,100,-4,4);
+    TH1D *h_dx_no_p_cut_W2_cointime_dy = new TH1D("h_dx_no_p_cut_W2_cointime_dy", "dx (ntrack_sbs==0); dx (m)", 100,-4,4);
+    TH1D *h_dx_p_cut_W2_cointime = new TH1D("h_dx_p_cut_W2_cointime", "dx (ntrack_sbs>0); dx (m)", 100,-4,4);
+    TH1D *h_dx_p_cut_W2_cointime_dy = new TH1D("h_dx_p_cut_W2_cointime_dy", "dx (ntrack_sbs>0); dx (m)", 100,-4,4);
+    TH1D *h_dx_p_cut_W2_cointime_dy_trp = new TH1D("h_dx_p_cut_W2_cointime_dy_trp", "dx (ntrack_sbs>0); dx (m)", 100,-4,4);
+    TH1D *h_dx_cut_W2_cointime_dy = new TH1D("h_dx_cut_W2_cointime_dy", "dx (all); dx (m)", 100,-4,4);
+    TH1D *h_dy_p_cut_W2_cointime = new TH1D("h_dy_p_cut_W2_cointime", "dy (ntrack_sbs>0); dy (m)", 100,-4,4);
     TH1D *h_runnum_sbs_tracks = new TH1D("h_runnum_sbs_tracks","sbs tracks across the kinematic", run_num_H-run_num_L+1,run_num_L,run_num_H);
 
-    TH1D *h_trP_sbs = new TH1D("h_trP_sbs","tracking momentum of the hadron ; pN(GeV)",200,0,8);
+    //TH1D *h_dx_p_cut_W2_cointime_dy_copy = new TH1D("h_dx_p_cut_W2_cointime_dy_copy", "dx (ntrack_sbs>0); dx (m)", 100,-4,4);
+
+    TH1D *h_w2_cut_cointime_dy = new TH1D("h_w2_cut_cointime_dy"," W2; W^{2} (GeV^{2})", 100,-1,3);
+    TH1D *h_w2_no_p_cut_cointime_dy = new TH1D("h_w2_no_p_cut_cointime_dy"," W2; W^{2} (GeV^{2})", 100,-1,3);
+    TH1D *h_w2_cut_cointime_dy_ptrack = new TH1D("h_w2_cut_cointime_dy_ptrack"," W2; W^{2} (GeV^{2})", 100,-1,3);
+    TH1D *h_w2_cut_cointime_dy_ptrack_trp = new TH1D("h_w2_cut_cointime_dy_ptrack_trp"," W2; W^{2} (GeV^{2})", 100,-1,3);
+
+    TH1D *h_cointime_cut_w2_dy = new TH1D("h_cointime_cut_w2_dy","coin time; coincidence time (ns)", 100,170,205);
+
+    TH1D *h_trP_sbs = new TH1D("h_trP_sbs","tracking momentum of the hadron ; pN(GeV)",100,0,8);
 
 
     // Setup bins for dx
@@ -218,10 +233,18 @@ void proton_contamination(const char* filename, const char* printfilename, const
 	        	bool cut_W2 = (W2_L<W2 and W2<W2_H);
 	        	bool cut_coin = (coin_time_L<coin_time and coin_time<coin_time_H);
 	        	bool cut_dy_p = ((dy_p_L<dy and dy<dy_p_H));
+                bool cut_dy = ((dy_L<dy and dy<dy_H));
 	        	bool cut_QE = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (dy_L<dy and dy<dy_H) and (dx_L<dx and dx<dx_H);
 	        	bool cut_p = (W2_L<W2 and W2<W2_H) and (coin_time_L<coin_time and coin_time<coin_time_H) and (dy_p_L<dy and dy<dy_p_H) and (dx_p_L<dx and dx<dx_p_H);
-	        	bool cut_sbs_track = (ntrack_sbs>0);
+	        	bool cut_sbs_track = (ntrack_sbs>0) and abs(vz_sbs)<0.27;
 	        	bool cut_trP_sbs = P_sbs_L<trP_sbs and trP_sbs<P_sbs_H;
+                bool cut_PS = ePS>0.2;
+                bool cut_vz = abs(vz)<0.27;
+                bool cut_vz_sbs = abs(vz_sbs)<0.27;
+
+                if (!cut_PS || !cut_vz){
+                    continue;
+                }
 
 				helicity = -1*IHWP*IHWP_flip*helicity;
 
@@ -236,8 +259,8 @@ void proton_contamination(const char* filename, const char* printfilename, const
 
 				if(cut_eHCAL and cut_W2 and cut_coin and cut_sbs_track and cut_trP_sbs){	
 					h_dxdy_p_cut_W2_cointime->Fill(dy,dx);
-					h_dx_p_cut_W2_cointime->Fill(dx);
 					h_dy_p_cut_W2_cointime->Fill(dy);
+                    h_dx_p_cut_W2_cointime->Fill(dx);
 				}
 
 				if (cut_eHCAL and cut_QE and cut_sbs_track and cut_trP_sbs){ //proton events under the neutron peak
@@ -248,7 +271,7 @@ void proton_contamination(const char* filename, const char* printfilename, const
 					QE_events+=1;
 				}
 
-				if (cut_eHCAL and cut_p and cut_trP_sbs){ //events under the proton peak
+				if (cut_eHCAL and cut_p and cut_trP_sbs and cut_sbs_track){ //events under the proton peak
 					if (helicity == 1){
 						Nplus_total+=1;
 					}
@@ -257,13 +280,50 @@ void proton_contamination(const char* filename, const char* printfilename, const
 					}
 				}
 
-				if(cut_eHCAL and cut_W2 and cut_coin and cut_sbs_track and cut_trP_sbs and cut_dy_p){
-					h_dx_p_cut_W2_cointime_dy->Fill(dx);
-					// Fill the helicity histogram for dx bin
-	                int binIndex = static_cast<int>((dx - binMin) / binWidth);
-	                if (binIndex >= 0 && binIndex < nBins) {
-	                    Helicity_histograms[binIndex]->Fill(helicity);
-	                }
+                if(cut_eHCAL and cut_coin and cut_dy){
+                    h_w2_cut_cointime_dy->Fill(W2);
+
+                    if(!cut_sbs_track){
+                        h_w2_no_p_cut_cointime_dy->Fill(W2);
+                    }
+
+                    if (cut_sbs_track){
+                        h_w2_cut_cointime_dy_ptrack->Fill(W2);
+
+                        if(cut_trP_sbs){
+                            h_w2_cut_cointime_dy_ptrack_trp->Fill(W2);
+                        }
+                    }
+                }
+
+
+                if(cut_eHCAL and cut_W2 and cut_dy){
+                    h_cointime_cut_w2_dy->Fill(coin_time);
+                }
+
+				if(cut_eHCAL and cut_W2 and cut_coin){
+                    h_dxdy_cut_W2_cointime->Fill(dy,dx);
+
+                    if(cut_dy){
+                        h_dx_cut_W2_cointime_dy->Fill(dx);
+
+                        if(!cut_sbs_track){
+                            h_dx_no_p_cut_W2_cointime_dy->Fill(dx);
+                        }
+
+                        if (cut_sbs_track){
+                            h_dx_p_cut_W2_cointime_dy->Fill(dx);
+
+                            if(cut_trP_sbs){
+            					h_dx_p_cut_W2_cointime_dy_trp->Fill(dx);
+            					// Fill the helicity histogram for dx bin
+            	                int binIndex = static_cast<int>((dx - binMin) / binWidth);
+            	                if (binIndex >= 0 && binIndex < nBins) {
+            	                    Helicity_histograms[binIndex]->Fill(helicity);
+        	                   }
+                            }
+                        }
+                    }
             	}
 			}
 		}
@@ -271,14 +331,32 @@ void proton_contamination(const char* filename, const char* printfilename, const
         std::cout.flush();
 	}
 
+    // clone it (must give a unique new name)
+    auto* hcopy = static_cast<TH1D*>(
+        h_dx_p_cut_W2_cointime_dy->Clone("h_dx_p_cut_scaled"));
+
+    // only scale if there’s a nonzero maximum
+    double m_ref = h_dx_cut_W2_cointime_dy->GetMaximum();
+    double m_p   = hcopy->GetMaximum();
+    if (m_p > 0) {
+        hcopy->Scale(m_ref / m_p);
+    }
+
+    // now you can Draw() or further manipulate hcopy…
+    //hcopy->SetLineColor(kOrange+7);
+    //hcopy->Draw("same");
+
+
 
     TCanvas * c = new TCanvas("c","c",3600,3000);
     TCanvas * c1 = new TCanvas("c1","c1",3600,3000);
     TCanvas * c2 = new TCanvas("c2","c2",3600,3000);
+    TCanvas * c3 = new TCanvas("c3","c3",3600,3000);
 
     c->Divide(2,2);
     c1->Divide(2,2);
     c2->Divide(2,2);
+    c3->Divide(2,2);
 
     //Create a box
     TBox* box_dxdy_n = new TBox(dy_L,dx_L,dy_H,dx_H);
@@ -318,6 +396,40 @@ void proton_contamination(const char* filename, const char* printfilename, const
     line1->Draw();
     line2->Draw();
 
+
+    c1->cd(2);
+    h_dx_cut_W2_cointime_dy->SetLineColor(kAzure+6);
+    hcopy->SetLineColor(kMagenta);
+    h_dx_no_p_cut_W2_cointime_dy->SetLineColor(kBlack);
+    h_dx_p_cut_W2_cointime_dy->SetLineColor(kViolet+2);
+    h_dx_p_cut_W2_cointime_dy_trp->SetLineColor(kOrange+7);
+    h_dx_cut_W2_cointime_dy->Draw();
+    hcopy->Draw("same hist");
+    h_dx_no_p_cut_W2_cointime_dy->Draw("same");
+    h_dx_p_cut_W2_cointime_dy->Draw("same");
+    h_dx_p_cut_W2_cointime_dy_trp->Draw("same");
+
+    c1->cd(3);
+    h_dxdy_cut_W2_cointime->Draw("COLZ");
+    box_dxdy_n->Draw("SAME");
+    box_dxdy_p->Draw("SAME");
+
+    c1->cd(4);
+        // after drawing your histograms …
+    TLegend* leg = new TLegend(0.1, 0.1, 0.6, 0.6);  // adjust coordinates as needed
+    leg->SetBorderSize(0);
+    leg->SetFillColor(0);
+    leg->SetTextFont(42);
+    leg->SetTextSize(0.04);
+
+    leg->AddEntry(h_dx_cut_W2_cointime_dy,        "(W2, coin, & dy cuts)",       "l");
+    leg->AddEntry(hcopy,                          "violet scaled", "l"  );
+    leg->AddEntry(h_dx_no_p_cut_W2_cointime_dy,   "(ntrack_sbs == 0, W2, coin, & dy cuts)",   "l");
+    leg->AddEntry(h_dx_p_cut_W2_cointime_dy,      "(ntrack_sbs>0, W2, coin, & dy cuts)",      "l");
+    leg->AddEntry(h_dx_p_cut_W2_cointime_dy_trp,  "(ntrack_sbs>0, (trpN-6.0)<0.3, W2, coin, & dy cuts)","l");
+
+    leg->Draw();
+
     c2->cd(1);
     // top sub‐pad ( ~70% of vertical space )
     TPad* p2_top = new TPad("p2_top", "p2_top", 0.0, 0.3, 1.0, 1.0);
@@ -326,8 +438,8 @@ void proton_contamination(const char* filename, const char* printfilename, const
     p2_top->cd();
 
     // Optionally hide the x label here, since we'll put it on bottom
-    h_dx_p_cut_W2_cointime_dy->GetXaxis()->SetTitle("");
-    h_dx_p_cut_W2_cointime_dy->Draw("hist");
+    h_dx_p_cut_W2_cointime_dy_trp->GetXaxis()->SetTitle("");
+    h_dx_p_cut_W2_cointime_dy_trp->Draw("hist");
     //box_anti1->Draw("SAME");
     //box_anti2->Draw("SAME");
 
@@ -374,10 +486,63 @@ void proton_contamination(const char* filename, const char* printfilename, const
 
     p2_bottom->Update();
 
+    c3->cd(1);
 
-    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf(",kin,std::to_string(flag_eHCAL_cut).c_str()));
-    c1->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
-    c2->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));
+    TLine *line3 = new TLine(W2_L,0.0,W2_L,h_w2_cut_cointime_dy->GetMaximum());
+    line3->SetLineColor(kBlue);
+    line3->SetLineWidth(2);
+
+    TLine *line4 = new TLine(W2_H,0.0,W2_H,h_w2_cut_cointime_dy->GetMaximum());
+    line4->SetLineColor(kBlue);
+    line4->SetLineWidth(2);
+
+
+    h_w2_cut_cointime_dy->SetLineColor(kAzure+6);
+    h_w2_no_p_cut_cointime_dy->SetLineColor(kBlack);
+    h_w2_cut_cointime_dy_ptrack->SetLineColor(kViolet+2);
+    h_w2_cut_cointime_dy_ptrack_trp->SetLineColor(kOrange+7);
+
+    h_w2_cut_cointime_dy->Draw();
+    h_w2_no_p_cut_cointime_dy->Draw("same");
+    h_w2_cut_cointime_dy_ptrack->Draw("same");
+    h_w2_cut_cointime_dy_ptrack_trp->Draw("same");
+
+    line3->Draw("same");
+    line4->Draw("same");
+
+    c3->cd(2);
+
+    TLegend* leg1 = new TLegend(0.1, 0.1, 0.6, 0.6);  // adjust coordinates as needed
+    leg1->SetBorderSize(0);
+    leg1->SetFillColor(0);
+    leg1->SetTextFont(42);
+    leg1->SetTextSize(0.04);
+
+    leg1->AddEntry(h_w2_cut_cointime_dy,        "(coin, & dy cuts)",       "l");
+    leg1->AddEntry(h_w2_no_p_cut_cointime_dy,   "(ntrack_sbs == 0, coin, & dy cuts)",   "l");
+    leg1->AddEntry(h_w2_cut_cointime_dy_ptrack,      "(ntrack_sbs>0, coin, & dy cuts)",      "l");
+    leg1->AddEntry(h_w2_cut_cointime_dy_ptrack_trp,  "(ntrack_sbs>0, (trpN-6.0)<0.3, coin, & dy cuts)","l");
+
+    leg1->Draw();
+
+    c3->cd(3);
+    TLine *line5 = new TLine(coin_time_L,0.0,coin_time_L,h_cointime_cut_w2_dy->GetMaximum());
+    line5->SetLineColor(kBlue);
+    line5->SetLineWidth(2);
+
+    TLine *line6 = new TLine(coin_time_H,0.0,coin_time_H,h_cointime_cut_w2_dy->GetMaximum());
+    line6->SetLineColor(kBlue);
+    line6->SetLineWidth(2);
+
+    h_cointime_cut_w2_dy->Draw();
+    line5->Draw("same");
+    line6->Draw("same");
+
+
+    c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf(",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
+    c1->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
+    c2->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
+    c3->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf)",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
     //c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
     //c->SaveAs(Form("plots/proton_plots_for_%s_eHCAL_cut_%s.pdf",kin,std::to_string(flag_eHCAL_cut).c_str()));
 

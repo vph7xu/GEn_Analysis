@@ -139,6 +139,8 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
 
 	double IHWP_flip = getDoubleValue(config,"IHWP_flip");
 
+    double eHCAL_L = getDoubleValue(config,"eHCAL_L");
+
 	//end of parsing cuts
 	
 	TFile* file = TFile::Open(filename);
@@ -153,6 +155,11 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
     double Q2 = 0.0;
 	double coin_time = 0.0;
 	double ntrack = 0;
+    double ePS = 0.0;
+    double eSH = 0.0;
+    double vz = 0.0;
+    double eHCAL = 0.0;
+    double trP = 0.0;
 
 	tree->SetBranchAddress("runnum",&runnum);
 	tree->SetBranchAddress("helicity",&helicity);
@@ -163,6 +170,11 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
     tree->SetBranchAddress("Q2",&Q2);
 	tree->SetBranchAddress("coin_time",&coin_time);
 	tree->SetBranchAddress("ntrack", &ntrack);
+    tree->SetBranchAddress("trP",&trP);
+    tree->SetBranchAddress("ePS",&ePS);
+    tree->SetBranchAddress("eSH",&eSH);
+    tree->SetBranchAddress("vz",&vz);
+    tree->SetBranchAddress("eHCAL",&eHCAL);
 
     //TH1D *h_dx = new TH1D("h_dx","dx",200,-10,10);
     //TH1D *h_dy = new TH1D("h_dy","dy",200,-10,10);
@@ -204,7 +216,21 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
 	//fill corrected helicity each bin from data
 	for (int i = 0; i<nentries; i++){
         tree->GetEntry(i);
-        if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1){
+
+        double eoverp = (eSH+ePS)/trP;
+
+        // some conditions from your DB checks:
+        bool goodHelicity = (lookupValue(HelicityCheck, runnum) == 1);
+        bool goodMoller   = (lookupValue(MollerQuality, runnum) == 1);
+        bool goodVz       = (std::abs(vz) < 0.27);
+        bool goodPS       = (ePS > 0.2);
+        bool goodRunRange = (run_num_L < runnum && runnum < run_num_H);
+        bool goodEHCAL    = (eHCAL > eHCAL_L); 
+        bool validHel     = (helicity == -1 || helicity == 1);
+        //bool goodGrinch = (grinch_track == 0) and (grinch_clus_size>2);
+        bool goodEoverp = abs(eoverp-1)<0.8;
+
+        if (goodHelicity && goodMoller && goodVz && goodPS && validHel && goodRunRange && goodEHCAL /*&& goodGrinch*/){
 
 
             /*if((coin_time_L<coin_time && coin_time<coin_time_H) && (dx_L<dx && dx<dx_H) && (dy_ac_L>dy || dy>dy_ac_H)){

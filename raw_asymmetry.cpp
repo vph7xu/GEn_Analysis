@@ -118,7 +118,8 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
     TTree* tree = (TTree*)file->Get("Tout");
 	//TTree* sim_tree = (TTree*)sim_file->Get("Tout");
-	
+	double ePS = 0.0;
+	double vz = 0.0;
 	double dx = 0.0;
 	double dy = 0.0;
 	double W2 = 0.0;
@@ -167,6 +168,9 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	tree->SetBranchAddress("coin_time",&coin_time);
 	tree->SetBranchAddress("W2",&W2);
 	tree->SetBranchAddress("datetime", &datetime);
+	tree->SetBranchAddress("ePS", &ePS);
+	tree->SetBranchAddress("vz", &vz);
+
 
 	TH1I *h_IHWP = new TH1I("h_IHWP","IHWP",10,-2,2);
 	TH1I *h_runnum = new TH1I("h_runnum","runnum",700,0,7000);
@@ -183,25 +187,25 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 	//write asymmetry values to files
 	std::ofstream outfile;
-	outfile.open(Form("txt/%s_raw_neutron_asymmetry_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str())); 
+	outfile.open(Form("txt/%s_raw_neutron_asymmetry_results_eHCAL_cut_%s.txt",printfilename,std::to_string(flag_eHCAL_cut).c_str())); 
 
 	std::ofstream outfile_sum;
-	outfile_sum.open(Form("txt/%s_raw_neutron_asymmetry_results_summary_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	outfile_sum.open(Form("txt/%s_raw_neutron_asymmetry_results_summary_eHCAL_cut_%s.txt",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
 
 	std::ofstream outfile_p;
-	outfile_p.open(Form("txt/%s_raw_proton_asymmetry_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	outfile_p.open(Form("txt/%s_raw_proton_asymmetry_results_eHCAL_cut_%s.txt",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
 
 	std::ofstream outfile_pol_He3;
-	outfile_pol_He3.open(Form("txt/%s_He3_polarization_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	outfile_pol_He3.open(Form("txt/%s_He3_polarization_results_eHCAL_cut_%s.txt",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
 
 	std::ofstream outfile_pol_beam;
-	outfile_pol_beam.open(Form("txt/%s_beam_polarization_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	outfile_pol_beam.open(Form("txt/%s_beam_polarization_results_eHCAL_cut_%s.txt",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
 
 	std::ofstream outfile_n_asym;
-	outfile_n_asym.open(Form("txt/%s_raw_neutron_asymmetry_only_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	outfile_n_asym.open(Form("txt/%s_raw_neutron_asymmetry_only_results_eHCAL_cut_%s.txt",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
 
 	std::ofstream outfile_avg_polarizations;
-	outfile_avg_polarizations.open(Form("txt/%s_average_polarization_results_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
+	outfile_avg_polarizations.open(Form("txt/%s_average_polarization_results_eHCAL_cut_%s.txt",printfilename,std::to_string(flag_eHCAL_cut).c_str()));
 
 
 	if (flag_eHCAL_cut == false) eHCAL_L=0.0;
@@ -209,8 +213,18 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
     std::cout<<"eHCAL_L: "<< eHCAL_L <<endl;
 
 
-	for (int i=0; i<nentries; i++){
+	for (int i=0; i<nentries; i++){		
 		tree->GetEntry(i);
+
+		bool goodHelicity = (lookupValue(HelicityCheck, runnum) == 1);
+	    bool goodMoller   = (lookupValue(MollerQuality, runnum) == 1);
+	    bool goodVz       = abs(vz) < 0.27;
+	    bool goodPS       = (ePS > 0.15);
+	    bool goodRunRange = (run_num_L < runnum && runnum < run_num_H);
+	    bool goodEHCAL    = (eHCAL > eHCAL_L); 
+	    bool validHel     = (helicity == -1 || helicity == 1);
+	    //bool goodGrinch = (grinch_track == 0) && (grinch_clus_size>2);
+	    //bool goodSbs_track = ntrack_sbs>0 && abs(vz_sbs)<0.27;
 		
 		std::string lookupDatenTime = std::to_string(datetime->GetYear())+"-"+std::to_string(datetime->GetMonth())+"-"+std::to_string(datetime->GetDay())+" "
 		+std::to_string(datetime->GetHour())+":"+std::to_string(datetime->GetMinute())+":"+std::to_string(datetime->GetSecond());
@@ -219,6 +233,10 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 		TDatime lookupTime = *datetime;
 
 		//h_IHWP->Fill(IHWP);
+
+		if(!goodHelicity || !goodMoller || !goodPS || !validHel || !goodRunRange || !goodEHCAL || !goodVz){
+			continue;
+		}
 
 		if (run_num_L<runnum and runnum<run_num_H){
 			h_runnum->Fill(runnum);

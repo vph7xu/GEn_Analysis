@@ -30,6 +30,7 @@
 
 struct Store {
     std::vector<double> vz, ePS, dx, dy, W2, ct, eHCAL, w;
+    std::vector<int> helicity, IHWP; 
     std::vector<char>   origin;  // 0=nMC,1=pMC,2=data
 };
 
@@ -51,7 +52,9 @@ void OptimizeCuts(const char* dataFile,
     {
         TFile fData(dataFile, "READ");
         TTree* tData = (TTree*)fData.Get("Tout");
-        double vz,ePS,dx, dy, W2, ct, eHCAL;
+        double vz, ePS, dx, dy, W2, ct, eHCAL;
+        int helicity, IHWP;
+        
         tData->SetBranchAddress("vz",&vz);
         tData->SetBranchAddress("ePS",&ePS);
         tData->SetBranchAddress("dx", &dx);
@@ -59,17 +62,22 @@ void OptimizeCuts(const char* dataFile,
         tData->SetBranchAddress("W2", &W2);
         tData->SetBranchAddress("coin_time", &ct);
         tData->SetBranchAddress("eHCAL", &eHCAL);
+        tData->SetBranchAddress("helicity",&helicity);
+        tData->SetBranchAddress("IHWP",&IHWP);
         Long64_t nData = tData->GetEntries();
-        ev.vz.reserve(nData);
-        ev.ePS.reserve(nData);
-        ev.dx.reserve(nData);
-        ev.dy.reserve(nData);
-        ev.W2.reserve(nData);
-        ev.ct.reserve(nData);
-        ev.eHCAL.reserve(nData);
-        ev.w.reserve(nData);
-        ev.origin.reserve(nData);
+        ev.vz.reserve(nData+1000000);
+        ev.ePS.reserve(nData+1000000);
+        ev.dx.reserve(nData+1000000);
+        ev.dy.reserve(nData+1000000);
+        ev.W2.reserve(nData+1000000);
+        ev.ct.reserve(nData+1000000);
+        ev.eHCAL.reserve(nData+1000000);
+        ev.helicity.reserve(nData+1000000);
+        ev.IHWP.reserve(nData+1000000);
+        ev.w.reserve(nData+1000000);
+        ev.origin.reserve(nData+1000000);
         for(Long64_t i=0; i<1*nData; ++i) {
+
             tData->GetEntry(i);
             ev.vz.push_back(vz);
             ev.ePS.push_back(ePS);
@@ -78,6 +86,8 @@ void OptimizeCuts(const char* dataFile,
             ev.W2.push_back(W2);
             ev.ct.push_back(ct);
             ev.eHCAL.push_back(eHCAL);
+            ev.helicity.push_back(helicity);
+            ev.IHWP.push_back(IHWP);
             ev.w.push_back(1.0);
             ev.origin.push_back(2);
             if (i %1000 == 0 ) std::cout<< (i * 100.0/ nData)<<" data file" << "% \r";
@@ -119,6 +129,8 @@ void OptimizeCuts(const char* dataFile,
             ev.W2.push_back(W2);
             ev.ct.push_back(bCT? ctSim : 0.0);
             ev.eHCAL.push_back(eHCAL);
+            ev.helicity.push_back(0);
+            ev.IHWP.push_back(0);
             ev.w.push_back(wt);
             ev.origin.push_back(fnucl==0.0? 0 : 1);
             if (i %1000 == 0 ) std::cout<< (i * 100.0/ nSim)<<" sim file" << "% \r";
@@ -154,8 +166,8 @@ void OptimizeCuts(const char* dataFile,
     //for(int i=0;i<nSteps;++i) dxH_vals.push_back( 0.0 + i*(1.0/nSteps));
     for(int i=0;i<nSteps;++i) dyL_vals.push_back(-0.5 + i*(0.3/nSteps));
     for(int i=0;i<nSteps;++i) dyH_vals.push_back( 0.5 - i*(0.3/nSteps));
-    for(int i=0;i<nSteps;++i) W2L_vals.push_back(-1.0 + i*(1.0/nSteps));
-    for(int i=0;i<nSteps;++i) W2H_vals.push_back( 1.0 + i*(1.0/nSteps));
+    for(int i=0;i<nSteps;++i) W2L_vals.push_back(-1.3 + i*(0.5/nSteps));
+    for(int i=0;i<nSteps;++i) W2H_vals.push_back( 1.3 + i*(0.5/nSteps));
     for(int i=0;i<nSteps;++i) eL_vals.push_back(0.025 + i*(0.5/nSteps));
     //for(int i=0;i<nSteps;++i) eH_vals.push_back(0.5 + i*(2.0/nSteps));
     for(int i=0;i<nSteps;++i) tL_vals.push_back(186 - i*(5/nSteps));
@@ -174,10 +186,18 @@ void OptimizeCuts(const char* dataFile,
     for(double eL:eL_vals)   //for(double eH:eH_vals)
     for(double tL:tL_vals)   for(double tH:tH_vals) {
         // build histograms
+        
+        if(dyL==dyH || W2L==W2H || tL==tH || abs(tL-tH)<3){
+            continue;
+        }
+
         TH1D *h_bkg = new TH1D("b",";dx;",nbinsDx,-4,3);
         TH1D *h_data = new TH1D("d",";dx;",nbinsDx,-4,3);
         TH1D *h_n = new TH1D("n",";dx;",nbinsDx,-4,3);
         TH1D *h_p = new TH1D("p",";dx;",nbinsDx,-4,3);
+
+        double Nplus = 0.0;
+        double Nminus = 0.0;
         // fill
         for(size_t i=0;i<ev.dx.size();++i){
             bool base = //ev.dx[i]>dxL && ev.dx[i]<dxH &&
@@ -187,10 +207,17 @@ void OptimizeCuts(const char* dataFile,
                         ev.eHCAL[i]>eL;
             bool inct = ev.ct[i]>tL    && ev.ct[i]<tH;
             bool inDy = ev.dy[i]>dyL&&ev.dy[i]<dyH;
-            bool antiDy = ev.dy[i]>1.2||ev.dy[i]<-1.5;
+            bool antiDy = ev.dy[i]>1.0||ev.dy[i]<-1.1;
+            bool inDx = ev.dx[i]>-0.4 && ev.dy[i]<0.4;
+            bool poshel = ev.IHWP[i]*ev.helicity[i] == 1;
+            bool neghel = ev.IHWP[i]*ev.helicity[i] == -1;
+
             int o=ev.origin[i]; double wt=ev.w[i];
             if(o==2){ if(base && inct && antiDy) h_bkg->Fill(ev.dx[i]);
-                      if(base && inct && inDy)  h_data->Fill(ev.dx[i]); }
+                      if(base && inct && inDy)  h_data->Fill(ev.dx[i]);
+                      if(base && inct && inDy && inDx && poshel) ++Nplus;
+                      if(base && inct && inDy && inDx && neghel) ++Nminus;
+                    }
             if(o==0 && base&&inDy) h_n->Fill(ev.dx[i], wt);
             if(o==1 && base&&inDy) h_p->Fill((ev.dx[i]/*+0.05*/), wt);
         }
@@ -245,16 +272,20 @@ void OptimizeCuts(const char* dataFile,
         hist_bkg->Scale(scale_data);
         h_data->Scale(scale_data);
 
-        // compute FOM
-        double FOM = hist_n->Integral(hist_n->FindBin(-0.4),hist_n->FindBin(0.4))/
-        sqrt(hist_n->Integral(hist_n->FindBin(-0.4),hist_n->FindBin(0.4))+hist_bkg->Integral(hist_bkg->FindBin(-0.4),hist_bkg->FindBin(0.4)));
+        double nN = hist_n->Integral(hist_n->FindBin(-0.4),hist_n->FindBin(0.4));
+        double nData = h_data->Integral(h_data->FindBin(-0.4),h_data->FindBin(0.4));
+        double nBkg = hist_bkg->Integral(hist_bkg->FindBin(-0.4),hist_bkg->FindBin(0.4));
 
-        double FOM_1 = 1/(sqrt(h_data->Integral(h_data->FindBin(-0.4),h_data->FindBin(0.4)))/
-        (hist_n->Integral(hist_n->FindBin(-0.4),hist_n->FindBin(0.4))/h_data->Integral(h_data->FindBin(-0.4),h_data->FindBin(0.4))));
+        // compute FOM
+        double FOM = nN/sqrt(nN+nBkg);
+
+        double FOM_1 = nN/(nData*sqrt(nData));
+
+        double FOM_2 = nN/sqrt(Nplus*Nminus*(Nplus+Nminus)); 
 
         //std::cout<<"FOM : "<<FOM<<endl;
         //std::cout<<"dy_H :"<<dyH<<endl;
-        outfile_all<<"FOM : "<<FOM<<" FOM_1 : "<<FOM_1<<"{dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
+        outfile_all<<"FOM : "<<FOM<<" FOM_1 : "<<FOM_1<<" FOM_2 : "<<FOM_2<<" {dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
         <<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
 
 
@@ -276,7 +307,7 @@ void OptimizeCuts(const char* dataFile,
             //std::cout<<"NEW BEST FOM : "<<" {dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
             //<<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
 
-            outfile<<"NEW BEST FOM : "<<bestFOM<<" FOM_1 : "<<FOM_1<<" {dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
+            outfile<<"NEW BEST FOM : "<<bestFOM<<" FOM_1 : "<<FOM_1<<" FOM_2 : "<<FOM_2<<" {dyL,dyH,W2L,W2H,eL,tL,tH}" <<"{"<<dyL<<","<<dyH<<","
             <<W2L<<","<<W2H<<","<<eL<<","<<tL<<","<<tH<<"}"<<endl;
 
             hist_p->SetFillColorAlpha(6,0.5);
