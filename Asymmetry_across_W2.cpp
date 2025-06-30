@@ -228,9 +228,9 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
         bool goodEHCAL    = (eHCAL > eHCAL_L); 
         bool validHel     = (helicity == -1 || helicity == 1);
         //bool goodGrinch = (grinch_track == 0) and (grinch_clus_size>2);
-        bool goodEoverp = abs(eoverp-1)<0.8;
+        bool goodEoverp = abs(eoverp-1)<0.2;
 
-        if (goodHelicity && goodMoller && goodVz && goodPS && validHel && goodRunRange && goodEHCAL /*&& goodGrinch*/){
+        if (goodHelicity && goodMoller && goodVz && goodPS && validHel && goodRunRange && goodEHCAL && goodEoverp /*&& goodGrinch*/){
 
 
             /*if((coin_time_L<coin_time && coin_time<coin_time_H) && (dx_L<dx && dx<dx_H) && (dy_ac_L>dy || dy>dy_ac_H)){
@@ -301,8 +301,8 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
     g_asym_1->GetXaxis()->SetTitle("W^{2} (GeV^{2})");
     g_asym_1->GetYaxis()->SetTitle("Asymmetry (%)");
 
-    g_asym_1->SetMinimum(-8);
-    g_asym_1->SetMaximum(8);
+    g_asym_1->SetMinimum(-16);
+    g_asym_1->SetMaximum(16);
 
     g_asym_1->SetMarkerStyle(21);
     g_asym_1->SetMarkerColor(kBlue);
@@ -316,6 +316,12 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
 
     // Create a canvas and plot both graphs
     TCanvas* c = new TCanvas("c", "Asymmetry vs W^{2}", 3600, 3000);
+    c->SetGridy(true);    // turn ON horizontal grid
+    c->SetGridx(false);   // keep vertical grid OFF
+
+    gStyle->SetGridStyle(2);   // 2 = dashed (1=solid, 3=dotted, …)
+    gStyle->SetGridWidth(1);   // thin lines; raise to 2-3 for thicker
+
     g_asym_1->Draw("AP");  // A for axis, P for points
     g_asym_2->Draw("P SAME");  // SAME to draw on the same canvas
     
@@ -324,6 +330,15 @@ void Asymmetry_across_W2(const char* filename, const char* printfilename, const 
     legend->AddEntry(g_asym_1, "|dx|<0.4m and (dy<-1.5m or dy>1.0m)", "lp");
     legend->AddEntry(g_asym_2, "|dx|<0.4m", "lp");
     legend->Draw();
+
+    gPad->SetGrid(0,1);             // only horizontal
+
+    gStyle->SetGridStyle(2);        // dashed
+    gStyle->SetGridWidth(1);        // or 2–3 for heavy lines
+    gStyle->SetGridColor(kGray+2);  // visible on dark or light BG
+
+    gPad->Modified();
+    gPad->Update();  
 
     // Save the canvas
     c->SaveAs(Form("plots/%s_asymmetry_across_W2.pdf",printfilename));

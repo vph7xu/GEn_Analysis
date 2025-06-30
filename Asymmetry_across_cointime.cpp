@@ -229,9 +229,9 @@ void Asymmetry_across_cointime(const char* filename,
         bool goodEHCAL    = (eHCAL > eHCAL_L); 
         bool validHel     = (helicity == -1 || helicity == 1);
         bool goodGrinch = (grinch_track == 0) and (grinch_clus_size>2);
-        bool goodEoverp = abs(eoverp-1)<0.8;
+        bool goodEoverp = abs(eoverp-1)<0.2;
 
-        if (goodHelicity && goodMoller && goodVz && goodPS && validHel && goodRunRange && goodEHCAL /*&& goodGrinch*/)
+        if (goodHelicity && goodMoller && goodVz && goodPS && validHel && goodRunRange && goodEHCAL && goodEoverp /*&& goodGrinch*/)
         {
             if ( (W2_L < W2 && W2 < W2_H) &&
                  (dx_L < dx && dx < dx_H) &&

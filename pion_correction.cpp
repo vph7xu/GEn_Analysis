@@ -92,24 +92,28 @@ void pion_correction(const char *pion_filename, const char *QE_filename,
     double IHWP_flip   = getDoubleValue(config,"IHWP_flip"); 
 
     // Simulation tree variables.
-    double PSe_pion=0.0, W2_pion=0.0, eHCAL_pion=0.0;
-    double PSe_QE  =0.0, W2_QE  =0.0, eHCAL_QE  =0.0, dx_QE =0.0, dy_QE =0.0;
+    double PSe_pion=0.0, W2_pion=0.0, eHCAL_pion=0.0, SHe_pion=0.0, trP_pion=0.0;
+    double PSe_QE  =0.0, W2_QE  =0.0, eHCAL_QE  =0.0, dx_QE =0.0, dy_QE =0.0, SHe_QE=0.0, trP_QE=0.0;
 
     // Data tree variables.
     int runnum_data=0, IHWP_data=0, helicity_data=0;
-    double dx_data=0.0, dy_data=0.0, ntrack_data=0.0;
-    double PSe_data=0.0, W2_data=0.0, eHCAL_data=0.0;
+    double dx_data=0.0, dy_data=0.0, ntrack_data=0.0, trP_data=0.0;
+    double PSe_data=0.0, W2_data=0.0, eHCAL_data=0.0, SHe_data=0.0;
     double coin_time_data=0.0, vz_data=0.0;
 
     // Set branch addresses for simulation.
     pion_tree->SetBranchAddress("ePS",    &PSe_pion);
     pion_tree->SetBranchAddress("W2",     &W2_pion);
     pion_tree->SetBranchAddress("eHCAL",  &eHCAL_pion);
+    pion_tree->SetBranchAddress("eSH", &SHe_pion);
+    pion_tree->SetBranchAddress("trP", &trP_pion);
     QE_tree->SetBranchAddress("ePS",      &PSe_QE);
     QE_tree->SetBranchAddress("W2",       &W2_QE);
     QE_tree->SetBranchAddress("eHCAL",    &eHCAL_QE);
     QE_tree->SetBranchAddress("dx",       &dx_QE);
-    QE_tree->SetBranchAddress("dy",    &dy_QE); 
+    QE_tree->SetBranchAddress("dy",    &dy_QE);
+    QE_tree->SetBranchAddress("eSH",    &SHe_QE);
+    QE_tree->SetBranchAddress("trP", &trP_QE);
 
     // Set branch addresses for data.
     data_tree->SetBranchAddress("ePS",       &PSe_data);
@@ -123,23 +127,28 @@ void pion_correction(const char *pion_filename, const char *QE_filename,
     data_tree->SetBranchAddress("dy",        &dy_data);
     data_tree->SetBranchAddress("ntrack",    &ntrack_data);
     data_tree->SetBranchAddress("runnum",    &runnum_data);
+    data_tree->SetBranchAddress("eSH",       &SHe_data);
+    data_tree->SetBranchAddress("trP",       &trP_data);
 
     // ------------------------------------------------------
     // 2. CREATE HISTOGRAMS & FILL THEM
     // ------------------------------------------------------
-    TH1D *h_PSe_pion = new TH1D("h_PSe_pion",  "Preshower cluster E (pion sim)",  200, 0.01, 3);
-    TH1D *h_PSe_QE   = new TH1D("h_PSe_QE",    "Preshower Energy (QE sim)",      200, 0.01, 3);
-    TH1D *h_PSe_data = new TH1D("h_PSe_data",  "Preshower Energy (All data)",    200, 0.01, 3);
-    TH1D *h_PSe_data_pos = new TH1D("h_PSe_data_pos","Preshower Energy (Helicity +1)", 200,0.01,3);
-    TH1D *h_PSe_data_neg = new TH1D("h_PSe_data_neg","Preshower Energy (Helicity -1)", 200,0.01,3);
+    TH1D *h_PSe_pion = new TH1D("h_PSe_pion",  "Preshower cluster E (pion sim)",  200, 0.01, 2);
+    TH1D *h_PSe_QE   = new TH1D("h_PSe_QE",    "Preshower Energy (QE sim)",      200, 0.01, 2);
+    TH1D *h_PSe_data = new TH1D("h_PSe_data",  "Preshower Energy (All data)",    200, 0.01, 2);
+    TH1D *h_PSe_data_pos = new TH1D("h_PSe_data_pos","Preshower Energy (Helicity +1)", 200,0.01,2);
+    TH1D *h_PSe_data_neg = new TH1D("h_PSe_data_neg","Preshower Energy (Helicity -1)", 200,0.01,2);
 
     // Fill the pion-simulation histogram.
     int nentries_pion = pion_tree->GetEntries();
     for (int i = 0; i < nentries_pion; i++) {
 
         pion_tree->GetEntry(i);
+        double eoverp_pion = (PSe_pion+SHe_pion)/trP_pion;
+
         bool pass_W2_pion = (W2_L < W2_pion) && (W2_pion < W2_H);
-        if (pass_W2_pion) {
+        bool pass_eoverp_pion = 1; /*abs(eoverp_pion-1)<0.2;*/
+        if (pass_W2_pion && pass_eoverp_pion) {
             h_PSe_pion->Fill(PSe_pion);
         }
         std::cout << (i * 100.0 / nentries_pion) << "% of pion simulation processed\r";
@@ -150,19 +159,23 @@ void pion_correction(const char *pion_filename, const char *QE_filename,
     int nentries_QE = QE_tree->GetEntries();
     for (int i = 0; i < nentries_QE; i++) {
         QE_tree->GetEntry(i);
+        double eoverp_QE = (PSe_QE+SHe_QE)/trP_QE;
+
         bool pass_W2_QE   = (W2_L < W2_QE) && (W2_QE < W2_H);
         bool pass_eHCAL_QE = (eHCAL_L < eHCAL_QE);
         bool pass_dx_QE = (dx_L<dx_QE) && (dx_QE<dx_H);
         bool pass_dy_QE = (dy_L<dy_QE) && (dy_QE<dy_H);
+        bool pass_eoverp_QE = 1; /*abs(eoverp_QE-1)<0.2;*/
 
         if (cutQE == 0) { 
             //pass_W2_QE = 1;
             pass_eHCAL_QE = 1;
             pass_dx_QE = 1;
             pass_dy_QE = 1;
+            pass_eoverp_QE = 1;
         }
 
-        if (pass_W2_QE && pass_eHCAL_QE && pass_dx_QE && pass_dy_QE) {
+        if (pass_W2_QE && pass_eHCAL_QE && pass_dx_QE && pass_dy_QE && pass_eoverp_QE) {
             h_PSe_QE->Fill(PSe_QE);
         }
         std::cout << (i * 100.0 / nentries_QE) << "% of QE simulation processed\r";
@@ -174,6 +187,8 @@ void pion_correction(const char *pion_filename, const char *QE_filename,
     for (int i = 0; i < nentries_data; i++) {
         data_tree->GetEntry(i);
         
+        double eoverp_data = (PSe_data+SHe_data)/trP_data;
+
         // Check quality DB:
         if (lookupValue(HelicityCheck,runnum_data)!=1) continue;
         if (lookupValue(MollerQuality, runnum_data)!=1) continue;
@@ -187,16 +202,18 @@ void pion_correction(const char *pion_filename, const char *QE_filename,
         bool pass_coin_data = (coin_time_L < coin_time_data) && (coin_time_data < coin_time_H);
         bool pass_dx_data = (dx_L<dx_data) && (dx_data<dx_H);
         bool pass_dy_data = (dy_L<dy_data) && (dy_data<dy_H);
+        bool pass_eoverp_data = 1; /*abs(eoverp_data-1)<0.2;*/
 
         if (cutQE == 0) { 
             //pass_W2_data = 1;
             pass_eHCAL_data = 1;
-            pass_coin_data = 1;
+            //pass_coin_data = 1;
             pass_dx_data = 1;
             pass_dy_data = 1;
+            pass_eoverp_data = 1;
         }
 
-        if (! (pass_W2_data && pass_eHCAL_data && pass_coin_data && pass_dx_data &&pass_dy_data)) continue;
+        if (! (pass_W2_data && pass_eHCAL_data && pass_coin_data && pass_dx_data && pass_dy_data && pass_eoverp_data)) continue;
 
         // Correct helicity for IHWP
         helicity_data = -1 * IHWP_data * IHWP_flip * helicity_data;

@@ -335,13 +335,13 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 
                 	}
 
-                	if((W2_L<W2 && W2<3) && (coin_time_L<coin_time && coin_time<coin_time_H)){
+                	if((W2_L<W2 && W2<W2_H) && (coin_time_L<coin_time && coin_time<coin_time_H)){
 
                 		h_dxdy_bkg->Fill(dy,dx);
                 	}
 
 
-                	if((W2<3) && (coin_time_L<coin_time && coin_time<coin_time_H) && antiDy){
+                	if((W2_L<W2 && W2<10) && (coin_time_L<coin_time && coin_time<coin_time_H) && antiDy){
                 		h_all_background->Fill(dx);
                 		if (!goodSbs_track){
                 			h_neutral_background->Fill(dx);
@@ -382,30 +382,64 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
     	auto* h_all_background_copy= static_cast<TH1D*>(
         h_all_background->Clone("h_all_background_copy"));
 
-    	double m_ref = h_dx_W2_cut->GetMaximum();
-   	double m_p   = h_dx_p_cut_W2_cointime_dy->GetMaximum();
+    	double m_ref = h_dx_W2_cut->GetBinContent(h_dx_W2_cut->FindBin(-1.2));//GetMaximum();
+   	double m_p   = h_dx_p_cut_W2_cointime_dy->GetBinContent(h_dx_p_cut_W2_cointime_dy->FindBin(-1.2));//GetMaximum();
 
-	double m_ref_bkg = h_all_background->GetMaximum();
-	double m_charge_bkg = h_charge_background_copy->GetMaximum();
+	double m_ref_bkg = h_all_background->GetBinContent(h_all_background->FindBin(-1.2));//->GetMaximum();
+	double m_charge_bkg = h_charge_background_copy->GetBinContent(h_charge_background_copy->FindBin(-1.2));//->GetMaximum();
 
-        if (m_p > 0) {
-        	h_dx_p_cut_W2_cointime_dy_copy->Scale(m_ref / m_p);
-        }
+	double Ssafe = std::numeric_limits<double>::infinity();
+	double Ssafe1 = std::numeric_limits<double>::infinity();
 
-        if(m_charge_bkg>0){
-        	h_charge_background_copy->Scale(1/(m_charge_bkg/m_ref_bkg));
+	for (int ib = 1; ib <= h_dx_W2_cut->GetNbinsX(); ++ib) {
+	    double y_ref = h_dx_W2_cut->GetBinContent(ib);
+	    double y_p   = h_dx_p_cut_W2_cointime_dy->GetBinContent(ib);
+
+	    if (y_p <= 0.0) continue;                  // skip empty bins
+	    double ratio = y_p / y_ref;                // could be ≫1
+	    if (ratio < Ssafe) Ssafe = ratio;          // keep the minimum
+	}
+
+	for (int ib = 1; ib <= h_all_background->GetNbinsX(); ++ib) {
+	    double y_ref = h_all_background->GetBinContent(ib);
+	    double y_p   = h_charge_background_copy->GetBinContent(ib);
+
+	    if (y_p <= 0.0) continue;                  // skip empty bins
+	    double ratio = y_p / y_ref;                // could be ≫1
+	    if (ratio < Ssafe1) Ssafe1 = ratio;          // keep the minimum
+	}
+
+
+	cout<<"Ssafe : "<<Ssafe<<endl;
+	cout<<"m_ref/m_p : "<<m_ref<<endl;
+	cout<<"Ssafe1 : "<<Ssafe1<<endl;
+	cout<<"m_charge_bkg/m_ref_bkg : "<<m_charge_bkg/m_ref_bkg<<endl;
+
+        //if (std::isfinite(Ssafe) && Ssafe > 0.0) {
+        	h_dx_p_cut_W2_cointime_dy_copy->Scale(m_ref/m_p);
+        //}
+
+        //if(std::isfinite(Ssafe1) && Ssafe1 > 0.0){
+        	h_charge_background_copy->Scale(m_ref/m_p);//Scale(1/(m_charge_bkg/m_ref_bkg));
         	h_all_background_copy->Add(h_charge_background_copy,-1.0);
-        }
+        //}
+
+        h_all_background_copy->Smooth(1);
+        h_dx_p_cut_W2_cointime_dy_copy->Smooth(1);
 
         hist_bkg=h_all_background_copy;
         hist_p = h_dx_p_cut_W2_cointime_dy_copy;
         
 	//scale everything
 	double scale_data = h_dx_W2_cut->Integral();
+	double scale_data_max = h_dx_W2_cut->GetMaximum();
+
 	h_dx_W2_cut->Scale(1.0/h_dx_W2_cut->Integral());
 	hist_p->Scale(1.0/hist_p->Integral());
 	hist_n->Scale(1.0/hist_n->Integral());
 	hist_bkg->Scale(1.0/hist_bkg->Integral());
+
+	//hist_p->Scale(1.0/scale_data_max);
 
 	//bkg_model(h_dxdy_W2_cut,-1.5,1.5, kin);
 	TBox *box1 = new TBox(dy_ac_H,-4,4,3.05);
@@ -472,7 +506,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	hist_bkg->SetLineWidth(3);
 	h_dx_sim_n_bkg->SetLineWidth(3);
 
-	hist_p->Scale(scale_data);
+	hist_p->Scale(scale_data_max/hist_p->GetMaximum());//I am not sure this is the right thing to do. Check this again
 	hist_n->Scale(scale_data);
 	hist_bkg->Scale(scale_data);
 	h_dx_W2_cut->Scale(scale_data);
@@ -569,6 +603,23 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	cfit->cd(4);
 	h_dx_W2_cut_plotting->Draw();
 
+	TCanvas *cbkg = new TCanvas("cbkg", "cbkg", 3600, 3000);
+	cbkg->Divide(2,2);
+	cbkg->cd(1);
+	h_all_background->SetLineColor(kRed);
+	h_charge_background->SetLineColor(kBlue);
+
+	h_all_background->Draw();
+	h_charge_background->Draw("same");
+
+	cbkg->cd(2);
+	h_all_background->SetLineColor(kRed);
+	h_charge_background_copy->SetLineColor(kGreen);
+	h_all_background_copy->SetLineColor(kBlue);
+	h_all_background->Draw("hist");
+	h_charge_background_copy->Draw("hist same");
+	h_all_background_copy->Draw("same hist");
+
 
 	std::cout<<" Neutrons : "<<hist_n->Integral()<<endl;
 
@@ -600,6 +651,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	cnew_bkg->Print(Form("plots/models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.pdf)",printfilename,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L,std::to_string(sbs_veto).c_str()));
 	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.png",printfilename,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L,std::to_string(sbs_veto).c_str()));
 	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.jpg",printfilename,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L,std::to_string(sbs_veto).c_str()));
+	cbkg->SaveAs(Form("plots/bkg_models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.jpg",printfilename,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L,std::to_string(sbs_veto).c_str()));
 
 } 
 

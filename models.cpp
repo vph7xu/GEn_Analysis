@@ -75,6 +75,10 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 	double weight = 0.0;
 	double fnucl = 0.0;
 	double eHCAL = 0.0;
+	double ePS = 0.0;
+	double eSH = 0.0;
+	double trP = 0.0;
+	double vz = 0.0;
 
 	sim_tree->SetBranchAddress("dx",&dx);
 	sim_tree->SetBranchAddress("dy",&dy);
@@ -83,6 +87,10 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 	sim_tree->SetBranchAddress("weight",&weight);
 	sim_tree->SetBranchAddress("fnucl",&fnucl);
 	sim_tree->SetBranchAddress("eHCAL",&eHCAL);
+	sim_tree->SetBranchAddress("ePS",&ePS);
+	sim_tree->SetBranchAddress("eSH",&eSH);
+	sim_tree->SetBranchAddress("trP",&trP);
+	sim_tree->SetBranchAddress("vz",&vz);
 
 
         TH1D *h_dx_n = new TH1D("h_dx_n","dx neutrons",100,-4,3);
@@ -93,12 +101,20 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 	for (int i = 0; i<nentries; i++){
                 sim_tree->GetEntry(i);
 
-		if (W2_L_sim<W2 and W2<W2_H_sim and dy_L_sim<dy and dy<dy_H_sim and eHCAL_L_sim<eHCAL){
+                double eoverp = (eSH+ePS)/trP;
+
+	        // some conditions from your DB checks:
+	        bool goodVz       = abs(vz) < 0.27;
+	        bool goodPS       = (ePS > 0.2);
+	        bool goodEHCAL    = (eHCAL > eHCAL_L_sim); 
+	        bool goodEoverp = abs(eoverp-1)<0.2;
+
+		if (W2_L_sim<W2 and W2<W2_H_sim and dy_L_sim<dy and dy<dy_H_sim and goodEHCAL and goodVz and goodPS and goodEoverp){
                         if (fnucl == 0.0){
                                 h_dx_n->Fill(dx,weight);
                         }
                         else if (fnucl == 1.0){
-                                h_dx_p->Fill(dx/*+0.05*/,weight); // change this later
+                                h_dx_p->Fill(dx+0.05,weight); // change this later
                         }
                 }
 
@@ -197,6 +213,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
     	double grinch_clus_size = 0.0;
     	double grinch_track = 0.0;
     	double ePS       = 0.0;
+    	double eSH = 0.0;
+    	double trP = 0.0;
     	
 	tree->SetBranchAddress("runnum",&runnum);
 	tree->SetBranchAddress("helicity",&helicity);
@@ -222,6 +240,9 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
     	tree->SetBranchAddress("grinch_track",  &grinch_track);
     	tree->SetBranchAddress("grinch_clus_size",   &grinch_clus_size);
 	tree->SetBranchAddress("ePS",       &ePS);
+	tree->SetBranchAddress("eSH",       &eSH);
+	tree->SetBranchAddress("trP",       &trP);
+
 
         TH1D *h_dx = new TH1D("h_dx","dx",200,-10,10);
         TH1D *h_dy = new TH1D("h_dy","dy",200,-10,10);
@@ -234,7 +255,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
         TH1D *h_dy_W2_cut = new TH1D("h_dy_W2_cut","dy",100,-4,3);
         //TH1D *h_W2 = new TH1D("h_W2","W2",1000,-4,8);
         TH2D *h_dxdy_W2_cut = new TH2D("h_dxdy_W2_cut","dx v dy",100,dy_L,dy_H,100,-4,3);
-        TH2D *h_dxdy_bkg = new TH2D("h_dxdy_bkg","dxdy (anticut shaded)",100,-4,4,100,-4,3);
+        TH2D *h_dxdy_bkg = new TH2D("h_dxdy_bkg","dxdy (anticut shaded)",100,-4,3,100,-4,3);
 
 	TH1D *h_dx_sim_n_bkg = new TH1D("h_dx_sim_n_bkg","dx distribution : data/sim comparison",100,-4,3);
 
@@ -255,6 +276,8 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	for (int i = 0; i<nentries; i++){
                 tree->GetEntry(i);
 
+                double eoverp = (eSH+ePS)/trP;
+
 	        // some conditions from your DB checks:
 	        bool goodHelicity = (lookupValue(HelicityCheck, runnum) == 1);
 	        bool goodMoller   = (lookupValue(MollerQuality, runnum) == 1);
@@ -265,6 +288,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	        bool validHel     = (helicity == -1 || helicity == 1);
 	        bool goodGrinch = (grinch_track == 0) && (grinch_clus_size>2);
 	        bool goodSbs_track = ntrack_sbs>0 && abs(vz_sbs)<0.27;
+	        bool goodEoverp = abs(eoverp-1)<0.2;
 
 	        if (sbs_veto==1){
 	        	if (goodSbs_track){
@@ -272,7 +296,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	        	}
 	        }
 
-                if(goodHelicity && goodMoller && goodPS && validHel && goodRunRange && goodEHCAL && goodVz /*&& goodGrinch*/){
+                if(goodHelicity && goodMoller && goodPS && validHel && goodRunRange && goodEHCAL && goodVz && goodEoverp /*&& goodGrinch*/){
 
  			//double KinE = 0.0;
 
@@ -318,7 +342,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
                         	h_dxdy_W2_cut->Fill(dy,dx);
                 	}
 
-                	if((W2_L<W2 && W2<3) && (coin_time_L<coin_time && coin_time<coin_time_H)){
+                	if((W2_L<W2 && W2<W2_H) && (coin_time_L<coin_time && coin_time<coin_time_H)){
 
                 		h_dxdy_bkg->Fill(dy,dx);
                 	}
@@ -369,7 +393,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	h_dxdy_W2_cut->Draw("COLZ");
 	c1->cd(2);
 	h_dxdy_bkg->SetStats(0);
-	h_dxdy_bkg->GetXaxis()->SetRangeUser(-4,4);
+	h_dxdy_bkg->GetXaxis()->SetRangeUser(-4,3);
 	h_dxdy_bkg->SetYTitle("HCAL_X(exp)-HCAL_X(act) (m)");
 	h_dxdy_bkg->SetXTitle("HCAL_Y(exp)-HCAL_Y(act) (m)");
 	h_dxdy_bkg->Draw("COLZ");

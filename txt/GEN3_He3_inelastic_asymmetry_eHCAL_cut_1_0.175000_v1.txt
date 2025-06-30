@@ -1,0 +1,9 @@
+N_plus = 317325
+N_minus = 312788
+A_in = 0.0072003
+err_A_in= 0.00125974
+inelastic_events = 5727.19
+QE_events = 16880
+N_events = 10639.7
+f_bkg = 0.339288
+err_f_bkg = 0.00518842

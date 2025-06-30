@@ -11,7 +11,7 @@ W2_L = -0.23
 W2_H = 1.43
 W2_width = 0.9
 
-eHCAL_L = 0.025
+eHCAL_L = 0.325
 
 P_sbs_L = 5.4
 P_sbs_H = 6.6
@@ -22,8 +22,8 @@ dy_H = 0.5
 dx_H = 0.4
 dx_L = -0.4
 
-dy_p_L = -0.25
-dy_p_H = 0.25
+dy_p_L = -0.20
+dy_p_H = 0.20
 
 dx_p_L = -1.35
 dx_p_H = -0.85

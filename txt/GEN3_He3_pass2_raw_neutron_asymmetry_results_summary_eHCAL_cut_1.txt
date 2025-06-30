@@ -1,0 +1,8 @@
+Nplus_total = 8684
+Nminus_total = 7855
+Aexp_total = 0.0501239
+errAexp_total = 0.00776603
+Pplus_total = 17886
+Pminus_total = 17858
+Apexp_total = 0.000783348
+errApexp_total = 0.0052893

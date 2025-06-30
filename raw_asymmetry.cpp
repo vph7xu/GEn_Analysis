@@ -125,6 +125,10 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	double W2 = 0.0;
 	double coin_time = 0.0;
 	double eHCAL = 0.0;
+    double eSH       = 0.0;
+    double trP       = 0.0;
+    double grinch_clus_size = 0.0;
+    double grinch_track = 0.0;
 
 	//double coin_time = 0.0;
 
@@ -138,6 +142,9 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 	double Nplus_total = 0.0;
 	double Nminus_total = 0.0;
+
+	double Pplus_total = 0.0;
+	double Pminus_total = 0.0;
 
 	double Pplus = 0;
 	double Pminus = 0;
@@ -170,6 +177,10 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	tree->SetBranchAddress("datetime", &datetime);
 	tree->SetBranchAddress("ePS", &ePS);
 	tree->SetBranchAddress("vz", &vz);
+    tree->SetBranchAddress("eSH",       &eSH);
+    tree->SetBranchAddress("trP",       &trP);
+    tree->SetBranchAddress("grinch_track",  &grinch_track);
+    tree->SetBranchAddress("grinch_clus_size",   &grinch_clus_size);
 
 
 	TH1I *h_IHWP = new TH1I("h_IHWP","IHWP",10,-2,2);
@@ -216,6 +227,8 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	for (int i=0; i<nentries; i++){		
 		tree->GetEntry(i);
 
+		double eoverp = (eSH+ePS)/trP;
+
 		bool goodHelicity = (lookupValue(HelicityCheck, runnum) == 1);
 	    bool goodMoller   = (lookupValue(MollerQuality, runnum) == 1);
 	    bool goodVz       = abs(vz) < 0.27;
@@ -223,6 +236,9 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	    bool goodRunRange = (run_num_L < runnum && runnum < run_num_H);
 	    bool goodEHCAL    = (eHCAL > eHCAL_L); 
 	    bool validHel     = (helicity == -1 || helicity == 1);
+	    bool goodGrinch = (grinch_track == 0) and (grinch_clus_size>2);
+	    bool goodEoverp = abs(eoverp-1)<0.2;
+
 	    //bool goodGrinch = (grinch_track == 0) && (grinch_clus_size>2);
 	    //bool goodSbs_track = ntrack_sbs>0 && abs(vz_sbs)<0.27;
 		
@@ -234,7 +250,7 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 		//h_IHWP->Fill(IHWP);
 
-		if(!goodHelicity || !goodMoller || !goodPS || !validHel || !goodRunRange || !goodEHCAL || !goodVz){
+		if(!goodHelicity || !goodMoller || !goodPS || !validHel || !goodRunRange || !goodEHCAL || !goodVz || !goodEoverp){
 			continue;
 		}
 
@@ -309,6 +325,9 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 					Nplus_total+=Nplus;
 					Nminus_total+=Nminus;
 
+					Pplus_total+=Pplus;
+					Pminus_total+=Pminus;
+
 					gAsym->SetPoint(runx,runx,Aexp);
 					gAsym->SetPointError(runx,0,errAexp);
 
@@ -375,6 +394,10 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	outfile_sum<<"Nminus_total = "<<Nminus_total<<endl;
 	outfile_sum<<"Aexp_total = "<<(Nplus_total - Nminus_total)/(Nplus_total + Nminus_total)<<endl;
 	outfile_sum<<"errAexp_total = " <<2*sqrt((Nplus_total*Nminus_total)*(Nplus_total+Nminus_total))/((Nplus_total+Nminus_total)*(Nplus_total+Nminus_total))<<endl;
+	outfile_sum<<"Pplus_total = "<<Pplus_total<<endl;
+	outfile_sum<<"Pminus_total = "<<Pminus_total<<endl;
+	outfile_sum<<"Apexp_total = "<<(Pplus_total-Pminus_total)/(Pplus_total+Pminus_total)<<endl;
+	outfile_sum<<"errApexp_total = " <<2*sqrt((Pplus_total*Pminus_total)*(Pplus_total+Pminus_total))/((Pplus_total+Pminus_total)*(Pplus_total+Pminus_total))<<endl;
 
 
 	outfile.close();
@@ -389,7 +412,7 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	//TCutG * cutsq1 = CreateSquareCut(dy_p_L,dx_p_L,dy_p_H,dx_p_H);
 
 	TCanvas *c = new TCanvas("c","c",3600,3000);
-	TCanvas *c1 = new TCanvas("c1","c1",3600,900);
+	TCanvas *c1 = new TCanvas("c1","c1",3600,1500);
 	
 	c->Divide(2,2);
 	c->cd(1);
@@ -404,24 +427,65 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	
 	c1->Divide(1,1);
 	c1->cd(1);
+
+	c1->SetGridy(true);    // turn ON horizontal grid
+	c1->SetGridx(false);   // keep vertical grid OFF
+
+	gStyle->SetGridStyle(2);   // 2 = dashed (1=solid, 3=dotted, …)
+	gStyle->SetGridWidth(1);   // thin lines; raise to 2-3 for thicker
+
+	//int font = 42;          // Helvetica
+	//gStyle->SetOptStat(0);  // no stat box
+	//gStyle->SetPadGridX(true);
+	//gStyle->SetPadGridY(true);
+
+	// ----- Axis fonts & sizes ----------------------------------------------------
+	//gStyle->SetLabelFont(font,  "XYZ");
+	//gStyle->SetTitleFont(font,  "XYZ");
+	//gStyle->SetLabelSize(0.048, "XYZ");   // tick-label size
+	//gStyle->SetTitleSize(0.052, "XYZ");   // axis-title size
+	//gStyle->SetTitleOffset(1.15, "X");
+	//gStyle->SetTitleOffset(1.35, "Y");
+
+	//c1->SetLeftMargin (0.14);   // leave room for y-axis title
+	//c1->SetBottomMargin(0.14);
+
+	//gAsym   ->SetMarkerStyle(kFullCircle);
+	//gAsym   ->SetMarkerSize (1.4);
+	//gAsym   ->SetLineWidth   (2);
+
+	//gAp_sym ->SetMarkerStyle(kFullSquare);
+	//gAp_sym ->SetMarkerSize (1.4);
+	//gAp_sym ->SetLineWidth   (2);
+
 	gAsym->GetXaxis()->SetTitle("run number");
-	gAsym->GetYaxis()->SetTitle("Raw Asymmetry");
-	gAsym->GetXaxis()->SetLimits(run_num_L,run_num_H);
+	gAsym->GetYaxis()->SetTitle("Raw Asymmetry (%)");
+	gAsym->GetXaxis()->SetLimits(run_num_L+150,run_num_H);
 	gAsym->GetYaxis()->SetRangeUser(-10,10);
 	gAsym->SetMarkerStyle(7);
 	gAsym->SetMarkerSize(5.0);
 	gAsym->SetMarkerColor(kBlue);
 	gAsym->Draw("AP");
 
-	gAp_sym->GetXaxis()->SetLimits(run_num_L,run_num_H);
+	//gAp_sym->GetXaxis()->SetTitle()
+	gAp_sym->GetXaxis()->SetLimits(run_num_L+150,run_num_H);
 	gAp_sym->GetYaxis()->SetRangeUser(-10,10);
 	gAp_sym->SetMarkerStyle(7);
 	gAp_sym->SetMarkerSize(5.0);
 	gAp_sym->SetMarkerColor(kRed);
 	gAp_sym->Draw("P SAME");
+	
+	//c1->SetLeftMargin  (0.15);          // ~45 px on a 900-px canvas
+	//c1->SetBottomMargin(0.16);          // leaves room for the X title
+	//gPad->Modified(); gPad->Update();
 
-    TLegend *legend = new TLegend(0.7, 0.8, 0.9, 0.9);  // Coordinates for the legend box (x1, y1, x2, y2)
+    TLegend *legend = new TLegend(0.75, 0.825, 0.95, 0.9);  // Coordinates for the legend box (x1, y1, x2, y2)
     
+	//legend->SetTextFont(font);
+	//legend->SetTextSize(0.042);   // ~11 pt on a 900-px canvas
+	//legend->SetBorderSize(0);
+	//legend->SetFillStyle(0);
+
     // Add entries to the legend
     legend->AddEntry(gAsym, "(e,e'n) events", "lp"); // "lp" means line and point in the legend
     legend->AddEntry(gAp_sym, "(e,e'p)events", "lp");
@@ -433,6 +497,15 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
     // Draw the legend
     legend->Draw();
+
+    gPad->SetGrid(0,1);             // only horizontal
+
+	gStyle->SetGridStyle(2);        // dashed
+	gStyle->SetGridWidth(1);        // or 2–3 for heavy lines
+	gStyle->SetGridColor(kGray+2);  // visible on dark or light BG
+
+	gPad->Modified();
+	gPad->Update();  
 
 	c->Print(Form("plots/%s_raw_asymmetry_eHCAL_cut_%s.pdf(",kin,std::to_string(flag_eHCAL_cut).c_str()));
 	c1->Print(Form("plots/%s_raw_asymmetry_eHCAL_cut_%s.pdf)",kin,std::to_string(flag_eHCAL_cut).c_str()));	

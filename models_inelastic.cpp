@@ -75,6 +75,10 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 	double weight = 0.0;
 	double fnucl = 0.0;
 	double eHCAL = 0.0;
+	double ePS = 0.0;
+	double eSH = 0.0;
+	double trP = 0.0;
+	double vz = 0.0;
 
 	sim_tree->SetBranchAddress("dx",&dx);
 	sim_tree->SetBranchAddress("dy",&dy);
@@ -83,6 +87,10 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 	sim_tree->SetBranchAddress("weight",&weight);
 	sim_tree->SetBranchAddress("fnucl",&fnucl);
 	sim_tree->SetBranchAddress("eHCAL",&eHCAL);
+	sim_tree->SetBranchAddress("ePS",&ePS);
+	sim_tree->SetBranchAddress("eSH",&eSH);
+	sim_tree->SetBranchAddress("trP",&trP);
+	sim_tree->SetBranchAddress("vz",&vz);
 
         TH1D *h_dx_n = new TH1D("h_dx_n","dx neutrons",100,-4,3);
         TH1D *h_dx_p = new TH1D("h_dx_p","dx_protons",100,-4,3);
@@ -92,13 +100,21 @@ std::pair<TH1D*, TH1D*> sim_hist(const char* sim_filename, double W2_L_sim, doub
 	for (int i = 0; i<nentries; i++){
                 sim_tree->GetEntry(i);
 
-		if (W2_L_sim<W2 and W2<W2_H_sim and dy_L_sim<dy and dy<dy_H_sim and eHCAL_L_sim<eHCAL){
+                double eoverp = (eSH+ePS)/trP;
+
+	        // some conditions from your DB checks:
+	        bool goodVz       = abs(vz) < 0.27;
+	        bool goodPS       = (ePS > 0.2);
+	        bool goodEHCAL    = (eHCAL > eHCAL_L_sim); 
+	        bool goodEoverp = abs(eoverp-1)<0.2;
+
+		if (W2_L_sim<W2 and W2<W2_H_sim and dy_L_sim<dy and dy<dy_H_sim and goodEHCAL and goodVz and goodPS and goodEoverp){
 
                         if (fnucl == 0.0){
-                                h_dx_n->Fill(dx,weight);
+                                h_dx_n->Fill(dx/*-0.05*/,weight);
                         }
                         else if (fnucl == 1.0){
-                                h_dx_p->Fill(dx,weight);
+                                h_dx_p->Fill(dx+0.05,weight);
                         }
                 }
 
@@ -124,6 +140,10 @@ std::tuple<TH1D*, TH1D*, TH1D*> sim_bkg_hist(const char* sim_filename, double W2
 	double weight = 0.0;
 	double fnucl = 0.0;
 	double eHCAL = 0.0;
+	double ePS = 0.0;
+	double eSH = 0.0;
+	double trP = 0.0;
+	double vz = 0.0;
 
 	sim_tree->SetBranchAddress("dx",&dx);
 	sim_tree->SetBranchAddress("dy",&dy);
@@ -132,6 +152,10 @@ std::tuple<TH1D*, TH1D*, TH1D*> sim_bkg_hist(const char* sim_filename, double W2
 	sim_tree->SetBranchAddress("weight",&weight);
 	sim_tree->SetBranchAddress("fnucl",&fnucl);
 	sim_tree->SetBranchAddress("eHCAL",&eHCAL);
+	sim_tree->SetBranchAddress("ePS",&ePS);
+	sim_tree->SetBranchAddress("eSH",&eSH);
+	sim_tree->SetBranchAddress("trP",&trP);
+	sim_tree->SetBranchAddress("vz",&vz);
 
 	TH1D *h_dx_bkg = new TH1D("h_dx_bkg","dx bkg",100,-4,3);
         TH1D *h_dx_bkg_n = new TH1D("h_dx_bkg_n","dx bkg (neutrons)",100,-4,3);
@@ -142,14 +166,23 @@ std::tuple<TH1D*, TH1D*, TH1D*> sim_bkg_hist(const char* sim_filename, double W2
 	for (int i = 0; i<nentries; i++){
                 sim_tree->GetEntry(i);
 
-		if (W2_L_sim<W2 and W2<W2_H_sim and dy_L_sim<dy and dy<dy_H_sim and eHCAL_L_sim<eHCAL){
-                        h_dx_bkg->Fill(dx,weight);
+                double eoverp = (eSH+ePS)/trP;
+
+	        // some conditions from your DB checks:
+	        bool goodVz       = abs(vz) < 0.27;
+	        bool goodPS       = (ePS > 0.2);
+	        bool goodEHCAL    = (eHCAL > eHCAL_L_sim); 
+	        bool goodEoverp = abs(eoverp-1)<0.2;
+
+
+		if (W2_L_sim<W2 and W2<W2_H_sim and dy_L_sim<dy and dy<dy_H_sim and goodEHCAL and goodVz and goodPS and goodEoverp){
+                        h_dx_bkg->Fill(dx+0.4,weight);
 
                         if (fnucl == 0.0){
                                 h_dx_bkg_n->Fill(dx,weight);
                         }
                         else if (fnucl == 1.0){
-                                h_dx_bkg_p->Fill(dx,weight);
+                                h_dx_bkg_p->Fill(dx+0.05,weight);
                         }
                 }
 
@@ -249,6 +282,12 @@ void models_inelastic(const char* filename,const char* sim_filename,const char* 
 	double trP_sbs = 0.0;
 	double ntrack_sbs = 0.0;
 	double vz = 0.0;	
+	double vz_sbs = 0.0;	
+    	double grinch_clus_size = 0.0;
+    	double grinch_track = 0.0;
+    	double ePS       = 0.0;
+    	double eSH = 0.0;
+    	double trP = 0.0;
 
 	tree->SetBranchAddress("runnum",&runnum);
 	tree->SetBranchAddress("helicity",&helicity);
@@ -270,6 +309,13 @@ void models_inelastic(const char* filename,const char* sim_filename,const char* 
 	tree->SetBranchAddress("trP_sbs",&trP_sbs);
 	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
 	tree->SetBranchAddress("vz",&vz);
+	tree->SetBranchAddress("vz_sbs",&vz_sbs);
+    	tree->SetBranchAddress("grinch_track",  &grinch_track);
+    	tree->SetBranchAddress("grinch_clus_size",   &grinch_clus_size);
+	tree->SetBranchAddress("ePS",       &ePS);
+	tree->SetBranchAddress("eSH",       &eSH);
+	tree->SetBranchAddress("trP",       &trP);
+
 
 
         TH1D *h_dx = new TH1D("h_dx","dx",200,-10,10);
@@ -283,7 +329,7 @@ void models_inelastic(const char* filename,const char* sim_filename,const char* 
         TH1D *h_dy_W2_cut = new TH1D("h_dy_W2_cut","dy",100,-4,3);
         //TH1D *h_W2 = new TH1D("h_W2","W2",1000,-4,8);
         TH2D *h_dxdy_W2_cut = new TH2D("h_dxdy_W2_cut","dx v dy",100,dy_L,dy_H,100,-4,3);
-        TH2D *h_dxdy_bkg = new TH2D("h_dxdy_bkg","dxdy (anticut shaded)",100,-4,4,100,-4,3);
+        TH2D *h_dxdy_bkg = new TH2D("h_dxdy_bkg","dxdy (anticut shaded)",100,-4,3,100,-4,3);
 
 	TH1D *h_dx_sim_n_bkg = new TH1D("h_dx_sim_n_bkg","dx distribution : data/sim comparison",100,-4,3);
 
@@ -301,25 +347,40 @@ void models_inelastic(const char* filename,const char* sim_filename,const char* 
 	//get the bkg from data
 	for (int i = 0; i<nentries; i++){
                 tree->GetEntry(i);
-                if(lookupValue(HelicityCheck,runnum)==1 and lookupValue(MollerQuality,runnum)==1 and ( helicity == -1 or helicity == 1)){
 
- 			double KinE = 0.0;
+                double eoverp = (eSH+ePS)/trP;
 
-			for (int j = 0; j<nblk_HCAL; j++){
+	        // some conditions from your DB checks:
+	        bool goodHelicity = (lookupValue(HelicityCheck, runnum) == 1);
+	        bool goodMoller   = (lookupValue(MollerQuality, runnum) == 1);
+	        bool goodVz       = abs(vz) < 0.27;
+	        bool goodPS       = (ePS > 0.2);
+	        bool goodRunRange = (run_num_L < runnum && runnum < run_num_H);
+	        bool goodEHCAL    = (eHCAL > eHCAL_L); 
+	        bool validHel     = (helicity == -1 || helicity == 1);
+	        bool goodGrinch = (grinch_track == 0) && (grinch_clus_size>2);
+	        bool goodSbs_track = ntrack_sbs>0 && abs(vz_sbs)<0.27;
+	        bool goodEoverp = abs(eoverp-1)<0.2;
+
+                if(goodHelicity && goodMoller && goodPS && validHel && goodRunRange && goodEHCAL && goodVz && goodEoverp /*&& goodGrinch*/){
+
+ 			//double KinE = 0.0;
+
+			//for (int j = 0; j<nblk_HCAL; j++){
 			//KinE += hcal_clus_e[j]/sampling_fractions_each_blk[hcal_clus_id[j]];
-				KinE += hcal_clus_mem_e[j]/sampling_fractions_each_blk[hcal_clus_mem_id[j]];
+				//KinE += hcal_clus_mem_e[j]/sampling_fractions_each_blk[hcal_clus_mem_id[j]];
 
 				//if (i%1000 == 0){ 
 				//std::cout<<"event : "<<i<<"blk id: "<<hcal_clus_mem_id[j]<<" blk energy : "<<hcal_clus_mem_e[j]<<" blk sf : " <<sampling_fractions_each_blk[hcal_clus_mem_id[j]]<<endl;
 				//}
-			}
+			//}
 			//if (i%1000 == 0){ 
 			//std::cout<<"event : "<<i<<" kinE : "<<KinE<<endl;
 			//}
 			//double Pperp = theta_pq * pN_expect;
-			double realPperp = (theta_pq * sqrt(-pow(0.938,2)+pow((KinE+0.938),2))); // assuming mN and mP is equal
-			double realPpar = (cos(theta_pq) * sqrt(-pow(0.938,2)+pow((KinE+0.938),2)))-pN_expect;
-			double Pmiss = sqrt(pow(realPperp,2)+pow(realPpar,2));          
+			//double realPperp = (theta_pq * sqrt(-pow(0.938,2)+pow((KinE+0.938),2))); // assuming mN and mP is equal
+			//double realPpar = (cos(theta_pq) * sqrt(-pow(0.938,2)+pow((KinE+0.938),2)))-pN_expect;
+			//double Pmiss = sqrt(pow(realPperp,2)+pow(realPpar,2));          
 
 			//before adding a cut on W2
 
@@ -330,7 +391,7 @@ void models_inelastic(const char* filename,const char* sim_filename,const char* 
                 	h_dxdy->Fill(dy,dx);
                 	h_W2->Fill(W2);
 
-                	bool cut_Ppar = abs(realPpar)<1.5;
+                	//bool cut_Ppar = abs(realPpar)<1.5;
                 	bool cut_eHCAL = (eHCAL)>eHCAL_L;
 
                 	if (W2_L<W2 and W2<W2_H and cut_eHCAL){
@@ -394,7 +455,7 @@ void models_inelastic(const char* filename,const char* sim_filename,const char* 
 	h_dxdy_W2_cut->Draw("COLZ");
 	c1->cd(2);
 	h_dxdy_bkg->SetStats(0);
-	h_dxdy_bkg->GetXaxis()->SetRangeUser(-4,4);
+	h_dxdy_bkg->GetXaxis()->SetRangeUser(-4,3);
 	h_dxdy_bkg->SetYTitle("HCAL_X(exp)-HCAL_X(act) (m)");
 	h_dxdy_bkg->SetXTitle("HCAL_Y(exp)-HCAL_Y(act) (m)");
 	h_dxdy_bkg->Draw("COLZ");
@@ -503,10 +564,10 @@ void models_inelastic(const char* filename,const char* sim_filename,const char* 
 
         TLegend *legend = new TLegend(0.6,0.6,0.9,0.9);
         legend->AddEntry(h_dx_W2_cut_plotting,"Data","p");
-        legend->AddEntry(hist_p,"sim proton","lf");
-        legend->AddEntry(hist_n,"sim neutron","lf");
-        legend->AddEntry(hist_bkg,"bkg data","lf");
-        legend->AddEntry(h_dx_sim_n_bkg,"full model","lf");
+        legend->AddEntry(hist_p,"simulated protons","lf");
+        legend->AddEntry(hist_n,"simulated neutrons","lf");
+        legend->AddEntry(hist_bkg,"simulated background","lf");
+        legend->AddEntry(h_dx_sim_n_bkg,"N(sim_p+R*sim_n+Nbg*sim_bkg)","lf");
         //legend->Draw();
 
 	TLine *line1 = new TLine(dx_L,0.0,dx_L,2000);

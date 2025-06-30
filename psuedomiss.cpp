@@ -136,6 +136,8 @@ void psuedomiss(const char* filename, const char* printfilename, const char *kin
 	TH2D *h_dy_Pperp_cut_coin_time_and_dx = new TH2D("h_dy_Pperp_cut_coin_time","Pperp v dy dist  with coin cut ; delta-y (m) ; pPerp (GeV) ",100,-4,3,100,0,1);
 	TH2D *h_dy_Pperp_cut_QE = new TH2D("h_dy_Pperp_cut_QE","Pperp v dy dist  with W2, and coin cut ; delta-y (m) ; pPerp (GeV)",100,-4,3,100,0,1);
 
+	TH1D *h_W2 = new TH1D("h_W2","W^{2}; W^{2} (GeV^{2})",50,-2,4);
+
 	int nentries = tree->GetEntries();
 
 	for (int i = 0; i<nentries; i++){	
@@ -206,6 +208,11 @@ void psuedomiss(const char* filename, const char* printfilename, const char *kin
                 h_realPpar_W2_cut_coin_time_and_dx->Fill(W2,realPpar);
 
                 //h_dy_Pperp_cut_coin_time_and_dx->Fill(dy,Pperp);
+
+                if(Pperp<0.15 and dy_L<dy and dy<dy_H){
+                	h_W2->Fill(W2);
+
+                }
 
 
 				if(W2_L<W2 and W2<W2_H /*and dx_L<dx and dx<dx_H and dy<dy_H and dy<dy_L*/){
@@ -447,6 +454,9 @@ void psuedomiss(const char* filename, const char* printfilename, const char *kin
     h_dx_Pperp_cut_QE->Draw("COLZ");
     c11->cd(3);
     h_dx_Pperp_cut_coin_time_and_dy->Draw("COLZ");
+    c11->cd(4);
+    h_W2->Draw();
+
 
 
 	c->Print(Form("plots/%s_Pperp.pdf(",kin));
