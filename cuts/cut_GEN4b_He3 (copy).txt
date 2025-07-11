@@ -1,0 +1,48 @@
+coin_time_mean = 186
+coin_time_L = 181
+coin_time_H = 188
+coin_time_width = 3
+
+coin_time_ac_L = 140.0
+coin_time_ac_H = 240.0
+
+W2_mean = 0.88
+W2_L = -0.23
+W2_H = 1.43
+W2_width = 0.9
+
+eHCAL_L = 0.325
+
+P_sbs_L = 5.4
+P_sbs_H = 6.6
+
+dy_L = -0.5
+dy_H = 0.5
+
+dx_H = 0.4
+dx_L = -0.4
+
+dy_p_L = -0.20
+dy_p_H = 0.20
+
+dx_p_L = -1.35
+dx_p_H = -0.85
+
+dy_ac_L = -1.1
+dy_ac_H = 1.0
+
+dx_C = -1.0
+dx_R = 0.5
+
+dy_C = 0.0 
+dy_R = 0.5
+
+IHWP_flip = 1
+
+run_num_L = 5000
+run_num_H = 6100
+
+N_cut_cx = 0.0
+N_cut_cy = -0.025
+N_cut_rx = 0.35
+N_cut_ry = 0.
