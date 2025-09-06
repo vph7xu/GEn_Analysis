@@ -1,6 +1,6 @@
 coin_time_mean = 0
-coin_time_L = -10
-coin_time_H = 10
+coin_time_L = 116
+coin_time_H = 126
 coin_time_width = 10
 
 coin_time_ac_L = 60.0

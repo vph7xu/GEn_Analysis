@@ -164,14 +164,14 @@ void OptimizeCuts(const char* dataFile,
     // example: dxL from -1 to 0
     //for(int i=0;i<nSteps;++i) dxL_vals.push_back(-1.0 + i*(1.0/nSteps));
     //for(int i=0;i<nSteps;++i) dxH_vals.push_back( 0.0 + i*(1.0/nSteps));
-    for(int i=0;i<nSteps;++i) dyL_vals.push_back(-0.5 + i*(0.3/nSteps));
-    for(int i=0;i<nSteps;++i) dyH_vals.push_back( 0.5 - i*(0.3/nSteps));
-    for(int i=0;i<nSteps;++i) W2L_vals.push_back(-1.3 + i*(0.5/nSteps));
-    for(int i=0;i<nSteps;++i) W2H_vals.push_back( 1.3 + i*(0.5/nSteps));
+    for(int i=0;i<nSteps-1;++i) dyL_vals.push_back(-0.5 + i*(0.5/nSteps));
+    for(int i=0;i<nSteps-1;++i) dyH_vals.push_back( 0.5 - i*(0.5/nSteps));
+    for(int i=0;i<nSteps;++i) W2L_vals.push_back(-2.0 + i*(1.0/nSteps));
+    for(int i=0;i<nSteps;++i) W2H_vals.push_back( 1.4 + i*(0.5/nSteps));
     for(int i=0;i<nSteps;++i) eL_vals.push_back(0.025 + i*(0.5/nSteps));
     //for(int i=0;i<nSteps;++i) eH_vals.push_back(0.5 + i*(2.0/nSteps));
-    for(int i=0;i<nSteps;++i) tL_vals.push_back(186 - i*(5/nSteps));
-    for(int i=0;i<nSteps;++i) tH_vals.push_back(186 + i*(5/nSteps));
+    for(int i=1;i<4;++i) tL_vals.push_back(120 - i*(6/3));
+    for(int i=1;i<4;++i) tH_vals.push_back(120 + i*(6/3));
 
     // 5. Loop over grid, compute FOM
     double bestFOM = 0.0001;

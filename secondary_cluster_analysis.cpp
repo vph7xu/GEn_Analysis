@@ -94,6 +94,8 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
   double dx_all_clus[100];
   double dy_all_clus[100];
   int helicity;
+  double ntrack_sbs;
+  double vz_sbs;
 
 
   // NOTE: 512 > your max 288, so we’re safe; change if you have more hits.
@@ -115,6 +117,8 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
   T->SetBranchAddress("hcal_clus_nblk",hcal_clus_nblk);
   T->SetBranchAddress("dx_all_clus",&dx_all_clus);
   T->SetBranchAddress("dy_all_clus",&dy_all_clus);
+  T->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
+  T->SetBranchAddress("vz_sbs",&vz_sbs);
 
   TH1D* h_eratio = new TH1D("h_eratio","eratio distribution ; eratio ; number of secondary clusters",100,0,2);
   TH1D* h_eratio_test = new TH1D("h_eratio_test","h_eratio_test",100,0,2);
@@ -145,6 +149,8 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
   TH1D* h_dx = new TH1D("h_dx","delta-x distribution with QE cuts ; delta-x (m)",100,-4,3);
   TH1D* h_dx_er2 = new TH1D("h_dx_er2","delta-x distribution for eratio<0.2 with other QE cuts ; delta-x (m)",100,-4,3);
   TH1D* h_dx_er4 = new TH1D("h_dx_er4","delta-x distribution for eratio<0.4 with other QE cuts ; delta-x (m)",100,-4,3);
+  TH1D* h_dx_er2_antisbs = new TH1D("h_dx_er2_antisbs","delta-x distribution for eratio<0.2 with other QE cuts and ntrack_sbs==0 ; delta-x (m)",100,-4,3);
+  TH1D* h_dx_er4_antisbs = new TH1D("h_dx_er4_antisbs","delta-x distribution for eratio<0.4 with other QE cuts and ntrack_sbs==0 ; delta-x (m)",100,-4,3);
 
   TH1D* h_W2 = new TH1D("h_W2","W^{2} ;W^{2} (GeV^{2}) ",100,-3,5);
   TH1D* h_coin_time = new TH1D("h_coin_time","coincidence time; coincidence time (ns)",100, coin_time_L-30,coin_time_H+30);
@@ -186,6 +192,7 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
     bool goodDy       = (dy>dy_L && dy<dy_H);
     bool goodQE       = goodW2 && goodCointime /*&& goodDx*/ && goodDy;
     bool goodGlobal   = (goodVz && goodPS && goodEHCAL);
+    bool antisbs = (ntrack_sbs == 0 || abs(vz-vz_sbs)>0.05 || abs(vz)>0.27);
 
     if(!goodHelicity || !goodMoller || !goodRunRange || !goodGlobal || !validHelicity) continue;
 
@@ -255,12 +262,14 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
           h_secondary_dx_dist->Fill(dxi,dist);
           h_secondary_dy_dist->Fill(dyi,dist);
 
-          if(abs(dt+3)>6){
+          bool gooddt = abs(dt+3)<2;
+
+          if(!gooddt){
             h_dxeratio->Fill(dxi,er);
 
           }
 
-          if(abs(dt+3)<6){
+          if(gooddt){
             hdist->Fill(dist);
             h_energyvsdist->Fill(dist,hcal_clus_e[ik]);
             h_eratio_wide_bins_tdiff_cut->Fill(er);
@@ -268,7 +277,7 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
             nstrong++;
           }
 
-          if(er > 0.2 and abs(dt+3)<6 ){
+          if(er > 0.2 and gooddt ){
             hdist2->Fill(dist);
             h_energyvsdist2->Fill(dist,hcal_clus_e[ik]);
             h_secondary_dxdy2->Fill(dyi,dxi);
@@ -276,7 +285,7 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
             h_secondary_dy_dist2->Fill(dyi,dist);
             nstrong2++;
           }
-          if (er > 0.4 and abs(dt+3)<6){
+          if (er > 0.4 and gooddt ){
             hdist4->Fill(dist);
             h_energyvsdist4->Fill(dist,hcal_clus_e[ik]);
             h_secondary_dxdy4->Fill(dyi,dxi);
@@ -284,13 +293,13 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
             h_secondary_dy_dist4->Fill(dyi,dist);
             nstrong4++;
           }
-          if (er > 0.6 and abs(dt+3)<6){
+          if (er > 0.6 and gooddt){
             hdist6->Fill(dist);
             h_energyvsdist6->Fill(dist,hcal_clus_e[ik]);
             h_secondary_dxdy6->Fill(dyi,dxi);
             nstrong6++;
           }
-          if (er > 0.8 and abs(dt+3)<6){
+          if (er > 0.8 and gooddt){
             hdist8->Fill(dist);
             h_energyvsdist8->Fill(dist,hcal_clus_e[ik]);
             h_secondary_dxdy8->Fill(dyi,dxi);
@@ -307,16 +316,26 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
       h_nstrong_clusters_6->Fill(nstrong6);
       h_nstrong_clusters_8->Fill(nstrong8);
 
-      if (nstrong2 > 0){
+      if (nstrong2 == 0){
         h_dx_er2->Fill(dx);
+        if (antisbs){
+          h_dx_er2_antisbs->Fill(dx);
+        }
+
       }
-      if (nstrong4 > 0){
+      if (nstrong4 == 0){
         h_dx_er4->Fill(dx);
+        if (antisbs){
+          h_dx_er4_antisbs->Fill(dx);
+        }
       }
 
 
       double eratio_secondary = hcal_clus_e[i1] / hcal_clus_e[i0];
       double tdiff_secondary  = hcal_clus_atime[i0] - hcal_clus_atime[i1];
+
+      bool goodtdiff_secondary = abs(tdiff_secondary+3)<2;
+
       //double eratio_test = hcal_clus_e[i0]/eHCAL;
 
       double eratio_test1 = hcal_clus_e[i1]/eHCAL;
@@ -326,11 +345,11 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
       //h_tdiff ->Fill(tdiff);
       //h_eratio_test->Fill(eratio_test);
 
-      if(eratio_secondary > 0.2 and abs(tdiff_secondary+3)<6 ){
+      if(eratio_secondary > 0.2 and  goodtdiff_secondary){
         h_nclusters->Fill(nclus);
       }
 
-      if(hcal_clus_e[i1] > 0.1 and abs(tdiff_secondary+3)<6 ){
+      if(hcal_clus_e[i1] > 0.1 and goodtdiff_secondary ){
         h_nclusters_1->Fill(nclus);
       }
 
@@ -359,13 +378,14 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
   TCanvas* c8 = new TCanvas("c8","c8",3000,3600);
   TCanvas* c9 = new TCanvas("c9","c9",3000,3600);
   TCanvas* c10 = new TCanvas("c10","c10",3000,3600);
+  TCanvas* c11 = new TCanvas("c11", "c11",3000,3600);
 
 
-  TLine *line1 = new TLine(-9,0.0,-9,h_tdiff->GetMaximum());
+  TLine *line1 = new TLine(-5,0.0,-5,h_tdiff->GetMaximum());
   line1->SetLineColor(kRed);
   line1->SetLineWidth(2);
   
-  TLine *line2 = new TLine(3,0.0,3,h_tdiff->GetMaximum());
+  TLine *line2 = new TLine(-1,0.0,-1,h_tdiff->GetMaximum());
   line2->SetLineColor(kRed);
   line2->SetLineWidth(2);
 
@@ -464,9 +484,13 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
   h_dx->SetLineColor(kAzure);
   h_dx_er2->SetLineColor(kOrange);
   h_dx_er4->SetLineColor(kViolet);
+  h_dx_er2_antisbs->SetLineColor(kBlack);
+  h_dx_er4_antisbs->SetLineColor(kCyan);
   h_dx->Draw();
   h_dx_er2->Draw("same");
   h_dx_er4->Draw("same");
+  h_dx_er2_antisbs->Draw("same");
+  h_dx_er4_antisbs->Draw("same");
 
   c6->cd(4);
   // -------------------------------------------------------------
@@ -523,6 +547,38 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
   c10->cd(4);
   h_secondary_dy_dist4->Draw("COLZ");
 
+
+  c11->Divide(2,2);
+  c11->cd(1); 
+  gPad->SetLogy(1);
+  h_dx->SetLineColor(kAzure);
+  h_dx_er2->SetLineColor(kOrange);
+  h_dx_er4->SetLineColor(kViolet);
+  h_dx_er2_antisbs->SetLineColor(kBlack);
+  h_dx_er4_antisbs->SetLineColor(kCyan);
+  h_dx->Draw();
+  h_dx_er2->Draw("same");
+  h_dx_er4->Draw("same");
+  //h_dx_er2_antisbs->Draw("same");
+  //h_dx_er4_antisbs->Draw("same");
+
+  c11->cd(2);
+  // -------------------------------------------------------------
+  TLegend *leg1 = new TLegend(0.3, 0.3,   // x1, y1  (lower-left corner)
+                             0.8, 0.8);  // x2, y2  (upper-right corner)
+  leg1->SetBorderSize(0);      // no frame
+  leg1->SetFillStyle(0);       // no grey background
+  leg1->SetTextFont(42);       // same font as axis labels
+
+  leg1->AddEntry(h_dx,      "primary clusters",                "l");
+  leg1->AddEntry(h_dx_er2,  "E_{sec}/E_{prim} < 0.2",          "l");
+  leg1->AddEntry(h_dx_er4,  "E_{sec}/E_{prim} < 0.4",          "l");
+  leg1->AddEntry(h_dx_er2_antisbs, "E_{sec}/E_{prim} < 0.2 && antisbs", "l");
+  leg1->AddEntry(h_dx_er4_antisbs, "E_{sec}/E_{prim} < 0.4 && antisbs", "l");
+
+  leg1->Draw();
+  gPad->Update();    
+
   auto fixMargins = [](TCanvas* c){
     for (int ipad = 1; ipad <= c->GetListOfPrimitives()->GetSize(); ++ipad){
       c->cd(ipad);
@@ -542,6 +598,7 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
   fixMargins(c8);
   fixMargins(c9);
   fixMargins(c10);
+  //fixMargins(c11);
 
   c->SaveAs(Form("plots/%s_secondary_cluster_analysis.pdf(",printfilename));
   c1->SaveAs(Form("plots/%s_secondary_cluster_analysis.pdf",printfilename));
@@ -553,7 +610,8 @@ void secondary_cluster_analysis(const char* fname          = "input.root",
   c7->SaveAs(Form("plots/%s_secondary_cluster_analysis.pdf",printfilename));
   c8->SaveAs(Form("plots/%s_secondary_cluster_analysis.pdf",printfilename));
   c9->SaveAs(Form("plots/%s_secondary_cluster_analysis.pdf",printfilename));
-  c10->SaveAs(Form("plots/%s_secondary_cluster_analysis.pdf)",printfilename));
+  c10->SaveAs(Form("plots/%s_secondary_cluster_analysis.pdf",printfilename));
+  c11->SaveAs(Form("plots/%s_secondary_cluster_analysis.pdf)",printfilename));
 
 }
 
