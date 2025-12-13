@@ -115,6 +115,11 @@ void calAvgKin(const char* filename, const char* kin, bool flag_eHCAL_cut){
 	const int nexp = 6;
 	double T_avg[nexp] = {0};
 	double T_1_Q2_avg = 0;
+	double T_1_tau_avg = 0;
+	double T_1_epsilon_avg = 0;
+	double T_1_Px_avg = 0;
+	double T_1_Pz_avg = 0;
+
 	double Q2_avg = 0;
 	double tau_avg = 0;
 	double epsilon_avg = 0;
@@ -190,7 +195,14 @@ void calAvgKin(const char* filename, const char* kin, bool flag_eHCAL_cut){
 			T_avg[3] += (T_3 - T_avg[3]) / count;
 			T_avg[4] += (T_4 - T_avg[4]) / count;
 			T_avg[5] += (T_5 - T_avg[5]) / count;
+			
 			T_1_Q2_avg += (T_1*Q2 - T_1_Q2_avg) / count;
+			T_1_tau_avg += (T_1*tau - T_1_tau_avg) / count;
+			T_1_epsilon_avg += (T_1*epsilon - T_1_epsilon_avg) / count;
+			T_1_Px_avg += (T_1*Px - T_1_Px_avg) / count;
+			T_1_Pz_avg += (T_1*Pz - T_1_Pz_avg) / count;
+
+
 			//Q2_avg = T_1_Q2_avg / T_avg[1];
 
 			// We also get the average kinematic variables for later
@@ -210,12 +222,11 @@ void calAvgKin(const char* filename, const char* kin, bool flag_eHCAL_cut){
 	std::ofstream outfile;
 	outfile.open(Form("txt/%s_average_kinematic_values_eHCAL_cut_%s.txt",kin,std::to_string(flag_eHCAL_cut).c_str()));
 
-	outfile<<"Q2_avg = "<<Q2_avg<<endl;
-	outfile<<"tau_avg = "<<tau_avg<<endl;
-	outfile<<"epsilon_avg = "<<epsilon_avg<<endl;
-	outfile<<"Px_avg = "<<Px_avg<<endl;
-	outfile<<"Pz_avg = "<<Pz_avg<<endl;
-
+	outfile<<"Q2_avg = "<<T_1_Q2_avg<<endl;
+	outfile<<"tau_avg = "<<T_1_tau_avg<<endl;
+	outfile<<"epsilon_avg = "<<T_1_epsilon_avg<<endl;
+	outfile<<"Px_avg = "<<T_1_Px_avg<<endl;
+	outfile<<"Pz_avg = "<<T_1_Pz_avg<<endl;
 	std::cout<<"count = "<<count<<endl;
 
 }
@@ -245,8 +256,8 @@ void gen_extraction(const char* kin = "GEN3", bool flag_eHCAL_cut = false){
 
 	double lambda = (-B+sqrt(B*B-4*A*C))/(2*A);
 
-	double sigma2_lambda_stat = (pow((C/(A*sqrt(B*B-4*A*C)) + lambda/A)*(epsilon_avg/tau_avg),2) + 1/(B*B -4*A*C))*err_Aphy_stat_sum*err_Aphy_stat_sum;
-	double sigma2_lambda_sys = (pow((C/(A*sqrt(B*B-4*A*C)) + lambda/A)*(epsilon_avg/tau_avg),2) + 1/(B*B -4*A*C))*err_Aphy_sys*err_Aphy_sys;
+	double sigma2_lambda_stat = (pow((C/(A*sqrt(B*B-4*A*C)) + lambda/A)*(epsilon_avg/tau_avg) + 1/sqrt((B*B -4*A*C))),2)*err_Aphy_stat_sum*err_Aphy_stat_sum;
+	double sigma2_lambda_sys = (pow((C/(A*sqrt(B*B-4*A*C)) + lambda/A)*(epsilon_avg/tau_avg) + 1/sqrt((B*B -4*A*C))),2)*err_Aphy_sys*err_Aphy_sys;
 
 	double sigma_lambda_stat = sqrt(sigma2_lambda_stat);
 	double sigma_lambda_sys = sqrt(sigma2_lambda_sys);

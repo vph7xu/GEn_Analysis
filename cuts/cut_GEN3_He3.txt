@@ -16,14 +16,14 @@ eHCAL_L = 0.125
 P_sbs_L = 4.0
 P_sbs_H = 4.8
 
-dy_L = -0.26
-dy_H = 0.38
+dy_L = -0.5
+dy_H = 0.5
 
 dx_H = 0.5
 dx_L = -0.5
 
-dy_p_L = -0.2
-dy_p_H = 0.2
+dy_p_L = -0.5
+dy_p_H = 0.5
 
 dx_p_L = -1.78
 dx_p_H = -1.28

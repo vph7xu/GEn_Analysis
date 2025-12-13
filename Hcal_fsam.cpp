@@ -65,7 +65,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
     TH2D *hfsampley = new TH2D("hfsampley","Sampling fraction vs yHCAL distribution",100,-0.8,0.8,100,0,0.4);
     TH2D *hdxdy = new TH2D("hdxdy","dx vs dy distribution",400,-2,2,800,-4,4);
     TH2D *heratio = new TH2D("heratio", "Actual energy dep/expected energy dep vs xHCAL",200,-3,1.5,200,0.0,0.4);
-    TH2D *heratioy = new TH2D("heratioy", "Actual energy dep/expected energy dep vs xHCAL",200,-0.8,0.8,200,0.0,0.4);
+    TH2D *heratioy = new TH2D("heratioy", "Actual energy dep/expected energy dep vs yHCAL",200,-0.8,0.8,200,0.0,0.4);
 
     TH2D *hfsvblkid = new TH2D("hfsvblkid","sampling fraction vs blk id",300,0,300,200,0.025,0.3);
 

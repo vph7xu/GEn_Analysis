@@ -56,7 +56,7 @@ void overlay_dx(const char* file1,
   }
 
   const char *cut1 = "ePS>0.2&&abs(vz)<0.27&&abs((ePS+eSH)/trP-1)<0.2&&eHCAL>0.225&&W2<1.5&&abs(dy)<0.4&&abs(coin_time-121)<3";
-  const char *cut2 = "ePS>0.2&&abs(vz)<0.27&&abs((ePS+eSH)/trP-1)<0.2&&eHCAL>0.225&&W2<1.5&&abs(dy)<0.4&&abs(coin_time-184)<3";  
+  const char *cut2 = "ePS>0.2&&abs(vz)<0.27&&abs((ePS+eSH)/trP-1)<0.2&&eHCAL>0.225&&W2<1.5&&abs(dy)<0.4&&abs(coin_time-184)<2";  
 
   auto* h1 = makeHist(f1.get(), treename, var, cut1, nbins, xmin, xmax, "h1");
   auto* h2 = makeHist(f2.get(), treename, var, cut2, nbins, xmin, xmax, "h2");

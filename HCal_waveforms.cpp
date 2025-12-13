@@ -152,6 +152,8 @@ void hcal_allblock_waves_pdf_leaf(const char* rootfile,
   TLeaf *l_ns    = T->GetLeaf("sbs.hcal.nsamps");
   TLeaf *l_sidx  = T->GetLeaf("sbs.hcal.samps_idx");
   TLeaf *l_samps = T->GetLeaf("sbs.hcal.samps");
+
+  
   if(!l_row || !l_col || !l_ns || !l_sidx || !l_samps){
     std::cerr << "ERROR: missing one or more leaves:"
               << " adcrow="<<(bool)l_row<<" adccol="<<(bool)l_col

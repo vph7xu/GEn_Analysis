@@ -288,6 +288,8 @@ void QE_cuts(const char* filename, const char* printfilename, const char* kin, b
         std::cout.flush();
     }
 	
+    gStyle->SetOptStat(0);
+
     // Create canvases for drawing the histograms
     TCanvas* c = new TCanvas("c", "c", 3600, 3000);
     TCanvas* clog = new TCanvas("clog", "clog", 5400, 3000);
@@ -368,13 +370,13 @@ void QE_cuts(const char* filename, const char* printfilename, const char* kin, b
     h_dx_g_eHCAL_coin_W2_dy_cuts->SetFillColor(kOrange);
     h_dx_g_eHCAL_coin_W2_dy_dx_cuts->SetFillColor(kRed);
 
-    h_dy->SetFillColor(kGray);
-    h_dy_gcuts->SetFillColor(kBlue);
-    h_dy_g_eHCAL_cuts->SetFillColor(kGreen);
-    h_dy_g_eHCAL_coin_cuts->SetFillColor(kMagenta);
-    h_dy_g_eHCAL_coin_W2_cuts->SetFillColor(kCyan);
-    h_dy_g_eHCAL_coin_W2_dy_cuts->SetFillColor(kOrange);
-    h_dy_g_eHCAL_coin_W2_dy_dx_cuts->SetFillColor(kRed);
+    h_dy->SetFillColorAlpha(kGray);
+    h_dy_gcuts->SetFillColorAlpha(kBlue);
+    h_dy_g_eHCAL_cuts->SetFillColorAlpha(kGreen);
+    h_dy_g_eHCAL_coin_cuts->SetFillColorAlpha(kMagenta);
+    h_dy_g_eHCAL_coin_W2_cuts->SetFillColorAlpha(kCyan);
+    h_dy_g_eHCAL_coin_W2_dy_cuts->SetFillColorAlpha(kOrange);
+    h_dy_g_eHCAL_coin_W2_dy_dx_cuts->SetFillColorAlpha(kRed);
 
     h_W2->SetFillColor(kGray);
     h_W2_gcuts->SetFillColor(kBlue);

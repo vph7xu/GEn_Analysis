@@ -461,7 +461,7 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 	gAsym->GetXaxis()->SetTitle("run number");
 	gAsym->GetYaxis()->SetTitle("Raw Asymmetry (%)");
 	gAsym->GetXaxis()->SetLimits(run_num_L+150,run_num_H);
-	gAsym->GetYaxis()->SetRangeUser(-10,10);
+	gAsym->GetYaxis()->SetRangeUser(-100,100);
 	gAsym->SetMarkerStyle(7);
 	gAsym->SetMarkerSize(5.0);
 	gAsym->SetMarkerColor(kBlue);
@@ -469,7 +469,7 @@ void raw_asymmetry(const char* filename, const char* printfilename, const char* 
 
 	//gAp_sym->GetXaxis()->SetTitle()
 	gAp_sym->GetXaxis()->SetLimits(run_num_L+150,run_num_H);
-	gAp_sym->GetYaxis()->SetRangeUser(-10,10);
+	gAp_sym->GetYaxis()->SetRangeUser(-100,100);
 	gAp_sym->SetMarkerStyle(7);
 	gAp_sym->SetMarkerSize(5.0);
 	gAp_sym->SetMarkerColor(kRed);

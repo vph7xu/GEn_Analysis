@@ -12,35 +12,111 @@
 #include <vector>
 #include <iomanip>
 #include <TDatime.h>
+#include <TBox.h>
+#include <TGraphAsymmErrors.h>
 
 vector<World_Data> data_points;
 
-//const int npoints_new = 3;
-const int npoints_new = 2;
+const int npoints_new = 3;
+//const int npoints_new = 2;
 
-//double Q2_new[npoints_new] = {2.90,6.62,9.48};
-double Q2_new[npoints_new] = {2.91,6.60};
+double Q2_Sean[npoints_new] = {2.90,6.62,9.48};
+double Q2_Hunter[npoints_new] = {2.95,6.67,9.53};
+double Q2_new[npoints_new] = {3.02,6.79,9.55};
+//double Q2_new[npoints_new] = {3.02,6.80,9.73};
 
-//double GEGM_new[npoints_new] = {-0.1952,-0.3527,-0.5127};
-//double GEGM_stat_err_new[npoints_new] = {0.0194,0.1026,0.2629};
-//double GEGM_sys_err_new[npoints_new] = {0.0130,0.0262,0.0552};
-double GEGM_new[npoints_new] = {-0.192974,-0.34469};
-double GEGM_stat_err_new[npoints_new] = {0.020347,0.090659};
-double GEGM_sys_err_new[npoints_new] = {0.012413,0.0214585};
 
+//Sean
+double GEGM_Sean[npoints_new] = {-0.1952,-0.3527,-0.5127};
+double GEGM_stat_err_Sean[npoints_new] = {0.0194,0.1026,0.2629};
+double GEGM_sys_err_Sean[npoints_new] = {0.0130,0.0262,0.0552};
+double GEGM_err_Sean[npoints_new];
+
+//Hunter
+double GEGM_Hunter[npoints_new] = {0.4483/constant::mun,0.8504/constant::mun,1.1460/constant::mun};
+double GEGM_stat_err_Hunter[npoints_new] = {0.0330/constant::mun,0.1321/constant::mun,0.3675/constant::mun};
+double GEGM_sys_err_Hunter[npoints_new] = {0.0309/constant::mun,0.0374/constant::mun,0.0692/constant::mun};
+double GEGM_err_Hunter[npoints_new];
+
+//Vimukthi
+double GEGM_new[npoints_new] = {-0.198586,-0.379419,-0.694376};
+double GEGM_stat_err_new[npoints_new] = {0.0276691,0.0750542,0.175683};
+double GEGM_sys_err_new[npoints_new] = {0.00406648,0.013555,0.035127};
 double GEGM_err_new[npoints_new];
 
-//double GE_new[npoints_new] = {0.0157,0.0067,0.0046};
-//double GE_stat_err_new[npoints_new] = {0.0016,0.0019,0.0023};
-//double GE_sys_err_new[npoints_new] = {0.0011,0.0005,0.0005};
+//Sean
+double GE_Sean[npoints_new] = {0.0157,0.0067,0.0046};
+double GE_stat_err_Sean[npoints_new] = {0.0016,0.0019,0.0023};
+double GE_sys_err_Sean[npoints_new] = {0.0011,0.0005,0.0005};
+double GE_err_Sean[npoints_new];
+
+//Hunter
+double GE_Hunter[npoints_new] = {0.0171,0.0065,0.0038};
+double GE_stat_err_Hunter[npoints_new] = {0.0013,0.0010,0.0012};
+double GE_sys_err_Hunter[npoints_new] = {0.0012,0.0003,0.0002};
+double GE_err_Hunter[npoints_new];
+
+//Vimukthi
 double GE_new[npoints_new] = {0.015496,0.0065146788};
 double GE_stat_err_new[npoints_new] = {0.001643,0.001714851292};
 double GE_sys_err_new[npoints_new] = {0.000997,0.0004055680032};
-
 double GE_err_new[npoints_new];
 
 double kappa_d = -2.03;
 double kappa_u = 1.67;
+
+// Draws boxes centered at y0 with half-height = y_syst[i] and half-width = dx
+void DrawSysBoxes(const double* x, const double* y_syst, int n,
+                  double y0, double dx, Color_t col, double alpha = 0.28)
+{
+  for (int i = 0; i < n; i++) {
+    auto b = new TBox(x[i] - dx, y0 - y_syst[i],
+                      x[i] + dx, y0 + y_syst[i]);
+    b->SetFillColorAlpha(col, alpha);
+    b->SetLineColor(col);
+    b->SetLineWidth(0);
+    b->Draw("same");
+  }
+}
+
+// Build a Ye (global fit) band. If is_GEGM==true, returns band for μ_n*GE/GM.
+// Otherwise returns GE band. Draw with: band->Draw("3 same")  (or "2 same").
+TGraphAsymmErrors* MakeYeBand(bool is_GEGM) {
+  const int nQ2 = 200;
+  const double Q2min = 1e-3, Q2max = 12.0;
+  const double dQ2 = (Q2max - Q2min) / (nQ2 - 1);
+
+  auto band = new TGraphAsymmErrors(nQ2);
+  for (int i = 0; i < nQ2; ++i) {
+    double Q2 = Q2min + i*dQ2;
+
+    double GE=0, sGE=0, GM=0, sGM=0;
+    GetGENFit(Q2, GE, sGE);
+    GetGMNFit(Q2, GM, sGM);
+
+    double y = 0.0, sy = 0.0;
+    if (is_GEGM) {
+      const double mu = constant::mun;
+      y  = (GM!=0.0) ? mu*GE/GM : 0.0;
+      double term1 = (GM!=0.0) ? (mu/GM) * sGE : 0.0;
+      double term2 = (GM!=0.0) ? (mu*GE/(GM*GM)) * sGM : 0.0;
+      sy = std::sqrt(term1*term1 + term2*term2);
+    } else {
+      y  = GE;
+      sy = sGE;
+    }
+
+    band->SetPoint(i, Q2, y);
+    // symmetric Y errors; no X errors
+    band->SetPointError(i, 0.0, 0.0, sy, sy);
+  }
+  // Style (soft gray translucent band)
+  band->SetFillColorAlpha(kGray+1, 0.30);
+  band->SetLineColor(kGray+1);
+  band->SetLineWidth(0);
+  return band;
+}
+
 
 
 Double_t PSM_theory(Double_t *x,Double_t *par){
@@ -249,11 +325,24 @@ void GEN_plotter(){
   
   for(int i=0; i < npoints_new; i++){
     GEGM_new[i] *= constant::mun;
-    GEGM_err_new[i] = sqrt( GEGM_stat_err_new[i]*GEGM_stat_err_new[i] + GEGM_sys_err_new[i]*GEGM_sys_err_new[i] );
+    GEGM_err_new[i] = sqrt( GEGM_stat_err_new[i]*GEGM_stat_err_new[i] /*+ GEGM_sys_err_new[i]*GEGM_sys_err_new[i]*/ );
     GEGM_err_new[i] *= abs(constant::mun);
-    GE_err_new[i] = sqrt( GE_stat_err_new[i]*GE_stat_err_new[i] + GE_sys_err_new[i]*GE_sys_err_new[i] );
+    GE_err_new[i] = sqrt( GE_stat_err_new[i]*GE_stat_err_new[i] /*+ GE_sys_err_new[i]*GE_sys_err_new[i]*/ );
   }
 
+  for(int i=0; i < npoints_new; i++){
+    GEGM_Sean[i] *= constant::mun;
+    GEGM_err_Sean[i] = sqrt( GEGM_stat_err_Sean[i]*GEGM_stat_err_Sean[i] + GEGM_sys_err_Sean[i]*GEGM_sys_err_Sean[i] );
+    GEGM_err_Sean[i] *= abs(constant::mun);
+    GE_err_Sean[i] = sqrt( GE_stat_err_Sean[i]*GE_stat_err_Sean[i] + GE_sys_err_Sean[i]*GE_sys_err_Sean[i] );
+  }
+
+  for(int i=0; i < npoints_new; i++){
+    GEGM_Hunter[i] *= constant::mun;
+    GEGM_err_Hunter[i] = sqrt( GEGM_stat_err_Hunter[i]*GEGM_stat_err_Hunter[i] + GEGM_sys_err_Hunter[i]*GEGM_sys_err_Hunter[i] );
+    GEGM_err_Hunter[i] *= abs(constant::mun);
+    GE_err_Hunter[i] = sqrt( GE_stat_err_Hunter[i]*GE_stat_err_Hunter[i] + GE_sys_err_Hunter[i]*GE_sys_err_Hunter[i] );
+  }
   
   TGraphErrors *g_new = new TGraphErrors(npoints_new,Q2_new,GEGM_new,0,GEGM_err_new);
   g_new->SetMarkerStyle(20);
@@ -261,10 +350,31 @@ void GEN_plotter(){
   g_new->SetLineWidth(4);
   g_new->SetMarkerColor(kRed);  
   g_new->SetLineColor(kRed);  
+
+  TGraphErrors *g_Sean = new TGraphErrors(npoints_new,Q2_Sean,GEGM_Sean,0,GEGM_err_Sean);
+  g_Sean->SetMarkerStyle(20);
+  g_Sean->SetMarkerSize(3);
+  g_Sean->SetLineWidth(4);
+  g_Sean->SetMarkerColor(kYellow+2);  
+  g_Sean->SetLineColor(kYellow+2);  
   
+  TGraphErrors *g_Hunter = new TGraphErrors(npoints_new,Q2_Hunter,GEGM_Hunter,0,GEGM_err_Hunter);
+  g_Hunter->SetMarkerStyle(20);
+  g_Hunter->SetMarkerSize(3);
+  g_Hunter->SetLineWidth(4);
+  g_Hunter->SetMarkerColor(kGreen);  
+  g_Hunter->SetLineColor(kGreen);  
+
+  TGraphAsymmErrors *yeBandRatio = MakeYeBand(true);   // μ_n GE/GM
+  TGraphAsymmErrors *yeBandGE    = MakeYeBand(false);  // GE
+
   TCanvas *c = new TCanvas("c","",2400,1800);
   g_new->SetTitle("G_{E}/G_{M} Neutron Results;Q^{2} (GeV^{2});#mu_{n}G_{E}^{n}/G_{M}^{n}");
   g_new->Draw("AP");
+  //g_Sean->Draw("P same");
+  //g_Hunter->Draw("P same");
+
+  yeBandRatio->Draw("3 same");            // filled band
 
 
   TLegend *legend1 = new TLegend(0.11,0.64,0.41,0.89);
@@ -294,6 +404,7 @@ void GEN_plotter(){
     icolor++;
     istyle++;
   }
+
   
   PSM_theory_curve->Draw("same");
   gGEGM_RCQM->Draw("same");
@@ -311,13 +422,18 @@ void GEN_plotter(){
   g_new->GetYaxis()->SetRangeUser(-0.5,1.5);
 
   legend3->AddEntry(g_new,"This Work","p");
+  //legend3->AddEntry(g_Sean,"S.Jeffas","p");
+  //legend3->AddEntry(g_Hunter,"H.Presley","p");
   legend1->AddEntry(g_new,"This Work","p");
+  //legend1->AddEntry(g_Sean,"S.Jeffas","p");
+  //legend1->AddEntry(g_Hunter,"H.Presley","p");
   legend1->Draw("same");
 
   TLegend *legend2 = new TLegend(0.395,0.736,0.709,0.891);
   legend2->AddEntry(gGEGM_RCQM,"RCQM - Miller","l");
   legend2->AddEntry("PSM_theory_curve","DSE - Roberts","l");
   legend2->AddEntry(gGEGM_global,"Global Fit - Ye","l");
+  legend2->AddEntry(yeBandRatio, "Global Fit - Ye (1#sigma)", "f");
   legend2->SetLineColor(0);
   legend2->Draw("same");
 
@@ -333,13 +449,37 @@ void GEN_plotter(){
   pt->Draw("same");
 
   g_new->GetXaxis()->SetLimits(0,12);
-  g_new->GetYaxis()->SetRangeUser(0,1.5);
+  g_new->GetYaxis()->SetRangeUser(0,1.8);
+
+  // --- NEW: add "This Work" systematics boxes at the bottom ---
+  double y0_ratio = 0.06;      // baseline height for the bottom band
+  double dx_ratio = 0.32;      // half-width of each box in Q^2
+  DrawSysBoxes(Q2_new, GEGM_sys_err_new, npoints_new, y0_ratio, dx_ratio, kRed);
+
+  // Put a filled-box sample into the legend so it’s explained:
+  auto legBoxRatio = new TBox(0,0,0,0);
+  legBoxRatio->SetFillColorAlpha(kRed, 0.28);
+  legBoxRatio->SetLineColor(kRed);
+  legend1->AddEntry(legBoxRatio, "This Work (syst.)", "f");
+  // (legend1 is the one you’re already drawing on this canvas)
 
   g_new->GetXaxis()->SetTitleSize(0.05);
   g_new->GetXaxis()->SetTitleOffset(0.8);
 
   g_new->GetYaxis()->SetTitleSize(0.05);
   g_new->GetYaxis()->SetTitleOffset(0.8);
+  
+    // --- NEW: add "This Work" systematics boxes at the bottom ---
+  double y0_GEn = 0.010;   // baseline for the GEn panel (fits in 0..0.08)
+  double dx_GEn = 0.32;    // half-width; keep consistent with the ratio panel
+  //DrawSysBoxes(Q2_new, GE_sys_err_new, npoints_new, y0_GEn, dx_GEn, kRed);
+
+  // Legend sample for GEn panel (use the legend you’re drawing there):
+  auto legBoxGEn = new TBox(0,0,0,0);
+  legBoxGEn->SetFillColorAlpha(kRed, 0.28);
+  legBoxGEn->SetLineColor(kRed);
+  // If you’re showing legend3/legend4 on this canvas, add to one of them:
+  legend3->AddEntry(legBoxGEn, "This Work (syst.)", "f");
 
   TGraphErrors *gGE_new = new TGraphErrors(npoints_new,Q2_new,GE_new,0,GE_err_new);
   gGE_new->SetMarkerStyle(20);
@@ -352,6 +492,9 @@ void GEN_plotter(){
   TCanvas *c2 = new TCanvas("c2","",2400,1800);
   gGE_new->SetTitle("G_{E} Neutron Results;Q^{2} (GeV^{2});G_{E}^{n}");
   gGE_new->Draw("AP");
+
+  yeBandGE->Draw("3 same");
+
 
   icolor = 1;
   istyle = 21;
@@ -377,6 +520,8 @@ void GEN_plotter(){
 
   gGE_new->GetYaxis()->SetTitleSize(0.05);
   gGE_new->GetYaxis()->SetTitleOffset(0.95);
+
+  legend4->AddEntry(yeBandGE, "Global Fit - Ye (1#sigma)", "f");
   
   gGE_global->Draw("same");
   legend3->Draw("same");
