@@ -275,5 +275,4 @@ void gen_extraction(const char* kin = "GEN3", bool flag_eHCAL_cut = false){
 	outfile<<"sigma_lambda_sys = "<<sigma_lambda_sys <<endl;
 	outfile<<"sigma_lambda : "<<sigma_lambda<<endl;
 
-
 }

@@ -14,15 +14,15 @@ using namespace std;
 
 // ---- USER: fill from your run card / notes ----
 static const double kGenerationVolume_sr = 0.21377;     // [sr]
-static const double kLuminosity_sinv_cm2 = 1.7754e37;   // [s^-1 cm^-2]
-static const double kNtries              = 1.0e5;       // total trials thrown
+static const double kLuminosity_sinv_cm2 = 1.7754e37;//1.1543e37;//1.7754e37;   // [s^-1 cm^-2]
+static const double kNtries              = 2.0e4;       // total trials thrown
 static const double kNormalization       = (kGenerationVolume_sr * kLuminosity_sinv_cm2) / kNtries; // [s^-1 cm^-2 * sr] -> [s^-1] after *sigma
 static const double kBeamCurrent_Cps     = 60e-6;       // 60 µA = 60e-6 C/s
 
 // ---- USER: put your *exact* coincidence selection here ----
 // (Pick one "best pair" per event in your own analysis; here we assume
 // a simple, single-candidate selection using cluster-level branches.)
-static const char* kCoincCut = "ev.pmperp<0.1&&abs(ev.pmpar)<0.1&&abs(ev.W2-0.88)<0.2";//&&Earm.BBPSTF1.det.esum>0.2"; //&&Harm.HCalScint.det.esum>0.025";
+static const char* kCoincCut = "";//"Earm.BBGEM.Track.ntracks>0&&ev.pmperp<0.1&&abs(ev.pmpar)<0.1&&ev.W2<1.6&&Earm.BBPSTF1.det.esum>0.2&&Earm.BBSHTF1.det.esum>0.01&&Harm.HCalScint.det.esum>0.325&&abs(((Earm.BBPSTF1.det.esum+Earm.BBSHTF1.det.esum)/Earm.BBGEM.Track.P)-1)<0.2";
  /* "Earm.BBGEM.Track.ntracks>0"
  &&Earm.BBGEM.Track.ntracks>0
  &&Earm.BBSHTF1.det.esum>0
