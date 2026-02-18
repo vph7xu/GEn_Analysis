@@ -102,8 +102,8 @@ void OptimizeCuts(const char* dataFile,
             tData->GetEntry(i);
             // NOTE: as written, this condition only rejects events where ALL
             // sub-conditions are true simultaneously. Keeping as-is to match your code.
-            if(std::abs(vz)>0.27 && ePS<0.2 &&
-               std::abs((eSH+ePS)/trP - 1.0) > 0.2 && eHCAL<0.025 &&
+            if(std::abs(vz)>0.27 || ePS<0.2 ||
+               std::abs((eSH+ePS)/trP - 1.0) > 0.2 || eHCAL<0.025 ||
                std::abs(helicity)!=1)
                 continue;
 
@@ -166,8 +166,8 @@ void OptimizeCuts(const char* dataFile,
             tSim->GetEntry(i);
             // only accept fnucl 0 or 1 (n or p)
             if(fnucl != 0.0 && fnucl != 1.0) continue;
-            if(std::abs(vz)>0.27 && ePS<0.2 &&
-               std::abs((eSH+ePS)/trP - 1.0) > 0.2 && eHCAL<0.025)
+            if(std::abs(vz)>0.27 || ePS<0.2 ||
+               std::abs((eSH+ePS)/trP - 1.0) > 0.2 || eHCAL<0.025)
                 continue;
 
             ev.vz.push_back(vz);
@@ -233,8 +233,8 @@ void OptimizeCuts(const char* dataFile,
             tBkg->GetEntry(i);
 
             // same basic preselection form as above (kept identical to your logic)
-            if (std::abs(vz)>0.27 && ePS<0.2 &&
-                std::abs((eSH+ePS)/trP - 1.0) > 0.2 && eHCAL<0.025)
+            if (std::abs(vz)>0.27 || ePS<0.2 ||
+                std::abs((eSH+ePS)/trP - 1.0) > 0.2 || eHCAL<0.025)
                 continue;
 
             ev_bkg.vz.push_back(vz);

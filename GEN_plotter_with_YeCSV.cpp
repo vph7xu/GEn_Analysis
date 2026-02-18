@@ -24,7 +24,7 @@ const int npoints_new = 3;
 
 double Q2_Sean[npoints_new] = {2.90,6.62,9.48};
 double Q2_Hunter[npoints_new] = {2.95,6.67,9.53};
-double Q2_new[npoints_new] = {3.02,6.79,9.55};
+double Q2_new[npoints_new] = {2.99,6.75,9.75};
 //double Q2_new[npoints_new] = {3.02,6.80,9.73};
 
 
@@ -41,9 +41,9 @@ double GEGM_sys_err_Hunter[npoints_new] = {0.0309/constant::mun,0.0374/constant:
 double GEGM_err_Hunter[npoints_new];
 
 //Vimukthi
-double GEGM_new[npoints_new] = {-0.198586,-0.379419,-0.694376};
-double GEGM_stat_err_new[npoints_new] = {0.0276691,0.0750542,0.175683};
-double GEGM_sys_err_new[npoints_new] = {0.00406648,0.013555,0.035127};
+double GEGM_new[npoints_new] = {0.4483/constant::mun,-0.416487,-0.2884024};
+double GEGM_stat_err_new[npoints_new] = {0.0330/constant::mun,0.0714534,0.1414521};
+double GEGM_sys_err_new[npoints_new] = {0.0309/constant::mun,0.0160963,0.0343047};
 double GEGM_err_new[npoints_new];
 
 //Sean
@@ -528,7 +528,7 @@ void GEN_plotter(){
   g_new->GetYaxis()->SetRangeUser(0,1.8);
 
   // --- NEW: add "This Work" systematics boxes at the bottom ---
-  double y0_ratio = 0.06;      // baseline height for the bottom band
+  double y0_ratio = 0.0;       // baseline height for the bottom band (aligned to y=0)
   double dx_ratio = 0.32;      // half-width of each box in Q^2
   DrawSysBoxes(Q2_new, GEGM_sys_err_new, npoints_new, y0_ratio, dx_ratio, kRed);
 

@@ -107,7 +107,8 @@ ScanResult StreamScanA(TTree* tData,
                        double W2L0, double W2H0,
                        double eL0,
                        double tL0, double tH0,
-                       double dxL0, double dxH0)
+                       double dxL0, double dxH0, 
+                       const char* kin )
 {
   // Branch variables (float for speed/memory)
   double vz, ePS, eSH, trP, dx, dy, W2, ct, eHCAL;
@@ -130,6 +131,25 @@ ScanResult StreamScanA(TTree* tData,
 
   // Counters per scan point
   std::vector<long long> Nplus(xvals.size(), 0), Nminus(xvals.size(), 0);
+
+  int p_kin = 1;
+
+  if (std::strcmp(kin, "GEN2_He3") == 0){
+    p_kin = -1;
+  }
+  else if (std::strcmp(kin, "GEN3_He3") == 0){
+    p_kin = 1;
+  }
+  else if(std::strcmp(kin, "GEN4_He3") == 0){
+    p_kin = 1;
+  }
+  else if(std::strcmp(kin, "GEN4b_He3") == 0){
+    p_kin = 1;
+  }
+
+  p_kin=-1*p_kin;
+
+  std::cout<<"p_kin : "<<p_kin<<endl;
 
   // Stream over all events once
   for (Long64_t i = 0; i < nData; ++i) {
@@ -157,8 +177,8 @@ ScanResult StreamScanA(TTree* tData,
     if (!baseCommon || !inCT || !inDX) continue;
 
     // Helicity sign with IHWP
-    bool poshel = (IHWP * helicity == 1);
-    bool neghel = (IHWP * helicity == -1);
+    bool poshel = (p_kin * IHWP * helicity == 1);
+    bool neghel = (p_kin *IHWP * helicity == -1);
 
     const std::string vtype(varType);
 
@@ -306,6 +326,24 @@ void CutStability(const char* dataFile,
   double dxL0 = -0.8;
   double dxH0 =  0.8;
 
+    if (std::strcmp(kin, "GEN2_He3") == 0){
+      dyL0 = -0.8; dyH0 =  0.8; W2L0 = -2.0; W2H0 =  1.3; eL0  =  0.025;
+      tL0  = 124.0; tH0  = 136.0; dxL0 = -0.8; dxH0 =  0.8;
+    }
+    else if (std::strcmp(kin, "GEN3_He3") == 0){
+      dyL0 = -0.5; dyH0 =  0.5; W2L0 = -2.0; W2H0 =  1.5; eL0  =  0.085;
+      tL0  = 117.0; tH0  = 123.0; dxL0 = -0.5; dxH0 =  0.5;
+    }
+    else if (std::strcmp(kin, "GEN4_He3") == 0){
+      dyL0 = -0.4; dyH0 =  0.4; W2L0 = -2.0; W2H0 =  1.4; eL0  =  0.225;
+      tL0  = 118.0; tH0  = 124.0; dxL0 = -0.4; dxH0 =  0.4;
+    }
+    else if (std::strcmp(kin, "GEN4b_He3") == 0){
+      dyL0 = -0.4; dyH0 =  0.4; W2L0 = -2.0; W2H0 =  1.4; eL0  =  0.325;
+      tL0  = 181.0; tH0  = 188.0; dxL0 = -0.4; dxH0 =  0.4;
+    }
+
+
   std::cout << "Baseline cuts:\n"
             << " dy in [" << dyL0 << ", " << dyH0 << "]\n"
             << " W2 in [" << W2L0 << ", " << W2H0 << "]\n"
@@ -369,7 +407,7 @@ void CutStability(const char* dataFile,
   // --- W2L scan
   std::cout << "[Scan] W2L (" << W2L_vals.size() << " points) ..." << std::endl;
   auto r_W2L = StreamScanA(tData, W2L_vals, "W2L",
-                           dyL0, dyH0, W2L0, W2H0, eL0, tL0, tH0, dxL0, dxH0);
+                           dyL0, dyH0, W2L0, W2H0, eL0, tL0, tH0, dxL0, dxH0, kin);
   auto g_W2L = make_graph("", r_W2L.x, r_W2L.A, r_W2L.Aerr);
   g_W2L->GetXaxis()->SetTitle("W^{2}_{L}");
   g_W2L->GetYaxis()->SetTitle("");
@@ -382,7 +420,7 @@ void CutStability(const char* dataFile,
   // --- W2H scan
   std::cout << "[Scan] W2H (" << W2H_vals.size() << " points) ..." << std::endl;
   auto r_W2H = StreamScanA(tData, W2H_vals, "W2H",
-                           dyL0, dyH0, W2L0, W2H0, eL0, tL0, tH0, dxL0, dxH0);
+                           dyL0, dyH0, W2L0, W2H0, eL0, tL0, tH0, dxL0, dxH0, kin);
   auto g_W2H = make_graph("", r_W2H.x, r_W2H.A, r_W2H.Aerr);
   g_W2H->GetXaxis()->SetTitle("W^{2}_{H}");
   g_W2H->GetYaxis()->SetTitle("");
@@ -395,7 +433,7 @@ void CutStability(const char* dataFile,
   // --- eHCAL low threshold (eL) scan
   std::cout << "[Scan] eL (" << eL_vals.size() << " points) ..." << std::endl;
   auto r_eL = StreamScanA(tData, eL_vals, "eL",
-                          dyL0, dyH0, W2L0, W2H0, eL0, tL0, tH0, dxL0, dxH0);
+                          dyL0, dyH0, W2L0, W2H0, eL0, tL0, tH0, dxL0, dxH0, kin);
   auto g_eL = make_graph("", r_eL.x, r_eL.A, r_eL.Aerr);
   g_eL->GetXaxis()->SetTitle("eHCAL low cut");
   g_eL->GetYaxis()->SetTitle("");

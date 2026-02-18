@@ -154,21 +154,21 @@ void PS_HCAL_e_plot(const char* filename, const char* printfilename, const char*
 	TH2D *h_W2_v_thetatgt = new TH2D("h_W2_v_thetatgt","W2 vs thetatgt",100,-0.3,0.3,100,-2,5);
 	TH2D *h_W2timesthetabend_v_thetatgt = new TH2D("h_W2timesthetabend_v_thetatgt","W2*thetabend vs thetatgt",100,-0.3,0.3,100,-0.1,0.6);
 
-	TH2D *h_p_eltimesthetabend_v_thetatgt = new TH2D("h_p_eltimesthetabend_v_thetatgt","p_el*thetabend vs thetatgt;thetatgt(rad);p_el(GeV)*thetabend(rad)", 100,-0.3,0.3,100,-0.1,0.6);
+	TH2D *h_p_eltimesthetabend_v_thetatgt = new TH2D("h_p_eltimesthetabend_v_thetatgt","p_el*thetabend vs thetatgt;thetatgt(rad);p_el(GeV)*thetabend(rad)", 100,-0.2,0.1,100,0.1,0.5);
 
 	TH2D *h_trPtimesthetabend_v_thetatgt = new TH2D("h_trPtimesthetabend_v_thetatgt","trP*thetabend vs thetatgt;thetatgt(rad);trP(GeV)*thetabend(rad)", 100,-0.3,0.3,100,-0.1,0.6);
 
-	TH2D *h_p_el_v_BPMAy = new TH2D("h_p_el_v_BPMAy","#Delta p vs BPMAy;BPMAy(m);p/p_el - 1",50,-0.003,0.003,50,-0.1,0.1);
-	TH2D *h_p_el_v_BPMAx = new TH2D("h_p_el_v_BPMAx","#Delta p vs BPMAx;BPMAx(m);p/p_el - 1",50,-0.003,0.003,50,-0.1,0.1);
+	TH2D *h_p_el_v_BPMAy = new TH2D("h_p_el_v_BPMAy","#Delta p vs BPMAy;BPMAy(m);p/p_el - 1",50,-0.003,0.003,50,-0.1,0.3);
+	TH2D *h_p_el_v_BPMAx = new TH2D("h_p_el_v_BPMAx","#Delta p vs BPMAx;BPMAx(m);p/p_el - 1",50,-0.003,0.003,50,-0.1,0.3);
 
 	TH2D *h_p_el_v_vy = new TH2D("h_p_el_v_vy","#Delta p vs vy;vy(m);p/p_el - 1",50,-0.003,0.003,50,-0.1,0.1);
 	TH2D *h_p_el_v_vx = new TH2D("h_p_el_v_vx","#Delta p vs vx;vx(m);p/p_el - 1",50,-0.003,0.003,50,-0.1,0.1);
 
-	TH2D *h_p_el_v_rastery = new TH2D("h_p_el_v_rastery","#Delta p vs rastery;rastery;p/p_el - 1",50,34000,54000,50,-0.1,0.1);
-	TH2D *h_p_el_v_rasterx = new TH2D("h_p_el_v_rasterx","#Delta p vs rasterx;rasterx;p/p_el - 1",50,34000,54000,50,-0.1,0.1);
+	TH2D *h_p_el_v_rastery = new TH2D("h_p_el_v_rastery","#Delta p vs rastery;rastery;p/p_el - 1",50,34000,54000,50,-0.1,0.3);
+	TH2D *h_p_el_v_rasterx = new TH2D("h_p_el_v_rasterx","#Delta p vs rasterx;rasterx;p/p_el - 1",50,34000,54000,50,-0.1,0.3);
 
-	TH2D *h_p_el_v_raster2y = new TH2D("h_p_el_v_raster2y","#Delta p vs raster2y;raster2y;p/p_el - 1",50,34000,54000,50,-0.1,0.1);
-	TH2D *h_p_el_v_raster2x = new TH2D("h_p_el_v_raster2x","#Delta p vs raster2x;raster2x;p/p_el - 1",50,34000,54000,50,-0.1,0.1);
+	TH2D *h_p_el_v_raster2y = new TH2D("h_p_el_v_raster2y","#Delta p vs raster2y;raster2y;p/p_el - 1",50,34000,54000,50,-0.1,0.3);
+	TH2D *h_p_el_v_raster2x = new TH2D("h_p_el_v_raster2x","#Delta p vs raster2x;raster2x;p/p_el - 1",50,34000,54000,50,-0.1,0.3);
 
 	TH1D *h_dp = new TH1D("h_dp","#Delta p (Sean's);p/p_el - 1",100,-0.25,0.25);
 	TH1D *h_dp_new = new TH1D("h_dp_new","#Delta p (Sean's vy corr);p/p_el - 1",100,-0.25,0.25);
@@ -185,22 +185,22 @@ void PS_HCAL_e_plot(const char* filename, const char* printfilename, const char*
 	TH1D *h_S_empirical = new TH1D("h_S_empirical", "Empirical S = #Delta W^{2}/#Delta p;S (GeV^{2});Counts", 120, -20.0, -10.0);
 
 
-	double A1 = 0.28640;//0.28661;//0.287186374;
-	double B1 = 0.87122905;//0.839712501;//0.798543608;
+	double A1 = 0.26056;//0.28640;//0.28661;//0.287186374;
+	double B1 = 0.96542;//0.87122905;//0.839712501;//0.798543608;
 
-	double A = 0.287186374;
-	double B = 0.798543608;
+	double A = 0.26056;//0.263077985;//0.287186374;
+	double B = 0.96542;//0.999237626;//0.798543608;
 
 	double m = 0.938;
 
-	double C = -0.00184*3.1;
-	double D = -5.17872*3.1;
+	double D = -5.96546*2.65;//-4.43313*2.55;//-15.893095*2.4;//3.19086*2.4;//-0.00184*3.1;
+	double C = -0.01193*2.65;//-0.06490*2.55;//-0.0147632089*2.4;//0.09312*2.4;//-5.17872*3.1;
 
 
 	double x0 = 0.5*(dx_p_L + dx_p_H);  // center in x (dx)
 	double y0 = 0.5*(dy_p_L + dy_p_H);                           // center in y (dy)
-	double rx = 0.2;                           // semi-axis in x
-	double ry = 0.2;                           // semi-axis in y
+	double rx = 0.22;                           // semi-axis in x
+	double ry = 0.18;                           // semi-axis in y
 
 	int nentries = tree->GetEntries();
 	for (int i = 0; i<nentries; i++){
@@ -260,11 +260,11 @@ void PS_HCAL_e_plot(const char* filename, const char* printfilename, const char*
 	    bool goodVz       = abs(vz) < 0.27;
 	    bool goodPS       = (ePS > 0.2);
 	    bool goodRunRange = (run_num_L < runnum && runnum < run_num_H);
-	    bool goodEHCAL    = (eHCAL > 0.125);//eHCAL_L); 
+	    bool goodEHCAL    = (eHCAL > 0.025);//eHCAL_L); 
 	    bool validHel     = (helicity == -1 || helicity == 1);
 	    //bool goodGrinch = (grinch_track == 0) && (grinch_clus_size>2);
 	    //bool goodSbs_track = ntrack_sbs>0 && abs(vz_sbs)<0.27;
-	    bool goodEoverp = abs(eoverp-1)<0.8;
+	    bool goodEoverp = abs(eoverp-1)<0.2;
 	    bool goodW2 = W2_L<W2 && W2<W2_H;
 	    bool goodCoin = coin_time_L<coin_time && coin_time<coin_time_H;
 	    bool goodDy = -0.2<dy && dy<0.2;
@@ -300,7 +300,7 @@ void PS_HCAL_e_plot(const char* filename, const char* printfilename, const char*
 				if(goodDy) h_dx->Fill(dx);
 			}
 
-			if(goodVz && goodPS  /*&& goodEoverp*/ && goodEHCAL /*&& goodDy*/ &&goodCoin){
+			if(goodVz && goodPS  && goodEoverp && goodEHCAL /*&& goodDy*/ &&goodCoin){
 
 				if(goodpSpot){
 					h_W2_0->Fill(W2);
@@ -746,9 +746,10 @@ void PS_HCAL_e_plot(const char* filename, const char* printfilename, const char*
 
 	c4->Divide(2,2);
 	c4->cd(1);
-	h_W2_new1->Draw();
-	h_W2_0->Draw("same");
-	h_W2_new->Draw("same");
+	//h_W2_new1->Draw();
+	h_W2_0->Draw();
+	h_W2_0->SetTitle("W^{2} (Sean's)");
+	//h_W2_new->Draw("same");
 
 	auto legW2 = new TLegend(0.62, 0.60, 0.88, 0.88); // x1,y1,x2,y2 — tweak as needed
 	legW2->SetBorderSize(0);
@@ -762,11 +763,13 @@ void PS_HCAL_e_plot(const char* filename, const char* printfilename, const char*
 	legW2->AddEntry(h_W2_new1, "New vy corr","l");
 
 
-	legW2->Draw();
+	//legW2->Draw();
 	gPad->Update();
 
 	c4->cd(2);
-	h_W2_new->Draw();
+	h_W2_new1->SetTitle("W^{2} (new)");
+	h_W2_new1->Draw();
+	
 
 	c4->cd(3);
 	h_trP->SetLineWidth(3);
@@ -791,7 +794,7 @@ void PS_HCAL_e_plot(const char* filename, const char* printfilename, const char*
 	c5->cd(3);
 	h_p_eltimesthetabend_v_thetatgt->Draw("COLZ");
 	// parameters you can tweak
-	double q = 0.20;      // 20th percentile traces the lower edge
+	double q = 0.25;      // 20th percentile traces the lower edge
 	int    nmin = 5;     // minimum entries per x-bin to keep a point
 	int    rebinx = 1;    // optional x rebin to stabilize statistics
 	if (rebinx>1) h_p_eltimesthetabend_v_thetatgt->RebinX(rebinx);
@@ -818,8 +821,8 @@ void PS_HCAL_e_plot(const char* filename, const char* printfilename, const char*
 	g.SetMarkerColor(kBlack);
 	g.Draw("P same");
 
-	TF1 fline("fline","pol1",-0.15,0.05);
-	g.Fit(&fline, "Q","",-0.15,0.05);         // quiet fit
+	TF1 fline("fline","pol1",-0.14,-0.005);
+	g.Fit(&fline, "Q","",-0.14,-0.005);         // quiet fit
 
 	fline.SetLineColor(kRed+1);
 	fline.SetLineWidth(3);

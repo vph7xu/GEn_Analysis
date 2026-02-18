@@ -91,7 +91,10 @@ ScanResult StreamWidthScan(TTree* tData,
                            const char* varType,
                            double dx_mid, double dy_mid, double ct_mid,
                            // Baseline cuts
-                           double W2L0, double W2H0, double eL0) {
+                           double W2L0, double W2H0, double eL0,
+                           double dyL0, double dyH0, double dxL0, double dxH0,
+                           double ctL0, double ctH0,
+                           const char* kin) {
   double vz, ePS, eSH, trP, dx, dy, W2, ct, eHCAL;
   int helicity, IHWP;
 
@@ -110,6 +113,25 @@ ScanResult StreamWidthScan(TTree* tData,
   Long64_t nData = 1.0 * tData->GetEntries();
   std::vector<long long> Nplus(widths.size(), 0), Nminus(widths.size(), 0);
 
+  int p_kin = 1;
+
+  if (std::strcmp(kin, "GEN2_He3") == 0){
+    p_kin = -1;
+  }
+  else if (std::strcmp(kin, "GEN3_He3") == 0){
+    p_kin = 1;
+  }
+  else if(std::strcmp(kin, "GEN4_He3") == 0){
+    p_kin = 1;
+  }
+  else if(std::strcmp(kin, "GEN4b_He3") == 0){
+    p_kin = 1;
+  }
+
+  p_kin=-1*p_kin;
+
+  std::cout<<"p_kin : "<<p_kin<<endl;
+
   Long64_t step = std::max<Long64_t>(1, nData / 200); // update ~0.5%
   TStopwatch sw; sw.Start();
 
@@ -127,18 +149,18 @@ ScanResult StreamWidthScan(TTree* tData,
                       eHCAL > eL0;
     if (!baseCommon) continue;
 
-    bool poshel = (IHWP * helicity == 1);
-    bool neghel = (IHWP * helicity == -1);
+    bool poshel = (p_kin * IHWP * helicity == 1);
+    bool neghel = (p_kin * IHWP * helicity == -1);
 
     for (size_t k = 0; k < widths.size(); ++k) {
       double w = widths[k];
       bool pass = false;
       if (std::string(varType) == "dx") {
-        pass = (dx > dx_mid - w && dx < dx_mid + w);
+        pass = (dx > dx_mid - w && dx < dx_mid + w && dyL0 < dy && dy < dyH0 && ctL0< ct && ct< ctH0);
       } else if (std::string(varType) == "dy") {
-        pass = (dy > dy_mid - w && dy < dy_mid + w);
+        pass = (dy > dy_mid - w && dy < dy_mid + w && dxL0 < dx && dx < dxH0 && ctL0< ct && ct< ctH0);
       } else if (std::string(varType) == "ct") {
-        pass = (ct > ct_mid - w && ct < ct_mid + w);
+        pass = (ct > ct_mid - w && ct < ct_mid + w && dyL0 < dy && dy < dyH0 && dxL0< dx && dx< dxH0);
       }
       if (pass) {
         if (poshel) ++Nplus[k];
@@ -187,25 +209,34 @@ void CutStabilityWidth(const char* dataFile, const char* kin) {
   double dx_mid = 0.0;
   double dy_mid = 0.0;
   double ct_mid = 120.0; // ns
+  double W2L0 = -2, W2H0 = 1.6, eL0 = 0.025;
+  double dyL0 = -0.8, dyH0=0.8;
+  double dxL0 = -0.8, dxH0=0.8;
+  double ctL0 = 126, ctH0=134;
 
   if(std::strcmp(kin, "GEN2_He3") == 0){
-    double ct_mid = 130.0; // ns
+    ct_mid = 130.0; W2L0 = -2; W2H0 = 1.3; eL0 = 0.025;
+    dyL0 = -0.8; dyH0 = 0.8; dxL0 = -0.8; dxH0 = 0.8; ctL0 = 126; ctH0 = 134;
   }
   else if(std::strcmp(kin, "GEN3_He3") == 0){
-    double ct_mid = 120.0; // ns
+    ct_mid = 120.0; W2L0 = -2; W2H0 = 1.5; eL0 = 0.085;
+    dyL0 = -0.5; dyH0 = 0.5; dxL0 = -0.5; dxH0 = 0.5; ctL0 = 117; ctH0 = 123;
   }
   else if(std::strcmp(kin, "GEN4_He3") == 0){
-    double ct_mid = 121.0; // ns
+    ct_mid = 121.0; W2L0 = -2; W2H0 = 1.4; eL0 = 0.225;
+    dyL0 = -0.4; dyH0 = 0.4; dxL0 = -0.4; dxH0 = 0.4; ctL0 = 118; ctH0 = 124;
   }
   else if(std::strcmp(kin, "GEN4b_He3") == 0){
-    double ct_mid = 185.0; // ns
+    ct_mid = 185.0; W2L0 = -2; W2H0 = 1.4; eL0 = 0.325;
+    dyL0 = -0.4; dyH0 = 0.4; dxL0 = -0.4; dxH0 = 0.4; ctL0 = 181; ctH0 = 188;
   }
   else{
-    double ct_mid = 120.0; // ns
+    ct_mid = 120.0; W2L0 = -2; W2H0 = 1.6; eL0 = 0.025;
+    dyL0 = -0.8; dyH0 = 0.8; dxL0 = -0.8; dxH0 = 0.8; ctL0 = 126; ctH0 = 134;
   }
 
   // Baseline cuts for other vars
-  double W2L0 = -2, W2H0 = 1.6, eL0 = 0.025;
+  //double W2L0 = -2, W2H0 = 1.6, eL0 = 0.025;
 
   // Width scan ranges
   std::vector<double> dx_widths = {0.05,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.5,0.55,0.60,0.65,0.70,0.75,0.80};
@@ -214,9 +245,9 @@ void CutStabilityWidth(const char* dataFile, const char* kin) {
 
   std::cout << "Running width-based stability scans...\n";
 
-  auto r_dx = StreamWidthScan(tData, dx_widths, "dx", dx_mid, dy_mid, ct_mid, W2L0, W2H0, eL0);
-  auto r_dy = StreamWidthScan(tData, dy_widths, "dy", dx_mid, dy_mid, ct_mid, W2L0, W2H0, eL0);
-  auto r_ct = StreamWidthScan(tData, ct_widths, "ct", dx_mid, dy_mid, ct_mid, W2L0, W2H0, eL0);
+  auto r_dx = StreamWidthScan(tData, dx_widths, "dx", dx_mid, dy_mid, ct_mid, W2L0, W2H0, eL0, dyL0, dyH0, dxL0, dxH0, ctL0, ctH0, kin);
+  auto r_dy = StreamWidthScan(tData, dy_widths, "dy", dx_mid, dy_mid, ct_mid, W2L0, W2H0, eL0, dyL0, dyH0, dxL0, dxH0, ctL0, ctH0, kin);
+  auto r_ct = StreamWidthScan(tData, ct_widths, "ct", dx_mid, dy_mid, ct_mid, W2L0, W2H0, eL0, dyL0, dyH0, dxL0, dxH0, ctL0, ctH0, kin);
 
   // small helper to set bold, larger axis fonts on a graph
   auto style_graph = [](TGraphErrors* g){

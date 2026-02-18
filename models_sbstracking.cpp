@@ -159,6 +159,7 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 
 	double IHWP_flip = getDoubleValue(config,"IHWP_flip");
 
+
 	//end of parsing cuts
 	
 	TFile* file = TFile::Open(filename);
@@ -175,10 +176,10 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	int runnum = 0;
 	int helicity = 0;
 	int IHWP = 0;
-        double dx = 0.0;
-        double dy = 0.0;
-        double W2 = 0.0;
-        double Q2 = 0.0;
+    double dx = 0.0;
+    double dy = 0.0;
+    double W2 = 0.0;
+    double Q2 = 0.0;
 	double coin_time = 0.0;
 	double ntrack = 0;
 	double theta_pq = 0.0;
@@ -218,22 +219,22 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	tree->SetBranchAddress("ntrack_sbs",&ntrack_sbs);
 	tree->SetBranchAddress("vz",&vz);
 	tree->SetBranchAddress("vz_sbs",&vz_sbs);
-    	tree->SetBranchAddress("grinch_track",  &grinch_track);
-    	tree->SetBranchAddress("grinch_clus_size",   &grinch_clus_size);
+    tree->SetBranchAddress("grinch_track",  &grinch_track);
+    tree->SetBranchAddress("grinch_clus_size",   &grinch_clus_size);
 	tree->SetBranchAddress("ePS",       &ePS);
 
-        TH1D *h_dx = new TH1D("h_dx","dx",200,-10,10);
-        TH1D *h_dy = new TH1D("h_dy","dy",200,-10,10);
-        TH1D *h_W2 = new TH1D("h_W2","W2",250,-4,8);
-        TH2D *h_dxdy = new TH2D("h_dxdy","dxdy",100,dy_L,dy_H,100,-4,3);
-        TH1D *h_coin_time = new TH1D("h_coin_time","coin_time",1000,40,200);
+    TH1D *h_dx = new TH1D("h_dx","dx",200,-10,10);
+    TH1D *h_dy = new TH1D("h_dy","dy",200,-10,10);
+    TH1D *h_W2 = new TH1D("h_W2","W2",250,-4,8);
+    TH2D *h_dxdy = new TH2D("h_dxdy","dxdy",100,dy_L,dy_H,100,-4,3);
+    TH1D *h_coin_time = new TH1D("h_coin_time","coin_time",1000,40,200);
 
-        TH1D *h_dx_W2_cut = new TH1D("h_dx_W2_cut","dx dist : data/sim comparison",100,-4,3);
-        TH1D *h_dx_W2_cut_plotting = new TH1D("h_dx_W2_cut_plotting","dx dist : data/sim comparison",100,-4,3);
-        TH1D *h_dy_W2_cut = new TH1D("h_dy_W2_cut","dy",100,-4,3);
-        //TH1D *h_W2 = new TH1D("h_W2","W2",1000,-4,8);
-        TH2D *h_dxdy_W2_cut = new TH2D("h_dxdy_W2_cut","dx v dy",100,dy_L,dy_H,100,-4,3);
-        TH2D *h_dxdy_bkg = new TH2D("h_dxdy_bkg","dxdy (anticut shaded)",100,-4,4,100,-4,3);
+    TH1D *h_dx_W2_cut = new TH1D("h_dx_W2_cut","dx dist : data/sim comparison",100,-4,3);
+    TH1D *h_dx_W2_cut_plotting = new TH1D("h_dx_W2_cut_plotting","dx dist : data/sim comparison",100,-4,3);
+    TH1D *h_dy_W2_cut = new TH1D("h_dy_W2_cut","dy",100,-4,3);
+    //TH1D *h_W2 = new TH1D("h_W2","W2",1000,-4,8);
+    TH2D *h_dxdy_W2_cut = new TH2D("h_dxdy_W2_cut","dx v dy",100,dy_L,dy_H,100,-4,3);
+    TH2D *h_dxdy_bkg = new TH2D("h_dxdy_bkg","dxdy (anticut shaded)",100,-4,4,100,-4,3);
 
 	TH1D *h_dx_sim_n_bkg = new TH1D("h_dx_sim_n_bkg","dx distribution : data/sim comparison",100,-4,3);
 
@@ -244,11 +245,55 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	TH1D *h_all_background = new TH1D("h_all_background","dx (anti dy cut); dx (m)",100,-4,3);
 	//TH2D *h_dxdy_charge_background = new TH2D("h_dxdy_charge_background","dx (anti dy cut and ntrack_sbs>0); dx (m)",100,-4,4,100,-4,4);
 
+	//W2 distributions
+	TH1D *h_W2_data = new TH1D("h_W2_data","W^{2};W^{2}(GeV^{2})",100,-1,4);
+	TH1D *h_W2_sim_qe = new TH1D("h_W2_sim_qe","W^{2};W^{2}(GeV^{2})",100,-1,4);
+	//TH1D *h_W2_sim_inel = new TH1D("h_W2_sim_inel","W^{2};W^{2}(GeV^{2})",100,-1,4);
+	TH1D *h_W2_data_charged = new TH1D("h_W2_data_charged","W^{2};W^{2}(GeV^{2})",100,-1,4);
+	TH1D *h_W2_data_neutral = new TH1D("h_W2_data_neutral","W^{2};W^{2}(GeV^{2})",100,-1,4);
 
 
-        int nentries = tree->GetEntries();
-        double Nplus = 0.0;
-        double Nminus = 0.0;
+// ------------------------------
+// Fill SIM W2 histogram (NO W2 cut)
+// "sim passing all QE including dx cut but not W2"
+// ------------------------------
+
+    TFile* sim_file_W2 = TFile::Open(sim_filename);
+    TTree* sim_tree_W2 = (TTree*)sim_file_W2->Get("Tout");
+
+    double s_dx=0.0, s_dy=0.0, s_W2=0.0, s_weight=0.0, s_eHCAL=0.0;
+
+    sim_tree_W2->SetBranchAddress("dx",&s_dx);
+    sim_tree_W2->SetBranchAddress("dy",&s_dy);
+    sim_tree_W2->SetBranchAddress("W2",&s_W2);
+    sim_tree_W2->SetBranchAddress("weight",&s_weight);
+    sim_tree_W2->SetBranchAddress("eHCAL",&s_eHCAL);
+
+    Long64_t nsim = sim_tree_W2->GetEntries();
+    for (Long64_t i = 0; i < nsim; i++) {
+        sim_tree_W2->GetEntry(i);
+
+        // QE-like selection (dx+dy+eHCAL), but NOT W2 cut:
+        if ( (dx_L < s_dx && s_dx < dx_H) &&
+             (dy_L < s_dy && s_dy < dy_H) &&
+             (s_eHCAL > eHCAL_L) ) {
+
+            h_W2_sim_qe->Fill(s_W2, s_weight);
+        }
+
+        if (i % 100000 == 0) {
+            std::cout << (i * 100.0 / nsim) << "% sim W2\r";
+            std::cout.flush();
+        }
+    }
+
+    sim_file_W2->Close();
+
+
+
+    int nentries = tree->GetEntries();
+    double Nplus = 0.0;
+    double Nminus = 0.0;
 
 	std::cout<<"coin_L and H : "<<coin_time_L<<"  "<<coin_time_H<<endl;
 	std::cout<<"dy_L and H : "<<dy_L <<" "<<dy_H <<endl;
@@ -284,6 +329,38 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	        }
 
                 if(goodHelicity && goodMoller && goodPS && validHel && goodRunRange && goodEHCAL && goodVz /*&& goodGrinch*/){
+
+					// ------------------------------
+// W2 histograms (NO W2 cut)
+// "all QE including dx cut but not W2"
+// ------------------------------
+
+					// Common "QE-like" requirements you stated (keep consistent with your existing analysis):
+					bool base_QE_noW2 = (coin_time_L < coin_time && coin_time < coin_time_H)  // coin cut
+									&& (dx_L < dx && dx < dx_H)                              // dx cut
+									&& (dy_L < dy && dy < dy_H);                             // dy cut (QE band)
+
+					// Data passing all QE (dx+dy+coin) but NOT W2 cut:
+					if (base_QE_noW2) {
+						h_W2_data->Fill(W2);
+					}
+
+					// Data with SBS tracks passing all QE (dx+dy+coin) but NOT W2 cut:
+					if (base_QE_noW2 && goodSbs_track) {
+						h_W2_data_charged->Fill(W2);
+					}
+
+					// Data "neutral background style" you described:
+					// "data passing all QE including dx cut but not W2 but anti-dy without sbs tracks"
+					bool neutral_antiDy_noW2 = (coin_time_L < coin_time && coin_time < coin_time_H)  // coin cut
+											&& (dx_L < dx && dx < dx_H)                              // dx cut
+											&& antiDy                                                // anti-dy region
+											&& (!goodSbs_track);                                     // no SBS track
+
+					if (neutral_antiDy_noW2) {
+						h_W2_data_neutral->Fill(W2);
+					}
+
 
  			//double KinE = 0.0;
 
@@ -373,16 +450,16 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	
 	//hist_bkg=bkg_model(h_dxdy_bkg, dy_ac_L, dy_ac_H, kin, flag_eHCAL_cut, eHCAL_L);//background dist, hard coded for GEN3
 	
-        auto* h_dx_p_cut_W2_cointime_dy_copy = static_cast<TH1D*>(
-        h_dx_p_cut_W2_cointime_dy->Clone("h_dx_p_cut_W2_cointime_dy_copy"));
+    auto* h_dx_p_cut_W2_cointime_dy_copy = static_cast<TH1D*>(
+    h_dx_p_cut_W2_cointime_dy->Clone("h_dx_p_cut_W2_cointime_dy_copy"));
 
-        auto* h_charge_background_copy = static_cast<TH1D*>(
-        h_charge_background->Clone("h_charge_background_copy"));
+    auto* h_charge_background_copy = static_cast<TH1D*>(
+    h_charge_background->Clone("h_charge_background_copy"));
 
-    	auto* h_all_background_copy= static_cast<TH1D*>(
-        h_all_background->Clone("h_all_background_copy"));
+    auto* h_all_background_copy= static_cast<TH1D*>(
+    h_all_background->Clone("h_all_background_copy"));
 
-    	double m_ref = h_dx_W2_cut->GetBinContent(h_dx_W2_cut->FindBin(-1.2));//GetMaximum();
+    double m_ref = h_dx_W2_cut->GetBinContent(h_dx_W2_cut->FindBin(-1.2));//GetMaximum();
    	double m_p   = h_dx_p_cut_W2_cointime_dy->GetBinContent(h_dx_p_cut_W2_cointime_dy->FindBin(-1.2));//GetMaximum();
 
 	double m_ref_bkg = h_all_background->GetBinContent(h_all_background->FindBin(-1.2));//->GetMaximum();
@@ -652,6 +729,54 @@ void models(const char* filename,const char* sim_filename,const char* printfilen
 	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.png",printfilename,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L,std::to_string(sbs_veto).c_str()));
 	cfit->SaveAs(Form("plots/models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.jpg",printfilename,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L,std::to_string(sbs_veto).c_str()));
 	cbkg->SaveAs(Form("plots/bkg_models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.jpg",printfilename,std::to_string(flag_eHCAL_cut).c_str(),eHCAL_L,std::to_string(sbs_veto).c_str()));
+
+	// --- Make normalized copies (do NOT modify originals) ---
+	auto* W2_data     = (TH1D*) h_W2_data->Clone("W2_data_norm");
+	auto* W2_sim_qe   = (TH1D*) h_W2_sim_qe->Clone("W2_sim_qe_norm");
+	auto* W2_charged  = (TH1D*) h_W2_data_charged->Clone("W2_charged_norm");
+	auto* W2_neutral  = (TH1D*) h_W2_data_neutral->Clone("W2_neutral_norm");
+
+	auto norm1 = [](TH1D* h){
+	double I = h->Integral(0, h->GetNbinsX()+1); // include under/overflow
+	if (I > 0) h->Scale(1.0/I);
+	};
+
+	norm1(W2_data);
+	norm1(W2_sim_qe);
+	norm1(W2_charged);
+	norm1(W2_neutral);
+
+	// --- Style (pick whatever you like) ---
+	W2_data->SetLineColor(kBlack);    W2_data->SetLineWidth(3);
+	W2_sim_qe->SetLineColor(kRed+1);  W2_sim_qe->SetLineWidth(3);
+	W2_charged->SetLineColor(kBlue+1);W2_charged->SetLineWidth(3);
+	W2_neutral->SetLineColor(kGreen+2);W2_neutral->SetLineWidth(3);
+
+	W2_data->SetStats(0);
+
+	// --- Draw all on the SAME pad ---
+	TCanvas* cW2 = new TCanvas("cW2","W2 normalized overlays",1600,1200);
+	W2_data->SetTitle("W^{2} (normalized);W^{2} (GeV^{2});Normalized counts");
+	W2_sim_qe->Draw("hist");
+	W2_data->Draw("hist same");
+	W2_charged->Draw("hist same");
+	W2_neutral->Draw("hist same");
+
+	// --- Legend ---
+	auto* legW2 = new TLegend(0.55,0.65,0.88,0.88);
+	legW2->AddEntry(W2_data,    "Data (QE-like, no W2 cut)", "l");
+	legW2->AddEntry(W2_sim_qe,  "SIM QE (QE-like, no W2 cut)", "l");
+	legW2->AddEntry(W2_charged, "Data charged (SBS track)", "l");
+	legW2->AddEntry(W2_neutral, "Data neutral (anti-dy, no SBS)", "l");
+	legW2->Draw();
+
+	cW2->SaveAs(Form("plots/W2_overlay_%s_eHCAL_cut_%s_%f_sbs_veto_%s.png",
+					kin, std::to_string(flag_eHCAL_cut).c_str(), eHCAL_L, std::to_string(sbs_veto).c_str()));
+
+
+	cW2->SaveAs(Form("plots/W2_models_%s_eHCAL_cut_%s_%f_sbs_veto_%s.png",
+					kin, std::to_string(flag_eHCAL_cut).c_str(), eHCAL_L, std::to_string(sbs_veto).c_str()));
+
 
 } 
 
