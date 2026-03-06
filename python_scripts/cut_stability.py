@@ -171,17 +171,32 @@ def stream_scan(
         )
         keep = ~pre_reject
 
-        # Baseline cuts (except scanned variable), matching C++
+        # ------------------------------------------------------------
+        # Baseline cuts EXCLUDING the variable we are scanning
+        # (so we don't "hard cut" the same thing we're scanning)
+        # ------------------------------------------------------------
         baseCommon = (
             (np.abs(vz) < 0.27)
             & (ePS > 0.2)
-            & (W2 > W2L0) & (W2 < W2H0)
-            & (eHCAL > eL0)
         )
-        inCT = (ct > tL0) & (ct < tH0)
-        inDX = (dx > dxL0) & (dx < dxH0)
 
-        keep &= baseCommon & inCT & inDX
+        # Apply W2 baseline only if we are NOT scanning W2 edges
+        if var_type not in ("W2L", "W2H"):
+            baseCommon &= (W2 > W2L0) & (W2 < W2H0)
+
+        # Apply eHCAL baseline only if we are NOT scanning eHCAL lower edge
+        if var_type not in ("eL", "eHCAL_L"):
+            baseCommon &= (eHCAL > eL0)
+
+        # Apply coin_time baseline only if we are NOT scanning its edges
+        if var_type not in ("tL", "tH"):
+            baseCommon &= (ct > tL0) & (ct < tH0)
+
+        # Apply dx baseline only if we are NOT scanning its edges
+        if var_type not in ("dxL", "dxH"):
+            baseCommon &= (dx > dxL0) & (dx < dxH0)
+
+        keep &= baseCommon
 
         if not np.any(keep):
             continue
@@ -301,23 +316,23 @@ def main() -> None:
     ap.add_argument("--fmt", default="pdf", choices=["pdf", "png", "both"], help="Plot output format")
 
     # Baseline defaults (match your macro's spirit; override to match your exact config)
-    ap.add_argument("--dyL0", type=float, default=-0.5, help="baseline dy lower")
-    ap.add_argument("--dyH0", type=float, default=0.5, help="baseline dy upper")
+    ap.add_argument("--dyL0", type=float, default=-0.4, help="baseline dy lower")
+    ap.add_argument("--dyH0", type=float, default=0.4, help="baseline dy upper")
     ap.add_argument("--W2L0", type=float, default=-1.0, help="baseline W2 lower")
-    ap.add_argument("--W2H0", type=float, default=3.0, help="baseline W2 upper")
-    ap.add_argument("--eL0", type=float, default=0.025, help="baseline eHCAL lower")
-    ap.add_argument("--tL0", type=float, default=-50.0, help="baseline coin_time lower")
-    ap.add_argument("--tH0", type=float, default=50.0, help="baseline coin_time upper")
-    ap.add_argument("--dxL0", type=float, default=-3.0, help="baseline dx lower")
-    ap.add_argument("--dxH0", type=float, default=3.0, help="baseline dx upper")
+    ap.add_argument("--W2H0", type=float, default=1.5, help="baseline W2 upper")
+    ap.add_argument("--eL0", type=float, default=0.1, help="baseline eHCAL lower")
+    ap.add_argument("--tL0", type=float, default=117, help="baseline coin_time lower")
+    ap.add_argument("--tH0", type=float, default=123, help="baseline coin_time upper")
+    ap.add_argument("--dxL0", type=float, default=-0.4, help="baseline dx lower")
+    ap.add_argument("--dxH0", type=float, default=0.4, help="baseline dx upper")
 
     # Scan ranges (edit to match your C++ arrays if you want 1:1)
     ap.add_argument("--nscan", type=int, default=21, help="points per scan (default 21)")
-    ap.add_argument("--dy_span", type=float, default=0.8, help="dy scan span around baseline edges")
-    ap.add_argument("--dx_span", type=float, default=2.0, help="dx scan span around baseline edges")
-    ap.add_argument("--ct_span", type=float, default=80.0, help="coin_time scan span around baseline edges")
-    ap.add_argument("--W2_span", type=float, default=2.0, help="W2 scan span around baseline edges")
-    ap.add_argument("--e_span", type=float, default=0.08, help="eHCAL lower scan span")
+    ap.add_argument("--dy_span", type=float, default=0.2, help="dy scan span around baseline edges")
+    ap.add_argument("--dx_span", type=float, default=0.2, help="dx scan span around baseline edges")
+    ap.add_argument("--ct_span", type=float, default=2.0, help="coin_time scan span around baseline edges")
+    ap.add_argument("--W2_span", type=float, default=0.05, help="W2 scan span around baseline edges")
+    ap.add_argument("--e_span", type=float, default=0.2, help="eHCAL lower scan span")
 
     args = ap.parse_args()
     ensure_outdir(args.outdir)

@@ -326,7 +326,10 @@ def compute_fom_and_details(
         return -np.inf, None
 
     # --- raw asymmetry counts from DATA (after cuts) ---
-    hel_sel = helD[mD]
+    # Apply the dx window to DATA when computing the raw asymmetry (affects sigma_Araw)
+    lo, hi = cfg.dx_window
+    mD_dxwin = mD & (dxD >= lo) & (dxD <= hi)
+    hel_sel = helD[mD_dxwin]
     Nplus = float(np.sum(hel_sel > 0))
     Nminus = float(np.sum(hel_sel < 0))
     Araw, sigma_Araw = asymmetry_and_error_from_counts(Nplus, Nminus)
@@ -742,10 +745,10 @@ def parse_args():
     ap.add_argument("--eL-max", type=float, default=0.35)
 
     # DATA only
-    ap.add_argument("--tL-min", type=float, default=170.0)
-    ap.add_argument("--tL-max", type=float, default=190.0)
-    ap.add_argument("--tH-min", type=float, default=170.0)
-    ap.add_argument("--tH-max", type=float, default=190.0)
+    ap.add_argument("--tL-min", type=float, default=-5.0)
+    ap.add_argument("--tL-max", type=float, default=-2.0)
+    ap.add_argument("--tH-min", type=float, default=2.0)
+    ap.add_argument("--tH-max", type=float, default=5.0)
 
     ap.add_argument("--dxL-scan-min", type=float, default=-0.6)
     ap.add_argument("--dxL-scan-max", type=float, default=-0.2)

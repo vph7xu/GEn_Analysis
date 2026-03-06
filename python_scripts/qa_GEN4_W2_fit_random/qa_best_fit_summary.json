@@ -1,0 +1,36 @@
+{
+  "Araw": 0.0043997485857950975,
+  "Nminus": 3168.0,
+  "Nplus": 3196.0,
+  "best_cuts": {
+    "W2H": 1.29,
+    "W2L": -1.07,
+    "dx0": 0.0,
+    "dy0": 0.0,
+    "eL": 0.34,
+    "rdx": 1.2,
+    "rdy": 0.67,
+    "tH": 5.11,
+    "tL": -5.68
+  },
+  "best_sigma_phys": 0.02083729416357635,
+  "coin_time_cut_applied_to": "data_only",
+  "counts_after_cuts": {
+    "nB": 25166,
+    "nData": 6488,
+    "nN": 134245,
+    "nP": 195283
+  },
+  "dx_window": [
+    -0.4,
+    0.4
+  ],
+  "fn": 0.6015744576631913,
+  "grid_step": 0.01,
+  "opt_center": false,
+  "sigma_Araw": 0.012535183935621823,
+  "yields_in_dx_window": {
+    "Nn_window": 1061.2508951257637,
+    "Ntot_window": 1764.1222655100419
+  }
+}

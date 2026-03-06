@@ -1,0 +1,41 @@
+{
+  "best_cuts": {
+    "W2H": 1.6,
+    "W2L": -1.07,
+    "dx0": 0.0,
+    "dy0": 0.0,
+    "eL": 0.06,
+    "rdx": 0.3,
+    "rdy": 0.79,
+    "tH": 126.34,
+    "tL": 115.76
+  },
+  "best_score": -0.006906462062054951,
+  "best_sigma_phys": 0.006906462062054951,
+  "meta": {
+    "bkg": "/media/vimukthi/Sata/Research_JLab/outfiles/inelastic_simulation_2025/QE_sim_GEN3_sbs100p_nucleon_np_model2_inelastic.root",
+    "data": "/media/vimukthi/Sata/Research_JLab/outfiles/pass2_small/QE_data_GEN3_sbs100p_nucleon_np_model2_sbstrackingon.root",
+    "downsample_bkg": 0.5,
+    "downsample_data": 0.5,
+    "downsample_sim": 1.0,
+    "dtype": "float32",
+    "dx_hist": {
+      "bins": 100,
+      "max": 4.0,
+      "min": -4.0
+    },
+    "dx_window": [
+      -0.4,
+      0.4
+    ],
+    "grid_step": 0.01,
+    "method": "optuna",
+    "n_trials": 1000,
+    "opt_center": false,
+    "qa_dir": "qa_GEN3_W2_fit_optuna",
+    "seed": 1,
+    "sim": "/media/vimukthi/Sata/Research_JLab/outfiles/SimQE_2025/QE_sim_GEN3_sbs100p_nucleon_np_model2_elastic.root",
+    "step_size": "200 MB",
+    "tree": "Tout"
+  }
+}

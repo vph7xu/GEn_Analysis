@@ -24,7 +24,7 @@ const int npoints_new = 3;
 
 double Q2_Sean[npoints_new] = {2.90,6.62,9.48};
 double Q2_Hunter[npoints_new] = {2.95,6.67,9.53};
-double Q2_new[npoints_new] = {2.99,6.75,9.75};
+double Q2_new[npoints_new] = {2.99,6.82,9.78};
 //double Q2_new[npoints_new] = {3.02,6.80,9.73};
 
 
@@ -41,9 +41,9 @@ double GEGM_sys_err_Hunter[npoints_new] = {0.0309/constant::mun,0.0374/constant:
 double GEGM_err_Hunter[npoints_new];
 
 //Vimukthi
-double GEGM_new[npoints_new] = {0.4483/constant::mun,-0.416487,-0.2884024};
-double GEGM_stat_err_new[npoints_new] = {0.0330/constant::mun,0.0714534,0.1414521};
-double GEGM_sys_err_new[npoints_new] = {0.0309/constant::mun,0.0160963,0.0343047};
+double GEGM_new[npoints_new] = {-0.2445,-0.4123,-0.3626};
+double GEGM_stat_err_new[npoints_new] = {0.0202,0.0686,0.1311};
+double GEGM_sys_err_new[npoints_new] = {0.0181,0.0179,0.0377};
 double GEGM_err_new[npoints_new];
 
 //Sean
@@ -59,9 +59,9 @@ double GE_sys_err_Hunter[npoints_new] = {0.0012,0.0003,0.0002};
 double GE_err_Hunter[npoints_new];
 
 //Vimukthi
-double GE_new[npoints_new] = {0.015496,0.0065146788};
-double GE_stat_err_new[npoints_new] = {0.001643,0.001714851292};
-double GE_sys_err_new[npoints_new] = {0.000997,0.0004055680032};
+double GE_new[npoints_new] = {0.0172,0.0059,0.0023};
+double GE_stat_err_new[npoints_new] = {0.0014,0.0010,0.0008};
+double GE_sys_err_new[npoints_new] = {0.0013,0.0003,0.0003};
 double GE_err_new[npoints_new];
 
 double kappa_d = -2.03;

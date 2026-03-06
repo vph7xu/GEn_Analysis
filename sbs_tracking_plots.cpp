@@ -5,9 +5,16 @@
 
 void sbs_tracking_plots(const char* filename, const char* printfilename, const char *kin){
 
-	std::map<std::string, std::string> config = parseConfig(Form("cuts/calib/cut_%s.txt",kin)); //parse the cuts
+	std::map<std::string, std::string> config = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
 	cuts cutsobject;	
 	cutsobject.parsecuts(config);
+
+	// Improve plot appearance: larger fonts and cleaner style
+	gStyle->SetTitleSize(0.05, "XYZ");
+	gStyle->SetLabelSize(0.04, "XYZ");
+	gStyle->SetStatFont(42);
+	gStyle->SetStatFontSize(0.03);
+	gStyle->SetPalette(kRainBow);
 
 	//std::cout<<"coin_time : "<<cutsobject.coin_time_L<<endl;
 	
@@ -106,7 +113,7 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 	
 	TH1D *h_pmag_ratio = new TH1D("h_pmag_ratio","pN_BB/pN_SBS",200,0.7,1.3);
 	
-	TH2D *h_ptheta_corr = new TH2D("h_ptheta_corr","ptheta corr",200,0.5,0.7,200,0.5,0.7);
+	TH2D *h_ptheta_corr = new TH2D("h_ptheta_corr","ptheta corr",200,0.3,0.5,200,0.3,0.5);
 	TH2D *h_pphi_corr = new TH2D("h_pphi_corr","pphi corr",200,2.8,3.6,200,-0.3,0.45);
 	TH2D *h_pmag_corr = new TH2D("h_pmag_corr","pN_BB and pN_SBS correlation",200,P_sbs_L,P_sbs_H,200,P_sbs_L,P_sbs_H);
 
@@ -136,6 +143,36 @@ void sbs_tracking_plots(const char* filename, const char* printfilename, const c
 
 	TH1D *h_delta_vz = new TH1D("h_delta_vz","delta vz",200,-0.6,0.6);
 	TH2D *h_vz_corr = new TH2D("h_vz_corr","vz_BB and vz_SBS correlation",200,-0.3,0.3,200,-0.3,0.3);
+
+	// Style 1D histograms: gray fill, black outline, thicker lines, larger fonts
+	TH1D* h1ds[] = {h_delta_ptheta, h_delta_pphi, h_delta_pmag, h_pmag_ratio,
+					h_coin_time, h_W2, h_delta_vz};
+	for(auto hh : h1ds){
+		if(!hh) continue;
+		hh->SetFillColor(kGray+2);
+		hh->SetFillStyle(1001);
+		hh->SetLineColor(kBlack);
+		hh->SetLineWidth(2);
+		hh->GetXaxis()->SetTitleSize(0.045);
+		hh->GetYaxis()->SetTitleSize(0.045);
+		hh->GetXaxis()->SetLabelSize(0.04);
+		hh->GetYaxis()->SetLabelSize(0.04);
+	}
+
+	// Increase font sizes for 2D histograms (COLZ plots)
+	TH2D* h2ds[] = {h_ptheta_corr, h_pphi_corr, h_pmag_corr, h_delta_ptheta_v_trthsbs,
+					h_delta_ptheta_v_trphsbs, h_delta_ptheta_v_trxsbs, h_delta_ptheta_v_trysbs,
+					h_delta_pphi_v_trthsbs, h_delta_pphi_v_trphsbs, h_delta_pphi_v_trxsbs, h_delta_pphi_v_trysbs,
+					h_delta_pmag_v_trthsbs, h_delta_pmag_v_trphsbs, h_delta_pmag_v_trxsbs, h_delta_pmag_v_trysbs,
+					h_delta_vz_v_trthsbs, h_delta_vz_v_trphsbs, h_delta_vz_v_trxsbs, h_delta_vz_v_trysbs,
+					h_dxdy, h_vz_corr};
+	for(auto hh : h2ds){
+		if(!hh) continue;
+		hh->GetXaxis()->SetTitleSize(0.045);
+		hh->GetYaxis()->SetTitleSize(0.045);
+		hh->GetXaxis()->SetLabelSize(0.04);
+		hh->GetYaxis()->SetLabelSize(0.04);
+	}
 
 	bool cutcoin_time = false;
 	bool cutW2_coin_time = false;

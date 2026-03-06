@@ -5,9 +5,16 @@
 
 void Hcal_fsam(const char* filename, const char* printfilename, const char* kin , bool sbs_tracking){
 
-	gStyle->SetOptFit(1111);
+    gStyle->SetOptFit(1111);
+    gStyle->SetPalette(kRainBow);
 
-    std::map<std::string, std::string> config = parseConfig(Form("cuts/calib/cut_%s.txt",kin)); //parse the cuts
+    // Improve plot appearance: larger fonts and cleaner style
+    gStyle->SetTitleSize(0.05, "XYZ");
+    gStyle->SetLabelSize(0.04, "XYZ");
+    gStyle->SetStatFont(42);
+    gStyle->SetStatFontSize(0.03);
+
+    std::map<std::string, std::string> config = parseConfig(Form("cuts/cut_%s.txt",kin)); //parse the cuts
     cuts cutsobject;
     cutsobject.parsecuts(config);
 
@@ -84,6 +91,21 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
 
     TH2D *hvertexcorr = new TH2D("hvertexcorr", "vertex correlation", 100,-0.5,0.5,100,-0.5,0.5);
     TH1D *hdeltavertex = new TH1D("hdeltavertex","delta vertex", 100, -0.5, 0.5);
+
+    // Style 1D histograms: gray fill, black outline, increased font sizes
+    TH1D* h1ds[] = {hfs, her, hpN, hehcal, hekin, hcointime, hW2, hnblk_hcal,
+                    hseedsumratio, hseedsecondratio, hxhcal, hyhcal, hdeltavertex};
+    for(auto hh : h1ds){
+        if(!hh) continue;
+        hh->SetFillColor(kGray+2);
+        hh->SetFillStyle(1001);
+        hh->SetLineColor(kBlack);
+        hh->SetLineWidth(2);
+        hh->GetXaxis()->SetTitleSize(0.045);
+        hh->GetYaxis()->SetTitleSize(0.045);
+        hh->GetXaxis()->SetLabelSize(0.04);
+        hh->GetYaxis()->SetLabelSize(0.04);
+    }
 
     TGraphErrors *graph = new TGraphErrors(hfsample->GetNbinsX());
     
@@ -365,7 +387,7 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
     TF1 *gaus_hfs = new TF1("gaus_hfs","gaus",hfs->GetMean()-1.5*hfs->GetRMS(),hfs->GetMean()+1.5*hfs->GetRMS());
     hfs->Fit(gaus_hfs,"R"); 
     gaus_hfs->SetLineColor(kRed);
-    gaus_hfs->SetLineWidth(2);
+    gaus_hfs->SetLineWidth(4);
 
     // (Optional) Move stats box if overlapping your data
     TPaveStats *st1 = (TPaveStats*)hfs->FindObject("stats");
@@ -381,8 +403,8 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
     her->Draw();
     TF1 *gaus_her = new TF1("gaus_her","gaus",her->GetMean()-0.02-1.2*her->GetRMS(),her->GetMean()-0.02+1.2*her->GetRMS());
     her->Fit(gaus_her,"R");
-    gaus_her->SetLineColor(kBlue);
-    gaus_her->SetLineWidth(2);
+    gaus_her->SetLineColor(kRed);
+    gaus_her->SetLineWidth(4);
 
     // (Optional) Move stats box for her
     TPaveStats *st2 = (TPaveStats*)her->FindObject("stats");
@@ -491,6 +513,14 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
                                  hfsample->GetXaxis()->GetBinLowEdge(iBin),
                                  hfsample->GetXaxis()->GetBinUpEdge(iBin)));
             projY->GetXaxis()->SetTitle("Sampling Fraction");
+            projY->SetFillColor(kGray+2);
+            projY->SetFillStyle(1001);
+            projY->SetLineColor(kBlack);
+            projY->SetLineWidth(2);
+            projY->GetXaxis()->SetTitleSize(0.045);
+            projY->GetYaxis()->SetTitleSize(0.045);
+            projY->GetXaxis()->SetLabelSize(0.04);
+            projY->GetYaxis()->SetLabelSize(0.04);
             projY->Draw();
 
             // If we've just filled the 25th pad or reached the last bin, print this page
@@ -530,6 +560,14 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
                                  hfsampley->GetXaxis()->GetBinLowEdge(iBin),
                                  hfsampley->GetXaxis()->GetBinUpEdge(iBin)));
             projY->GetXaxis()->SetTitle("Sampling Fraction");
+            projY->SetFillColor(kGray+2);
+            projY->SetFillStyle(1001);
+            projY->SetLineColor(kBlack);
+            projY->SetLineWidth(2);
+            projY->GetXaxis()->SetTitleSize(0.045);
+            projY->GetYaxis()->SetTitleSize(0.045);
+            projY->GetXaxis()->SetLabelSize(0.04);
+            projY->GetYaxis()->SetLabelSize(0.04);
             projY->Draw();
 
             if(((iBin % 25) == 0) || (iBin == nbinsX)){
@@ -566,6 +604,14 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
                                  heratio->GetXaxis()->GetBinLowEdge(iBin),
                                  heratio->GetXaxis()->GetBinUpEdge(iBin)));
             projY->GetXaxis()->SetTitle("HCAL energy / Expected KE");
+            projY->SetFillColor(kGray+2);
+            projY->SetFillStyle(1001);
+            projY->SetLineColor(kBlack);
+            projY->SetLineWidth(2);
+            projY->GetXaxis()->SetTitleSize(0.045);
+            projY->GetYaxis()->SetTitleSize(0.045);
+            projY->GetXaxis()->SetLabelSize(0.04);
+            projY->GetYaxis()->SetLabelSize(0.04);
             projY->Draw();
 
             if(((iBin % 25) == 0) || (iBin == nbinsX)){
@@ -602,6 +648,14 @@ void Hcal_fsam(const char* filename, const char* printfilename, const char* kin 
                                  heratioy->GetXaxis()->GetBinLowEdge(iBin),
                                  heratioy->GetXaxis()->GetBinUpEdge(iBin)));
             projY->GetXaxis()->SetTitle("HCAL energy / Expected KE");
+            projY->SetFillColor(kGray+2);
+            projY->SetFillStyle(1001);
+            projY->SetLineColor(kBlack);
+            projY->SetLineWidth(2);
+            projY->GetXaxis()->SetTitleSize(0.045);
+            projY->GetYaxis()->SetTitleSize(0.045);
+            projY->GetXaxis()->SetLabelSize(0.04);
+            projY->GetYaxis()->SetLabelSize(0.04);
             projY->Draw();
 
             if(((iBin % 25) == 0) || (iBin == nbinsX)){

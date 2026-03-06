@@ -31,11 +31,11 @@ dx_p_H = -1.28
 dy_ac_L = -1.5
 dy_ac_H = 1.2
 
-dx_C = -1.53
-dx_R = 0.12
+dx_C = -1.50
+dx_R = 0.15
 
-dy_C = 0.08 
-dy_R = 0.1
+dy_C = 0.00 
+dy_R = 0.2
 
 IHWP_flip = 1
 

@@ -84,7 +84,7 @@ void plot_hcal_clus(const char* infile,
   while(R.Next()){
     // Placeholder for event-level cuts you add later:
     // bool passEvent = (some condition);
-    bool passEvent = abs(*vz)<0.27&&*ePS>0.2&&abs((*ePS+*eSH)/(*trP)-1)<0.2&&abs(*coin_time-185)<5&&*W2<1.6;
+    bool passEvent = abs(*vz)<0.27&&*ePS>0.2&&abs((*ePS+*eSH)/(*trP)-1)<0.2&&*W2<1.6&&abs(*coin_time-185)>5;
     if(!passEvent) continue;
 
     // fill scalar
@@ -125,10 +125,12 @@ void plot_hcal_clus(const char* infile,
   c->Clear(); hAt->Draw("hist"); c->Print(pdf);
   c->Clear(); hTdc->Draw("hist"); c->Print(pdf);
   c->Clear(); hT->Draw("hist"); c->Print(pdf);
-  c->Clear(); hEHCal_vs_coin_time->Draw("COLZ"); c->Print(pdf);
+  c->Clear(); hEHCal_vs_coin_time->Draw("COLZ"); 
   //hEHCal_vs_coin_time->SetStats(0);
   hEHCal_vs_coin_time->GetXaxis()->SetTitle("(hcal_clus_atime - bbcal_time) [ns]");
   hEHCal_vs_coin_time->GetYaxis()->SetTitle("HCAL cluster energy [GeV]");
+  c->Print(pdf);
+
 
   c->Clear();
   gStyle->SetOptStat(0);
